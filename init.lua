@@ -13,7 +13,7 @@ Fk:loadTranslationTable{
   [":zhiyu"] = "每当你受到一次伤害后，你可以摸一张牌，然后展示所有手牌，若颜色均相同，伤害来源弃置一张手牌。",
 }
 
-local caozhang = General(extension, "caozhang", "wei", 4)
+--local caozhang = General(extension, "caozhang", "wei", 4)
 local jiangchi = fk.CreateTriggerSkill{
   name = "jiangchi",
   anim_type = "drawcard",
@@ -55,7 +55,7 @@ local jiangchi_buff = fk.CreateTargetModSkill{
   end,
 }
 jiangchi:addRelatedSkill(jiangchi_buff)
-caozhang:addSkill(jiangchi)
+--caozhang:addSkill(jiangchi)
 Fk:loadTranslationTable{
   ["caozhang"] = "曹彰",
   ["jiangchi"] = "将驰",
@@ -77,25 +77,24 @@ local zhenlie = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local move1 = {}
-      move1.ids = room:getNCards(1)
-      move1.from = nil
-      move1.toArea = Card.Processing
-      move1.moveReason = fk.ReasonJustMove
-      move1.skillName = self.name
+    move1.ids = room:getNCards(1)
+    move1.toArea = Card.Processing
+    move1.moveReason = fk.ReasonJustMove
+    move1.skillName = self.name
     local move2 = {}
-      move2.ids = {data.card:getEffectiveId()}
-      move2.toArea = Card.DiscardPile
-      move2.moveReason = fk.ReasonJustMove
-      move2.skillName = self.name
+    move2.ids = {data.card:getEffectiveId()}
+    move2.toArea = Card.DiscardPile
+    move2.moveReason = fk.ReasonJustMove
+    move2.skillName = self.name
     room:moveCards(move1, move2)
     data.card = Fk:getCardById(move1.ids[1])
-    local log = {}
-      log.type = "#ChangedJudge"
-      log.from = player.id
-      log.to = {player.id}
-      log.card = {move1.ids[1]}
-      log.arg = self.name
-    room:sendLog(log)
+    room:sendLog{
+      type = "#ChangedJudge",
+      from = player.id,
+      to = {player.id},
+      card = {move1.ids[1]},
+      arg = self.name
+    }
   end,
 }
 local miji = fk.CreateTriggerSkill{
@@ -114,7 +113,8 @@ local miji = fk.CreateTriggerSkill{
     }
     room:judge(judge)
     if judge.card.color == Card.Black then
-      local to = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p) return p.id end), 1, 1, "#miji-choose", self.name)[1]  --waiting for default choice...
+      local to = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p) return p.id end), 1, 1, "#miji-choose", self.name)[1]
+      --TODO: cancelable, default choice...
       to = room:getPlayerById(to)
       to:drawCards(player.maxHp - player.hp, self.name)  --waiting for preview function...
     end
@@ -149,7 +149,7 @@ local qianxi = fk.CreateTriggerSkill{
     }
     room:judge(judge)
     if judge.card.suit ~= Card.Heart then
-     room:changeMaxHp(tar, -1)
+      room:changeMaxHp(tar, -1)
       return true
     end
   end
@@ -221,7 +221,7 @@ local gongqi = fk.CreateViewAsSkill{
 local gongqiTargetMod = fk.CreateTargetModSkill{
   name = "#gongqiTargetMod",
   distance_limit_func =  function(self, player, skill)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(self.name) then  --FIXME
       return 999
     end
   end,
@@ -236,7 +236,7 @@ Fk:loadTranslationTable{
   [":jiefan"] = "你的回合外，当一名角色处于濒死状态时，你可以对当前回合角色使用一张【杀】，此【杀】造成伤害时，你防止此伤害，视为对该濒死角色使用了一张【桃】。",
 }
 
---local liubiao = General(extension, "liubiao", "qun", 4)
+local liubiao = General(extension, "liubiao", "qun", 4)
 local zishou = fk.CreateTriggerSkill{
   name = "zishou",
   anim_type = "drawcard",
@@ -245,11 +245,11 @@ local zishou = fk.CreateTriggerSkill{
     return player:hasSkill(self.name) and player.phase == Player.Draw and player:isWounded()
   end,
   on_use = function(self, event, target, player, data)
-    data.n = data.n + player.maxHp - player.hp
+    data.n = data.n + player:getLostHp()
     player:skip(Player.Play)
   end,
 }
---liubiao:addSkill(zishou)
+liubiao:addSkill(zishou)
 Fk:loadTranslationTable{
   ["liubiao"] = "刘表",
   ["zishou"] = "自守",
@@ -266,7 +266,7 @@ local shiyong = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and target:hasSkill(self.name) and not target.dead and
-    data.card.trueName == "slash" and data.card.color == Card.Red-- or data.extra_data.drankBuff > 0
+    data.card.trueName == "slash" and data.card.color == Card.Red  --FIXME: drank damage
   end,
   on_use = function(self, event, target, player, data)
     player.room:changeMaxHp(player, -1)
