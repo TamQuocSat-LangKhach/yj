@@ -158,7 +158,7 @@ local longyin = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:throwCard(self.cost_data, self.name, player, player)
-    target:addCardUseHistory(data.card.name, -1)
+    target:addCardUseHistory(data.card.trueName, -1)
     if data.card.color == Card.Red then
       player:drawCards(1)
     end
