@@ -11,7 +11,7 @@ local chengxiang = fk.CreateTriggerSkill{
   anim_type = "masochism",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and target:hasSkill(self.name) and not target.dead
+    return target == player and target:hasSkill(self.name)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -169,7 +169,7 @@ local yuce = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and not player.dead and not player:isKongcheng()
+    return target == player and player:hasSkill(self.name) and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForCard(player, 1, 1, false, self.name, true)
@@ -220,7 +220,7 @@ local longyin = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.AfterCardUseDeclared},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and not player.dead and not player:isNude() and target.phase == Player.Play and data.card.trueName == "slash"
+    return player:hasSkill(self.name) and not player:isNude() and target.phase == Player.Play and data.card.trueName == "slash"
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForCard(player, 1, 1, true, self.name, true, ".")
@@ -307,7 +307,7 @@ local duodao = fk.CreateTriggerSkill{
   anim_type = "masochism",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and not player.dead and not player:isNude() and data.card ~= nil and data.card.trueName == "slash"
+    return target == player and player:hasSkill(self.name) and not player:isNude() and data.card ~= nil and data.card.trueName == "slash"
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForCard(player, 1, 1, true, self.name, true, ".")
@@ -481,9 +481,7 @@ local qiuyuan = fk.CreateTriggerSkill{
     room:doIndicate(player.id, {to})
     local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, true, "jink")
     if #card > 0 then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(card)
-      room:obtainCard(player, dummy, true, fk.ReasonGive)
+      room:obtainCard(player, Fk:getCardById(card[1]), true, fk.ReasonGive)
     else
       TargetGroup:pushTargets(data.targetGroup, to)
     end

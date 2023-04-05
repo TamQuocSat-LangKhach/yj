@@ -5,10 +5,11 @@ Fk:loadTranslationTable{
   ["yjcm2014"] = "一将成名2014",
 }
 
---local caozhen = General(extension, "caozhen", "wei", 4)
+local caozhen = General(extension, "caozhen", "wei", 4)
 local sidi = fk.CreateTriggerSkill{
   name = "sidi",
   anim_type = "control",
+  expand_pile = "sidi",
   events = {fk.CardUseFinished, fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self.name) then
@@ -19,16 +20,40 @@ local sidi = fk.CreateTriggerSkill{
       end
     end
   end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.CardUseFinished then
+      return room:askForSkillInvoke(player, self.name)
+    else
+      --FIXME: can't select card from pile yet, use random card instead
+      --local card = room:askForCard(player, 1, 1, true, self.name, true, ".|.|.|sidi|.|.")
+      if room:askForSkillInvoke(player, self.name) then
+        local card = {player:getPile(self.name)[math.random(1, #player:getPile(self.name))]}
+        if #card > 0 then
+          self.cost_data = card
+          return true
+        end
+      end
+    end
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.CardUseFinished then
       player:addToPile(self.name, room:getNCards(1), false, self.name)
     else
-      player:drawCards(1)
+      room:moveCards({
+        from = player.id,
+        ids = self.cost_data,
+        toArea = Card.DiscardPile,
+        moveReason = fk.ReasonPutIntoDiscardPile,
+        skillName = self.name,
+        specialName = self.name,
+      })
+      target:addCardUseHistory("slash", 1)
     end
   end,
 }
---caozhen:addSkill(sidi)
+caozhen:addSkill(sidi)
 Fk:loadTranslationTable{
   ["caozhen"] = "曹真",
   ["sidi"] = "司敌",
@@ -252,7 +277,7 @@ local qiangzhi = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play
+    return target == player and player:hasSkill(self.name, true) and player.phase == Player.Play
   end,
   on_refresh = function(self, event, target, player, data)
     player.room:setPlayerMark(player, "@qiangzhi", 0)
@@ -276,7 +301,7 @@ local xiantu = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseEnd, fk.Death},
   can_refresh = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and player:usedSkillTimes(self.name) > 0 and not player.dead then
+    if player:hasSkill(self.name, true) and player:usedSkillTimes(self.name) > 0 and not player.dead then
       if event == fk.EventPhaseEnd then
         return target.phase == Player.Play
       else
@@ -428,13 +453,13 @@ local jianying = fk.CreateTriggerSkill{
     player:drawCards(1)
   end,
 
-  refresh_events = {fk.CardUsing, fk.EventPhaseEnd},
+  refresh_events = {fk.AfterCardUseDeclared, fk.EventPhaseEnd},
   can_refresh = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player.phase == Player.Play
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.CardUsing then
+    if event == fk.AfterCardUseDeclared then
       if data.card:getSuitString() == player:getMark("jianying_suit") or data.card.num == player:getMark("jianying_num") then
         self.can_jianying = true
       else
@@ -457,7 +482,7 @@ local shibei = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and not player.dead
+    return target == player and player:hasSkill(self.name)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -475,9 +500,7 @@ local shibei = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseStart},
   can_refresh = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and target.phase == Player.NotActive  then
-      return true
-    end
+    return player:hasSkill(self.name, true) and target.phase == Player.NotActive
   end,
   on_refresh = function(self, event, target, player, data)
     player.room:setPlayerMark(player, self.name, 0)
