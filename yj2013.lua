@@ -40,7 +40,7 @@ local chengxiang = fk.CreateTriggerSkill{
       end
       if #card_ids == 0 then break end
       local card_id = room:askForAG(player, card_ids, false, self.name)
-      --if card_id then break end
+      --if card_id == nil then break end
       room:takeAG(player, card_id, room.players)
       table.insert(get, card_id)
       table.removeOne(card_ids, card_id)
@@ -49,8 +49,8 @@ local chengxiang = fk.CreateTriggerSkill{
     table.forEach(room.players, function(p)
       room:closeAG(p)
     end)
-    local dummy = Fk:cloneCard("dilu")
     if #get > 0 then
+      local dummy = Fk:cloneCard("dilu")
       dummy:addSubcards(get)
       room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
     end
@@ -136,6 +136,8 @@ local manchong = General(extension, "manchong", "wei", 3)
 local junxing = fk.CreateActiveSkill{
   name = "junxing",
   anim_type = "control",
+  min_card_num = 1,
+  target_num = 1,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name) == 0 and not player:isKongcheng()
   end,
@@ -145,8 +147,6 @@ local junxing = fk.CreateActiveSkill{
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id
   end,
-  target_num = 1,
-  min_card_num = 1,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
@@ -186,6 +186,7 @@ local yuce = fk.CreateTriggerSkill{
       room:recover{
         who = player,
         num = 1,
+        recoverBy = player,
         skillName = self.name
       }
     else
@@ -198,6 +199,7 @@ local yuce = fk.CreateTriggerSkill{
         room:recover{
           who = player,
           num = 1,
+          recoverBy = player,
           skillName = self.name
         }
       end
@@ -270,9 +272,8 @@ local xiansi = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local other = room:getOtherPlayers(player)
     local targets = {}
-    for _, p in ipairs(other) do
+    for _, p in ipairs(room:getOtherPlayers(player)) do
       if not p:isNude() then
         table.insert(targets, p.id)
       end
@@ -352,11 +353,11 @@ local yufan = General(extension, "yufan", "wu", 3)
 local zongxuan = fk.CreateTriggerSkill{
   name = "zongxuan",
   anim_type = "control",
-  events = {fk.BeforeCardsMove},
+  events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    for _, move in ipairs(data) do
-      if player:hasSkill(self.name) and move.from == player.id and move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
-        return true
+    if player:hasSkill(self.name) then
+      for _, move in ipairs(data) do
+        return move.from == player.id and move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard
       end
     end
   end,
@@ -431,11 +432,26 @@ Fk:loadTranslationTable{
   ["#zhiyan-choose"] = "直言：你可以令一名角色摸一张牌并展示之",
 }
 
---local zhuran = General(extension, "zhuran", "wu", 4)
+--local nos__zhuran = General(extension, "zhuran", "wu", 4)
+local nos__danshou = fk.CreateTriggerSkill{
+  name = "nos__danshou",
+  anim_type = "offensive",
+  events = {fk.Damage},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:drawCards(1)
+    room.current:changePhase(room.current.phase, Player.NotActive)
+    room.logic:breakEvent(false)
+  end
+}
+--nos__zhuran:addSkill(nos__danshou)
 Fk:loadTranslationTable{
-  ["zhuran"] = "朱然",
-  ["danshou"] = "胆守",
-  [":danshou"] = "每当你造成一次伤害后，你可以摸一张牌，若如此做，终止一切结算，当前回合结束。",
+  ["nos__zhuran"] = "朱然",
+  ["nos__danshou"] = "胆守",
+  [":nos__danshou"] = "每当你造成一次伤害后，你可以摸一张牌，若如此做，终止一切结算，当前回合结束。",
 }
 
 --local fuhuanghou = General(extension, "fuhuanghou", "qun", 3, 3, General.Female)
@@ -541,7 +557,7 @@ local mieji = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = {}
-    for _, p in ipairs(room:getAlivePlayers()) do
+    for _, p in ipairs(room:getOtherPlayers(player)) do
       if not table.contains(data.tos[1], p.id) then  --TODO: target filter
         table.insertIfNeed(targets, p.id)
       end
@@ -563,11 +579,12 @@ local mieji = fk.CreateTriggerSkill{
 local fencheng = fk.CreateActiveSkill{
   name = "fencheng",
   anim_type = "offensive",
+  card_num = 0,
+  target_num = 0,
+  frequency = Skill.Limited,
   can_use = function(self, player)
     return player:getMark(self.name) == 0
   end,
-  target_num = 0,
-  card_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     room:addPlayerMark(player, self.name, 1)
