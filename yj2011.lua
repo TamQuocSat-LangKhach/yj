@@ -300,8 +300,12 @@ local enyuan = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event ==  fk.AfterCardsMove then
+      room:broadcastSkillInvoke(self.name, 1)
+      room:notifySkillInvoked(player, self.name, "support")
       room:getPlayerById(self.enyuan_to):drawCards(1, self.name)
     else
+      room:broadcastSkillInvoke(self.name, 2)
+      room:notifySkillInvoked(player, self.name)
       if data.from:isKongcheng() then
         room:loseHp(data.from, 1, self.name)
       else
