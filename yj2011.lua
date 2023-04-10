@@ -812,8 +812,8 @@ Fk:loadTranslationTable{
 --local gaoshun = General(extension, "gaoshun", "qun", 4)
 local jinjiu = fk.CreateFilterSkill{
   name = "jinjiu",
-  card_filter = function(self, to_select)
-    return to_select.name == "analeptic"
+  card_filter = function(self, to_select, player)
+    return to_select.name == "analeptic" and player:hasSkill(self.name)
   end,
   view_as = function(self, to_select)
     return Fk:cloneCard("slash", to_select.suit, to_select.number)
