@@ -533,7 +533,7 @@ local jujian = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function(p) return p.id end), 1, 1, ".|.|.|.|.|trick,equip", "#jujian-choose", self.name)
+    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function(p) return p.id end), 1, 1, ".|.|.|.|.|trick,equip", "#jujian-choose", self.name, true)
     if #tos > 0 then
       self.cost_data = {tos[1], id}
       return true
