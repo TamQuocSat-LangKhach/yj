@@ -45,6 +45,7 @@ local sidi = fk.CreateTriggerSkill{
         skillName = self.name,
         specialName = self.name,
       })
+      player:removeCards(Player.Special, self.cost_data, self.name)
       target:addCardUseHistory("slash", 1)
     end
   end,
@@ -194,7 +195,7 @@ local zhongyong = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local to = room:askForChoosePlayers(player, room:getOtherPlayers(target), 1, 1, "#zhongyong-choose", self.name)
+    local to = room:askForChoosePlayers(player, room:getOtherPlayers(target), 1, 1, "#zhongyong-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -249,7 +250,7 @@ local qiangzhi = fk.CreateTriggerSkill{
         end
       end
       if #targets == 0 then return end
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiangzhi-choose", self.name)
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiangzhi-choose", self.name, true)
       if #to > 0 then
         self.cost_data = to[1]
         return true
@@ -367,7 +368,7 @@ local bingyi = fk.CreateTriggerSkill{
         return
       end
     end
-    local tos = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p) return p.id end), 1, #cards, "#bingyi-target", self.name)
+    local tos = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p) return p.id end), 1, #cards, "#bingyi-target", self.name, true)
     if #tos > 0 then
       for _, p in ipairs(tos) do
         room:getPlayerById(p):drawCards(1)
@@ -405,7 +406,7 @@ local zenhui = fk.CreateTriggerSkill{
         table.insertIfNeed(targets, p.id)
       end
     end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#zenhui-choose", self.name)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#zenhui-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -436,18 +437,7 @@ local jiaojin = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and not player:isNude() and data.from and data.from.gender == General.Male
   end,
   on_cost = function(self, event, target, player, data)
-    local room = player.room
-    local _, discard = room:askForUseActiveSkill(player, "discard_skill", "#jiaojin-discard", true, {
-      num = 1,
-      min_num = 1,
-      include_equip = true,
-      reason = self.name,
-      pattern = ".|.|.|.|.|equip",
-    })
-    if discard then
-      room:throwCard(discard.cards, self.name, player, player)
-      return true
-    end
+    return #player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#jiaojin-cost") > 0
   end,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage - 1
@@ -474,7 +464,7 @@ local youdi = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), function(p) return p.id end), 1, 1, "#youdi-choose", self.name)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), function(p) return p.id end), 1, 1, "#youdi-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -526,7 +516,6 @@ local qieting = fk.CreateTriggerSkill{
       room:fillAG(player, ids)
       local id = room:askForAG(player, ids, true, self.name)
       room:closeAG(player)
-      target:removeCards(Player.Equip, {id})  --FIXME: it's fake move! orginal card didn't move actually!
       room:moveCards({
         from = target.id,
         ids = {id},
@@ -574,7 +563,7 @@ local xianzhou = fk.CreateActiveSkill{
   target_num = 1,
   frequency = Skill.Limited,
   can_use = function(self, player)
-    return player:getMark(self.name) == 0 and #player.player_cards[Player.Equip] > 0
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and #player.player_cards[Player.Equip] > 0
   end,
   card_filter = function(self, to_select, selected)
     return false
@@ -586,7 +575,6 @@ local xianzhou = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     local n = #player.player_cards[Player.Equip]
-    room:addPlayerMark(player, self.name)
     local dummy = Fk:cloneCard("dilu")
     dummy:addSubcards(player.player_cards[Player.Equip])
     room:obtainCard(target, dummy, false, fk.ReasonGive)

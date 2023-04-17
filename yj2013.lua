@@ -99,29 +99,18 @@ local jingce = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("@jingce") >= player.hp
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("@jingce-turn") >= player.hp
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(2)
   end,
 
-  refresh_events = {fk.PreCardUse, fk.PreCardRespond, fk.EventPhaseStart},
+  refresh_events = {fk.CardUsing},
   can_refresh = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) then
-      if event == fk.EventPhaseStart then
-        return player.phase == Player.NotActive
-      else
-        return player.phase < Player.Discard
-      end
-    end 
+    return target == player and player:hasSkill(self.name) and player.phase < Player.Discard
   end,
   on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.EventPhaseStart then
-      room:setPlayerMark(player, "@jingce", 0)
-    else
-      room:addPlayerMark(player, "@jingce", 1)
-    end
+    player.room:addPlayerMark(player, "@jingce-turn", 1)
   end,
 }
 guohuai:addSkill(jingce)
@@ -129,7 +118,7 @@ Fk:loadTranslationTable{
   ["guohuai"] = "郭淮",
   ["jingce"] = "精策",
   [":jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
-  ["@jingce"] = "精策",
+  ["@jingce-turn"] = "精策",
 }
 
 local manchong = General(extension, "manchong", "wei", 3)
@@ -238,7 +227,7 @@ local longyin = fk.CreateTriggerSkill{
     if data.card.color == Card.Red then
       player:drawCards(1)
     end
-  end
+  end,
 }
 guanping:addSkill(longyin)
 Fk:loadTranslationTable{
@@ -279,7 +268,7 @@ local xiansi = fk.CreateTriggerSkill{
       end
     end
 
-    local tos = room:askForChoosePlayers(player, targets, 1, 2, "#xiansi-choose", self.name)
+    local tos = room:askForChoosePlayers(player, targets, 1, 2, "#xiansi-choose", self.name, true)
     if #tos > 0 then
       self.cost_data = tos
       return true
@@ -393,7 +382,7 @@ local zhiyan = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p) return p.id end), 1, 1, "#zhiyan-choose", self.name)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p) return p.id end), 1, 1, "#zhiyan-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -485,7 +474,7 @@ local qiuyuan = fk.CreateTriggerSkill{
         table.insert(targets, p.id)
       end
     end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiuyuan-choose", self.name)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiuyuan-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -549,20 +538,21 @@ local juece = fk.CreateTriggerSkill{
 local mieji = fk.CreateTriggerSkill{
   name = "mieji",
   anim_type = "offensive",
-  events = {fk.AfterCardTargetDeclared},
+  events = {fk.TargetSpecifying},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and
-      data.card.color == Card.Black and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and data.card.name ~= "nullification" and #data.tos == 1
+      data.card.color == Card.Black and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and
+      data.targetGroup and #data.targetGroup == 1
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = {}
     for _, p in ipairs(room:getOtherPlayers(player)) do
-      if not table.contains(data.tos[1], p.id) then  --TODO: target filter
+      if not table.contains(AimGroup:getAllTargets(data.tos), p.id) then  --TODO: target filter
         table.insertIfNeed(targets, p.id)
       end
     end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#mieji-choose", self.name)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#mieji-cost", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -572,7 +562,7 @@ local mieji = fk.CreateTriggerSkill{
     if data.card.name == "collateral" then  --TODO:
 
     else
-      table.insert(data.tos, {self.cost_data})  --TODO: sort by action order
+      TargetGroup:pushTargets(data.targetGroup, self.cost_data)  --TODO: sort by action order
     end
   end,
 }
@@ -583,11 +573,10 @@ local fencheng = fk.CreateActiveSkill{
   target_num = 0,
   frequency = Skill.Limited,
   can_use = function(self, player)
-    return player:getMark(self.name) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    room:addPlayerMark(player, self.name, 1)
     local targets = room:getOtherPlayers(player)
     for _, target in ipairs(targets) do
       local length = math.max(1, #target.player_cards[Player.Equip])
@@ -615,7 +604,7 @@ Fk:loadTranslationTable{
   [":mieji"] = "你使用黑色非延时类锦囊仅指定一个目标时，可以额外指定一个目标。",
   ["fencheng"] = "焚城",
   [":fencheng"] = "限定技，出牌阶段，你可令所有其他角色依次选择一项：弃置X张牌，或受到1点火焰伤害。（X为该角色装备区里牌的数量且至少为1）",
-  ["#mieji-choose"] = "灭计：你可以额外指定一个目标",
+  ["#mieji-cost"] = "灭计：你可以额外指定一个目标",
 }
 
 return extension
