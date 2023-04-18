@@ -5,7 +5,37 @@ Fk:loadTranslationTable{
   ["yjcm2012"] = "一将成名2012",
 }
 
---local xunyou = General(extension, "xunyou", "wei", 3)
+-- FIXME: cannot index function value
+local normal_tricks = {
+  "dismantlement", "snatch", "duel", "collateral",
+  "ex_nihilo", "savage_assault", "archery_attack", "god_salvation",
+  "amazing_grace", "iron_chain", "fire_attack",
+}
+
+local xunyou = General(extension, "xunyou", "wei", 3)
+local qice = fk.CreateViewAsSkill{
+  name = "qice",
+  interaction = UI.ComboBox {
+    choices = normal_tricks,
+  },
+  enabled_at_play = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+      and not player:isKongcheng()
+  end,
+  card_filter = function(self, to_select)
+    return Fk:currentRoom():getCardArea(to_select) == Player.Hand
+  end,
+  view_as = function(self, cards)
+    if #cards ~= Self:getHandcardNum() then
+      return nil
+    end
+    local cname = self.interaction.data
+    local card = Fk:cloneCard(cname)
+    card:addSubcards(cards)
+    card.skillName = self.name
+    return card
+  end,
+}
 local zhiyu = fk.CreateTriggerSkill{
   name = "zhiyu",
   anim_type = "masochism",
@@ -28,8 +58,8 @@ local zhiyu = fk.CreateTriggerSkill{
     end
   end,
 }
---xunyou:addSkill(qice)
---xunyou:addSkill(zhiyu)
+xunyou:addSkill(qice)
+xunyou:addSkill(zhiyu)
 Fk:loadTranslationTable{
   ["xunyou"] = "荀攸",
   ["qice"] = "奇策",
