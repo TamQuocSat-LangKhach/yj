@@ -15,23 +15,16 @@ local normal_tricks = {
 local xunyou = General(extension, "xunyou", "wei", 3)
 local qice = fk.CreateViewAsSkill{
   name = "qice",
-  interaction = UI.ComboBox {
-    choices = normal_tricks,
-  },
+  interaction = UI.ComboBox { choices = normal_tricks },
   enabled_at_play = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
       and not player:isKongcheng()
   end,
-  card_filter = function(self, to_select)
-    return Fk:currentRoom():getCardArea(to_select) == Player.Hand
-  end,
+  card_filter = function() return false end,
   view_as = function(self, cards)
-    if #cards ~= Self:getHandcardNum() then
-      return nil
-    end
     local cname = self.interaction.data
     local card = Fk:cloneCard(cname)
-    card:addSubcards(cards)
+    card:addSubcards(Self:getCardIds(Player.Hand))
     card.skillName = self.name
     return card
   end,
