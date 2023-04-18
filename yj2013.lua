@@ -87,8 +87,13 @@ caochong:addSkill(chengxiang)
 caochong:addSkill(renxin)
 Fk:loadTranslationTable{
   ["caochong"] = "曹冲",
+  ["~caochong"] = "子桓哥哥……",
+  ["$chengxiang1"] = "依我看，小事一桩。",
+  ["$chengxiang2"] = "孰重孰轻，一称便知。",
   ["chengxiang"] = "称象",
   [":chengxiang"] = "每当你受到一次伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于或等于13的牌，将其余的牌置入弃牌堆。",
+  ["$renxin1"] = "仁者爱人，人恒爱之。",
+  ["$renxin2"] = "有我在，别怕。",
   ["renxin"] = "仁心",
   [":renxin"] = "每当体力值为1的一名其他角色受到伤害时，你可以将武将牌翻面并弃置一张装备牌，然后防止此伤害。",
 }
@@ -116,6 +121,9 @@ local jingce = fk.CreateTriggerSkill{
 guohuai:addSkill(jingce)
 Fk:loadTranslationTable{
   ["guohuai"] = "郭淮",
+  ["~guohuai"] = "姜维小儿，竟然……",
+  ["$jingce1"] = "方策精详，有备无患。",
+  ["$jingce2"] = "精兵据敌，策守如山。",
   ["jingce"] = "精策",
   [":jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
   ["@jingce-turn"] = "精策",
@@ -199,8 +207,13 @@ manchong:addSkill(junxing)
 manchong:addSkill(yuce)
 Fk:loadTranslationTable{
   ["manchong"] = "满宠",
+  ["~manchong"] = "援军为何迟迟未到……",
+  ["$junxing1"] = "严刑峻法，以破奸诡之胆。",
+  ["$junxing2"] = "你招还是不招？",
   ["junxing"] = "峻刑",
   [":junxing"] = "出牌阶段，你可以弃置至少一张手牌，令一名其他角色弃置一张与你所弃置的牌类别均不同的手牌，若其不如此做，该角色将武将牌翻面并摸等同于你弃牌数的牌，每阶段限一次。",
+  ["$yuce1"] = "御敌之策，成竹于胸。",
+  ["$yuce2"] = "以缓制急，不战屈兵。",
   ["yuce"] = "御策",
   [":yuce"] = "每当你受到一次伤害后，你可以展示一张手牌，令伤害来源弃置一张类别不同的手牌，否则，你回复1点体力。",
 }
@@ -232,6 +245,9 @@ local longyin = fk.CreateTriggerSkill{
 guanping:addSkill(longyin)
 Fk:loadTranslationTable{
   ["guanping"] = "关平",
+  ["~guanping"] = "父亲快走，孩儿断后……",
+  ["$longyin1"] = "破阵杀敌，愿献犬马之劳！",
+  ["$longyin2"] = "虎啸既响，龙吟当附！",
   ["longyin"] = "龙吟",
   [":longyin"] = "每当一名角色在其出牌阶段使用【杀】时，你可以弃置一张牌令此【杀】不计入出牌阶段使用次数，若此【杀】为红色，你摸一张牌。",
 }
@@ -239,8 +255,13 @@ Fk:loadTranslationTable{
 --local jianyong = General(extension, "jianyong", "shu", 3)
 Fk:loadTranslationTable{
   ["jianyong"] = "简雍",
+  ["~jianyong"] = "两国交战……不斩……",
+  ["$qiaoshui1"] = "合则两利，斗则两伤。",
+  ["$qiaoshui2"] = "君且安坐，听我一言。",
   ["qiaoshui"] = "巧说",
   [":qiaoshui"] = "出牌阶段开始时，你可以与一名其他角色拼点，若你赢，你使用的下一张基本牌或非延时类锦囊牌可以额外指定任意一名其他角色为目标或减少指定一个目标；若你没赢，你不能使用锦囊牌直到回合结束。",
+  ["$zongshij1"] = "买卖不成，情义还在。",
+  ["$zongshij2"] = "此等小事，何须挂耳？",
   ["zongshij"] = "纵适",
   [":zongshij"] = "每当你拼点赢，你可以对方此次拼点的牌；每当你拼点没赢，你可以收回你此次拼点的牌。",
 }
@@ -285,6 +306,11 @@ local xiansi = fk.CreateTriggerSkill{
 --liufeng:addSkill(xiansi)
 Fk:loadTranslationTable{
   ["liufeng"] = "刘封",
+  ["~liufeng"] = "父亲，为什么……",
+  ["$xiansi1"] = "袭人于不意，溃敌于无形！",
+  ["$xiansi2"] = "破敌军阵，父亲定会刮目相看！",
+  ["$xiansi3"] = "此乃孟达之计，非我所愿！",
+  ["$xiansi4"] = "我有何罪？！",
   ["xiansi"] = "陷嗣",
   [":xiansi"] = "回合开始阶段开始时，你可以将至多两名其他角色的各一张牌置于你的武将牌上，称为“逆”。每当其他角色需要对你使用一张【杀】时，该角色可以弃置你武将牌上的两张“逆”，视为对你使用一张【杀】。",
   ["#xiansi-choose"] = "陷嗣：你可以将至多两名其他角色的各一张牌置于你的武将牌上",
@@ -332,8 +358,13 @@ panzhangmazhong:addSkill(duodao)
 panzhangmazhong:addSkill(anjian)
 Fk:loadTranslationTable{
   ["panzhangmazhong"] = "潘璋马忠",
+  ["~panzhangmazhong"] = "怎么可能，我明明亲手将你……",
+  ["$duodao1"] = "这刀岂是你配用的？",
+  ["$duodao2"] = "夺敌兵刃，如断其臂！",
   ["duodao"] = "夺刀",
   [":duodao"] = "每当你受到【杀】造成的一次伤害后，你可以弃置一张牌，然后获得伤害来源装备区里的武器牌。",
+  ["$anjian1"] = "击其懈怠，攻其不备！",
+  ["$anjian2"] = "哼，你满身都是破绽！",
   ["anjian"] = "暗箭",
   [":anjian"] = "锁定技，当你使用的【杀】对目标角色造成伤害时，若你不在其攻击范围内，则此【杀】伤害+1。",
 }
@@ -414,8 +445,13 @@ yufan:addSkill(zongxuan)
 yufan:addSkill(zhiyan)
 Fk:loadTranslationTable{
   ["yufan"] = "虞翻",
+  ["~yufan"] = "我枉称东方朔再世……",
+  ["$zongxuan1"] = "依易设象，以占吉凶。",
+  ["$zongxuan2"] = "世间万物皆有定数。",
   ["zongxuan"] = "纵玄",
   [":zongxuan"] = "每当你的牌因弃置进入弃牌堆前，你可以将此牌置于牌堆顶。",
+  ["$zhiyan1"] = "志节分明，折而不屈。",
+  ["$zhiyan2"] = "直言劝谏，不惧祸否。",
   ["zhiyan"] = "直言",
   [":zhiyan"] = "回合结束阶段开始时，你可以令一名角色摸一张牌并展示之，若此牌为装备牌，该角色回复1点体力并使用此牌。",
   ["#zhiyan-choose"] = "直言：你可以令一名角色摸一张牌并展示之",
@@ -439,6 +475,9 @@ local nos__danshou = fk.CreateTriggerSkill{
 --nos__zhuran:addSkill(nos__danshou)
 Fk:loadTranslationTable{
   ["nos__zhuran"] = "朱然",
+  ["~nos__zhuran"] = "何人竟有如此之胆！？",
+  ["$nos__danshou1"] = "到此为止了！",
+  ["$nos__danshou2"] = "以胆为守，扼敌咽喉！",
   ["nos__danshou"] = "胆守",
   [":nos__danshou"] = "每当你造成一次伤害后，你可以摸一张牌，若如此做，终止一切结算，当前回合结束。",
 }
@@ -496,8 +535,13 @@ local qiuyuan = fk.CreateTriggerSkill{
 --fuhuanghou:addSkill(qiuyuan)
 Fk:loadTranslationTable{
   ["fuhuanghou"] = "伏皇后",
+  ["~fuhuanghou"] = "陛下为何不救臣妾……",
+  ["$zhuikong1"] = "诚惶诚恐，夜不能寐。",
+  ["$zhuikong2"] = "嘘，隔墙有耳。",
   ["zhuikong"] = "惴恐",
   [":zhuikong"] = "一名角色的回合开始时，若你已受伤，你可以与该角色拼点，若你赢，该角色本回合使用的牌不能指定除该角色以外的角色为目标；若你没赢，该角色与你的距离视为1直到回合结束。",
+  ["$qiuyuan1"] = "逆贼逞凶，卿可灭之。",
+  ["$qiuyuan2"] = "求父亲救救大汉江山吧！",
   ["qiuyuan"] = "求援",
   [":qiuyuan"] = "当你成为【杀】的目标时，你可以令另一名其他角色选择一项：交给你一张【闪】，或成为此【杀】的额外目标。",
   ["#qiuyuan-choose"] = "求援：令另一名其他角色交给你一张【闪】，或其成为此【杀】的额外目标",
@@ -598,10 +642,17 @@ liru:addSkill(mieji)
 liru:addSkill(fencheng)
 Fk:loadTranslationTable{
   ["liru"] = "李儒",
+  ["~liru"] = "如遇明主，大业必成……",
+  ["$juece1"] = "哼！你走投无路了。",
+  ["$juece2"] = "无用之人，死！",
   ["juece"] = "绝策",
   [":juece"] = "在你的回合内，一名角色失去最后的手牌时，你可以对其造成1点伤害。",
+  ["$mieji1"] = "宁错杀，无放过！",
+  ["$mieji2"] = "你能逃得出我的手掌心吗？",
   ["mieji"] = "灭计",
   [":mieji"] = "你使用黑色非延时类锦囊仅指定一个目标时，可以额外指定一个目标。",
+  ["$fencheng1"] = "我得不到的，你们也别想得到！",
+  ["$fencheng2"] = "让这一切都灰飞烟灭吧！哼哼哼哼……",
   ["fencheng"] = "焚城",
   [":fencheng"] = "限定技，出牌阶段，你可令所有其他角色依次选择一项：弃置X张牌，或受到1点火焰伤害。（X为该角色装备区里牌的数量且至少为1）",
   ["#mieji-cost"] = "灭计：你可以额外指定一个目标",
