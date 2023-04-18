@@ -209,7 +209,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self.name) then
       if event ==  fk.HpRecover then
-        return data.recoverBy ~= nil and data.recoverBy ~= player.id and not player.room:getPlayerById(data.recoverBy).dead
+        return data.recoverBy and data.recoverBy ~= player and not data.recoverBy.dead
       else
         return data.from ~= nil and data.from ~= player and not data.from.dead
       end
@@ -218,7 +218,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event ==  fk.HpRecover then
-      room:getPlayerById(data.recoverBy):drawCards(data.num)
+      data.recoverBy:drawCards(data.num)
     else
       if data.from:isKongcheng() then
         room:loseHp(data.from, 1, self.name)
@@ -891,24 +891,16 @@ local zhichi = fk.CreateTriggerSkill{
       if event == fk.Damaged then
         return target == player
       else
-        return player.id == data.to and player:getMark("@zhichi") > 0 and (data.card.trueName == "slash" or (data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick))
+        return player.id == data.to and player:getMark("@zhichi-turn") > 0 and (data.card.trueName == "slash" or (data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick))
       end
     end
   end,
   on_use = function(self, event, target, player, data)
     if event == fk.Damaged then
-      player.room:setPlayerMark(player, "@zhichi", 1)
+      player.room:setPlayerMark(player, "@zhichi-turn", 1)
     else
       return true
     end
-  end,
-
-  refresh_events = {fk.EventPhaseStart},
-  can_refresh = function(self, event, target, player, data)
-    return player:hasSkill(self.name, true) and target.phase == Player.NotActive
-  end,
-  on_refresh = function(self, event, target, player, data)
-    player.room:setPlayerMark(player, "@zhichi", 0)
   end,
 }
 chengong:addSkill(mingce)
@@ -920,7 +912,8 @@ Fk:loadTranslationTable{
   ["zhichi"] = "智迟",
   [":zhichi"] = "锁定技，你的回合外，你每受到一次伤害，任何【杀】或非延时类锦囊对你无效，直到该回合结束。",
   ["#mingce-choose"] = "明策：选择视为使用【杀】的目标",
-  ["@zhichi"] = "智迟",
+  ["mingce_slash"] = "视为使用【杀】",
+  ["@zhichi-turn"] = "智迟",
 }
 
 return extension

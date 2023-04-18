@@ -5,25 +5,23 @@ Fk:loadTranslationTable{
   ["yjcm2012"] = "一将成名2012",
 }
 
--- FIXME: cannot index function value
 local normal_tricks = {
   "dismantlement", "snatch", "duel", "collateral",
   "ex_nihilo", "savage_assault", "archery_attack", "god_salvation",
   "amazing_grace", "iron_chain", "fire_attack",
 }
-
 local xunyou = General(extension, "xunyou", "wei", 3)
 local qice = fk.CreateViewAsSkill{
   name = "qice",
-  interaction = UI.ComboBox { choices = normal_tricks },
+  interaction = UI.ComboBox {choices = normal_tricks},
   enabled_at_play = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-      and not player:isKongcheng()
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
-  card_filter = function() return false end,
+  card_filter = function()
+    return false
+  end,
   view_as = function(self, cards)
-    local cname = self.interaction.data
-    local card = Fk:cloneCard(cname)
+    local card = Fk:cloneCard(self.interaction.data)
     card:addSubcards(Self:getCardIds(Player.Hand))
     card.skillName = self.name
     return card
@@ -267,11 +265,11 @@ Fk:loadTranslationTable{
   ["#miji_active"] = "秘计",
   ["#miji-invoke"] = "秘计：你可以将牌交给一名其他角色",
 
-  ["$new__zhenlie1"] = "虽是妇人，亦当奋身一搏！",
-  ["$new__zhenlie2"] = "为雪前耻，不惜吾身！",
-  ["$new__miji1"] = "此计，可歼敌精锐！",
-  ["$new__miji2"] = "此举，可破敌之围！",
-  ["~new__wangyi"] = "月儿，不要责怪你爹爹……",
+  ["$zhenlie1"] = "虽是妇人，亦当奋身一搏！",
+  ["$zhenlie2"] = "为雪前耻，不惜吾身！",
+  ["$miji1"] = "此计，可歼敌精锐！",
+  ["$miji2"] = "此举，可破敌之围！",
+  ["~wangyi"] = "月儿，不要责怪你爹爹……",
 }
 
 local nos__madai = General(extension, "nos__madai", "shu", 4)
@@ -417,9 +415,9 @@ Fk:loadTranslationTable{
   [":fuli"] = "限定技，当你处于濒死状态时，你可以将体力值回复至X点（X为现存势力数），然后将你的武将牌翻面。",
 }
 
-local guanxingzhangbao = General(extension, "guanxingzhangbao", "shu", 4)
-local fuhun = fk.CreateTriggerSkill{
-  name = "fuhun",
+local nos__guanxingzhangbao = General(extension, "nos__guanxingzhangbao", "shu", 4)
+local nos__fuhun = fk.CreateTriggerSkill{
+  name = "nos__fuhun",
   anim_type = "control",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
@@ -452,13 +450,61 @@ local fuhun = fk.CreateTriggerSkill{
     player.room:handleAddLoseSkills(player, "-wusheng|-paoxiao", nil, true, false)
   end,
 }
+nos__guanxingzhangbao:addSkill(nos__fuhun)
+nos__guanxingzhangbao:addRelatedSkill("wusheng")
+nos__guanxingzhangbao:addRelatedSkill("paoxiao")
+Fk:loadTranslationTable{
+  ["nos__guanxingzhangbao"] = "关兴张苞",
+  ["nos__fuhun"] = "父魂",
+  [":nos__fuhun"] = "摸牌阶段，你可以放弃摸牌，改为亮出牌堆顶的两张牌并获得之，若亮出的牌颜色不同，你获得技能“武圣”、“咆哮”，直到回合结束。",
+}
+
+local guanxingzhangbao = General(extension, "guanxingzhangbao", "shu", 4)
+local fuhun = fk.CreateViewAsSkill{
+  name = "fuhun",
+  pattern = "slash",
+  card_filter = function(self, to_select, selected)
+    return #selected < 2 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 2 then return end
+    local c = Fk:cloneCard("slash")
+    c.skillName = self.name
+    c:addSubcards(cards)
+    return c
+  end,
+}
+local fuhun_record = fk.CreateTriggerSkill{
+  name = "#fuhun_record",
+  anim_type = "offensive",
+
+  refresh_events = {fk.Damage, fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) then
+      if event == fk.Damage then
+        return data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play and
+          not (player:hasSkill("wusheng", true) and player:hasSkill("wusheng", true))
+      else
+        return player:hasSkill(self.name, true) and player.phase == Player.NotActive
+      end
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if event == fk.Damage then
+      player.room:handleAddLoseSkills(player, "wusheng|paoxiao", nil, true, false)
+    else
+      player.room:handleAddLoseSkills(player, "-wusheng|-paoxiao", nil, true, false)
+    end
+  end,
+}
+fuhun:addRelatedSkill(fuhun_record)
 guanxingzhangbao:addSkill(fuhun)
 guanxingzhangbao:addRelatedSkill("wusheng")
 guanxingzhangbao:addRelatedSkill("paoxiao")
 Fk:loadTranslationTable{
   ["guanxingzhangbao"] = "关兴张苞",
   ["fuhun"] = "父魂",
-  [":fuhun"] = "摸牌阶段，你可以放弃摸牌，改为亮出牌堆顶的两张牌并获得之，若亮出的牌颜色不同，你获得技能“武圣”、“咆哮”，直到回合结束。",
+  [":fuhun"] = "你可以将两张手牌当【杀】使用或打出；当你于出牌阶段内以此法造成伤害后，本回合获得〖武圣〗和〖咆哮〗。",
 }
 
 local chengpu = General(extension, "chengpu", "wu", 4)
@@ -665,9 +711,9 @@ Fk:loadTranslationTable{
   ["#zhuiyi-target"] = "追忆：你死亡时，可以令一名其他角色（凶手除外）摸三张牌并回复1点体力",
 }
 
---local handang = General(extension, "handang", "wu", 4)
-local gongqi = fk.CreateViewAsSkill{
-  name = "gongqi",
+--local nos_handang = General(extension, "nos_handang", "wu", 4)
+local nos_gongqi = fk.CreateViewAsSkill{
+  name = "nos_gongqi",
   anim_type = "offensive",
   pattern = "slash",
   card_filter = function(self, to_select, selected)
@@ -690,14 +736,89 @@ local gongqi_targetmod = fk.CreateTargetModSkill{
     end
   end,
 }
-gongqi:addRelatedSkill(gongqi_targetmod)
---handang:addSkill(gongqi)
+nos_gongqi:addRelatedSkill(gongqi_targetmod)
+--handang:addSkill(nos_gongqi)
+Fk:loadTranslationTable{
+  ["nos_handang"] = "韩当",
+  ["nos_gongqi"] = "弓骑",
+  [":nos_gongqi"] = "你可以将一张装备牌当【杀】使用或打出；你以此法使用的【杀】无距离限制。",
+  ["nos_jiefan"] = "解烦",
+  [":nos_jiefan"] = "你的回合外，当一名角色处于濒死状态时，你可以对当前回合角色使用一张【杀】，此【杀】造成伤害时，你防止此伤害，视为对该濒死角色使用了一张【桃】。",
+}
+
+local handang = General(extension, "handang", "wu", 4)
+local gongqi = fk.CreateActiveSkill{
+  name = "gongqi",
+  anim_type = "offensive",
+  card_num = 1,
+  target_num = 0,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name) == 0 and not player:isNude()
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected == 0
+  end,
+  target_filter = function(self, to_select, selected)
+    return false
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    room:throwCard(effect.cards, self.name, player, player)
+    room:addPlayerMark(player, "gongqi-turn", 999)
+    if Fk:getCardById(effect.cards[1]).type == Card.TypeEquip then
+      local to = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
+        return not p:isNude() end), function(p) return p.id end), 1, 1, "#gongqi-choose", self.name)
+      if #to > 0 then
+        local target = room:getPlayerById(to[1])
+        local id = room:askForCardChosen(player, target, "he", self.name)
+        room:throwCard({id}, self.name, target, player)
+      end
+    end
+  end,
+}
+local gongqi_attackrange = fk.CreateAttackRangeSkill{
+  name = "#gongqi_attackrange",
+  correct_func = function (self, from, to)
+    return from:getMark("gongqi-turn")  --ATTENTION: this is a status skill, shouldn't do arithmatic on it
+  end,
+}
+local jiefan = fk.CreateActiveSkill{
+  name = "jiefan",
+  anim_type = "drawcard",
+  card_num = 0,
+  target_num = 1,
+  frequency = Skill.Limited,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0
+  end,
+  on_use = function(self, room, effect)
+    local target = room:getPlayerById(effect.tos[1])
+    for _, p in ipairs(room:getOtherPlayers(target)) do
+      if p:inMyAttackRange(target) then
+        if #room:askForDiscard(p, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#jiefan-discard::"..target.id) == 0 then  --TODO: pattern weapon
+          target:drawCards(1, self.name)
+        end
+      end
+    end
+  end,
+}
+gongqi:addRelatedSkill(gongqi_attackrange)
+handang:addSkill(gongqi)
+handang:addSkill(jiefan)
 Fk:loadTranslationTable{
   ["handang"] = "韩当",
   ["gongqi"] = "弓骑",
-  [":gongqi"] = "你可以将一张装备牌当【杀】使用或打出；你以此法使用的【杀】无距离限制。",
+  [":gongqi"] = "出牌阶段限一次，你可以弃置一张牌使你本回合的攻击范围无限。若弃置的为装备牌，你可以弃置一名其他角色的一张牌。",
   ["jiefan"] = "解烦",
-  [":jiefan"] = "你的回合外，当一名角色处于濒死状态时，你可以对当前回合角色使用一张【杀】，此【杀】造成伤害时，你防止此伤害，视为对该濒死角色使用了一张【桃】。",
+  [":jiefan"] = "限定技，出牌阶段，你可以选择一名角色，然后令攻击范围内含有该角色的所有角色各选择一项：1.弃置一张武器牌；2.令其摸一张牌。",
+  ["#gongqi-choose"] = "弓骑：你可以弃置一名其他角色的一张牌",
+  ["#jiefan-discard"] = "解烦：弃置一张武器牌，否则 %dest 摸一张牌",
 }
 
 local liubiao = General(extension, "liubiao", "qun", 4)

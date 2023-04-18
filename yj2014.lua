@@ -183,19 +183,20 @@ Fk:loadTranslationTable{
   [":yonglve"] = "你攻击范围内的一名其他角色的判定阶段开始时，你可以弃置其判定区里的一张牌，视为对该角色使用一张【杀】，若此【杀】未造成伤害，你摸一张牌。",
 }
 
---local zhoucang = General(extension, "zhoucang", "shu", 4)
+local zhoucang = General(extension, "zhoucang", "shu", 4)
 local zhongyong = fk.CreateTriggerSkill{
   name = "zhongyong",
   anim_type = "offensive",
   events = {fk.CardUseFinished},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and player.phase == Player.Play and data.card.name == "jink" and data.toCard and data.toCard.trueName == "slash" then
-      return true--data.from == player-- and room:getCardArea(data.card) == Card.Processing
-    end
+    return player:hasSkill(self.name) and player.phase == Player.Play and data.card.name == "jink" and
+      data.toCard and data.toCard.trueName == "slash" and data.responseToEvent.from == player.id and
+      player.room:getCardArea(data.card) == Card.Processing
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local to = room:askForChoosePlayers(player, room:getOtherPlayers(target), 1, 1, "#zhongyong-choose", self.name, true)
+    local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(target), function(p)
+      return p.id end), 1, 1, "#zhongyong-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -203,23 +204,87 @@ local zhongyong = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local card = data.card
-    pt(data.toCard)
+    room:obtainCard(self.cost_data, data.card, true, fk.ReasonGive)
+    if self.cost_data ~= player.id then
+      local use = room:askForUseCard(player, "slash", "slash", "#zhongyong-slash::"..target.id, true, {must_targets = {target.id}})
+      if use then
+        room:useCard(use)
+      end
+    end
   end,
 }
---zhoucang:addSkill(zhongyong)
+zhoucang:addSkill(zhongyong)
 Fk:loadTranslationTable{
   ["zhoucang"] = "周仓",
   ["zhongyong"] = "忠勇",
   [":zhongyong"] = "当你于出牌阶段内使用的【杀】被目标角色使用的【闪】抵消时，你可以将此【闪】交给除该角色外的一名角色，若获得此【闪】的角色不是你，你可以对相同的目标再使用一张【杀】。",
-  ["#zhongyong-choose"] = "忠勇：将此【闪】交给除其以外的一名角色，若不是你，你可以对相同的目标再使用一张【杀】",
+  ["#zhongyong-choose"] = "忠勇：将此【闪】交给除其以外的一名角色，若不是你，你可以对其再使用一张【杀】",
+  ["#zhongyong-slash"] = "忠勇：你可以对 %dest 再使用一张【杀】",
 }
 
---local wuyi = General(extension, "wuyi", "shu", 4)
+local wuyi = General(extension, "wuyi", "shu", 4)
+local benxi = fk.CreateTriggerSkill{
+  name = "benxi",
+  anim_type = "offensive",
+  frequency = Skill.Compulsory,
+  events = {fk.CardUsing},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase ~= Player.NotActive
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:addPlayerMark(player, "@benxi-turn", 1)
+  end,
+
+  refresh_events = {fk.TargetSpecifying, fk.CardUseFinished},
+  can_refresh = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and player.phase ~= Player.NotActive then
+      for _, p in ipairs(player.room:getOtherPlayers(player)) do
+        if player:distanceTo(p) > 1 then return end
+      end
+      if event == fk.TargetSpecifying then
+        return data.firstTarget and data.card.trueName == "slash"
+      else
+        return true
+      end
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.TargetSpecifying then
+      local targets = {}
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        room:addPlayerMark(p, fk.MarkArmorNullified)
+        if not table.contains(AimGroup:getAllTargets(data.tos), p.id) then  --TODO: target filter
+          table.insertIfNeed(targets, p.id)
+        end
+      end
+      if #targets > 0 then
+        local tos = room:askForChoosePlayers(player, targets, 1, 1, "#benxi-choose", self.name, true)
+        if #tos > 0 then
+          TargetGroup:pushTargets(data.targetGroup, tos)  --TODO: sort by action order
+        end
+      end
+    else
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        room:setPlayerMark(p, fk.MarkArmorNullified, 0)
+      end
+    end
+  end,
+}
+local benxi_distance = fk.CreateDistanceSkill{
+  name = "#benxi_distance",
+  correct_func = function(self, from, to)
+    return -from:getMark("@benxi-turn")
+  end,
+}
+benxi:addRelatedSkill(benxi_distance)
+wuyi:addSkill(benxi)
 Fk:loadTranslationTable{
   ["wuyi"] = "吴懿",
   ["benxi"] = "奔袭",
-  [":benxi"] = "锁定技，你每于回合内使用一次牌后，你计算与其他角色的距离减少1直到回合结束；你的回合内，若你与所有其他角色的距离均为1，你无视其他角色的防具，且你使用的下一张【杀】不计入出牌阶段使用次数并可以额外指定一个目标。",
+  [":benxi"] = "锁定技，当你于回合内使用牌时，本回合你计算与其他角色的距离-1；你的回合内，若你与所有其他角色的距离均为1，则你无视其他角色的防具且你使用【杀】可以多指定一个目标。",
+  ["@benxi-turn"] = "奔袭",
+  ["#benxi-choose"] = "奔袭：使用【杀】可以多指定一个目标",
 }
 
 local zhangsong = General(extension, "zhangsong", "shu", 3)
@@ -455,7 +520,7 @@ Fk:loadTranslationTable{
   ["#jiaojin-discard"] = "骄矜：你可以弃置一张装备牌，令此伤害-1",
 }
 
-local zhuhuan = General(extension, "zhuhuan", "wu", 4)
+local nos__zhuhuan = General(extension, "nos__zhuhuan", "wu", 4)
 local youdi = fk.CreateTriggerSkill{
   name = "youdi",
   anim_type = "control",
@@ -481,12 +546,20 @@ local youdi = fk.CreateTriggerSkill{
     end
   end,
 }
-zhuhuan:addSkill(youdi)
+nos__zhuhuan:addSkill(youdi)
 Fk:loadTranslationTable{
-  ["zhuhuan"] = "朱桓",
+  ["nos__zhuhuan"] = "朱桓",
   ["youdi"] = "诱敌",
   [":youdi"] = "结束阶段开始时，你可以令一名其他角色弃置你的一张牌，若此牌不为【杀】，你获得该角色的一张牌。",
   ["#youdi-choose"] = "诱敌：令一名其他角色弃置你的一张牌，若不为【杀】，你获得其一张牌",
+}
+
+Fk:loadTranslationTable{
+  ["zhuhuan"] = "朱桓",
+  ["fenli"] = "奋励",
+  [":fenli"] = "若你的手牌数为全场最多，你可以跳过摸牌阶段；若你的体力值为全场最多，你可以跳过出牌阶段；若你的装备区里有牌且数量为全场最多，你可以跳过弃牌阶段。",
+  ["pingkou"] = "平寇",
+  [":pingkou"] = "回合结束时，你可以对至多X名其他角色各造成1点伤害（X为你本回合跳过的阶段数）。",
 }
 
 local caifuren = General(extension, "caifuren", "qun", 3, 3, General.Female)
