@@ -219,6 +219,119 @@ Fk:loadTranslationTable{
   [":zuoding"] = "当其他角色于其出牌阶段内使用♠牌指定目标后，若本阶段没有角色受到过伤害，你可以令其中一名目标角色摸一张牌。",
 }
 
+local liuchen = General(extension, "liuchen", "shu", 3, 3)
+local zhanjue = fk.CreateViewAsSkill{
+  name = "zhanjue",
+  anim_type = "offensive",
+  enabled_at_play = function(self, player)
+    -- 记录摸牌数
+    return player:getMark("zhanjue-turn") < 2 and not player:isKongcheng()
+  end,
+  card_filter = function()
+    return false
+  end,
+  -- 决斗！
+  view_as = function(self, cards)
+    local card = Fk:cloneCard("duel")
+    card:addSubcards(Self:getCardIds(Player.Hand))
+    card.skillName = self.name
+    return card
+  end,
+}
+local zhanjue_draw = fk.CreateTriggerSkill{
+  name = "#zhanjue_draw",
+  refresh_events = {fk.Damaged},
+  can_refresh = function(self, event, target, player, data)
+    return data.card.skillName == "zhanjue" and player:hasSkill(self.name)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    -- 你摸牌
+    room:drawCards(player,1)
+    room:addPlayerMark(player, "zhanjue-turn")
+    -- 受伤者摸牌
+    room:drawCards(target,1)
+    if target == player then room:addPlayerMark(player, "zhanjue-turn") end
+  end,
+}
+zhanjue:addRelatedSkill(zhanjue_draw)
+local qinwang = fk.CreateViewAsSkill{
+  name = "qinwang$",
+  anim_type = "defensive",
+  pattern = "slash",
+  card_filter = function(self, to_select, selected)
+    return #selected == 0
+  end,
+  view_as = function(self, cards)
+    -- room:askForDiscard(Player, 1, 1, true, self.name, false, ".") --todo
+    if #cards == 1 then
+    else
+      return nil
+    end
+    local c = Fk:cloneCard("slash")
+    c.skillName = self.name
+    return c
+  end,
+  enabled_at_play = function(self, player)
+    if player.isKongcheng() then return false end
+    return player:getMark("qinwang-failed-phase") == 0 and not table.every(Fk:currentRoom().alive_players, function(p)
+      return p == player or p.kingdom ~= "shu"
+    end)
+  end,
+  enabled_at_response = function(self, player)
+    return not table.every(Fk:currentRoom().alive_players, function(p)
+      return p == player or p.kingdom ~= "shu"
+    end)
+  end,
+}
+local qinwangResponse = fk.CreateTriggerSkill{
+  name = "#qinwangResponse",
+  events = {fk.PreCardUse, fk.PreCardRespond},
+  mute = true,
+  priority = 10,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name, true) and table.contains(data.card.skillNames, "qinwang")
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    room:doIndicate(player.id, TargetGroup:getRealTargets(data.tos))
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    for _, p in ipairs(room:getOtherPlayers(player)) do
+      if p.kingdom == "shu" then
+        local cardResponded = room:askForResponse(p, "slash", "slash", "#qinwang-ask:%s", player.id)
+        if cardResponded then
+          room:responseCard({
+            from = p.id,
+            card = cardResponded,
+            skipDrop = true,
+          })
+
+          data.card = cardResponded
+          room:drawCards(player, 1)
+          return false
+        end
+      end
+    end
+
+    if event == fk.PreCardUse and player.phase == Player.Play then
+      room:setPlayerMark(player, "qinwang-failed-phase", 1)
+    end
+    return true
+  end,
+  refresh_events = {fk.CardUsing},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name, true) and player:getMark("qinwang-failed-phase") > 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:setPlayerMark(player, "qinwang-failed-phase", 0)
+  end,
+}
+qinwang:addRelatedSkill(qinwangResponse)
+liuchen:addSkill(zhanjue)
+liuchen:addSkill(qinwang)
 Fk:loadTranslationTable{
   ["liuchen"] = "刘谌",
   ["~liuchen"] = "无言对百姓，有愧，见先祖……",
