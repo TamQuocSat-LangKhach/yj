@@ -53,6 +53,9 @@ local sidi = fk.CreateTriggerSkill{
 caozhen:addSkill(sidi)
 Fk:loadTranslationTable{
   ["caozhen"] = "曹真",
+  ["~caozhen"] = "秋雨奇迷，军心已乱……",
+  ["$sidi1"] = "筑城固守，司敌备战。",
+  ["$sidi2"] = "徒手制敌，能奈我何？",
   ["sidi"] = "司敌",
   [":sidi"] = "每当你使用或其他角色在你的回合内使用【闪】时，你可以将牌堆顶的一张牌正面向上置于你的武将牌上；一名其他角色的出牌阶段开始时，你可以将你武将牌上的一张牌置入弃牌堆，然后该角色本阶段可使用【杀】的次数上限-1。",
   ["#sidi-invoke"] = "司敌：你可以将一张“司敌”牌置入弃牌堆，令该角色本阶段使用【杀】次数上限-1",
@@ -168,8 +171,13 @@ chenqun:addSkill(dingpin)
 chenqun:addSkill(faen)
 Fk:loadTranslationTable{
   ["chenqun"] = "陈群",
+  ["~chenqun"] = "吾身虽陨，典律昭昭。",
+  ["$dingpin1"] = "取才赋职，论能行赏。",
+  ["$dingpin2"] = "定品寻良骥，中正探人杰。",
   ["dingpin"] = "定品",
   [":dingpin"] = "出牌阶段，你可以弃置一张与你本回合已使用或弃置的牌类别均不同的手牌，然后令一名已受伤的角色进行一次判定，若结果为黑色，该角色摸X张牌（X为该角色已损失的体力值），然后你本回合不能再对其发动“定品”；若结果为红色，将你的武将牌翻面。",
+  ["$faen1"] = "礼法容情，皇恩浩荡。",
+  ["$faen2"] = "法理有度，恩威并施。",
   ["faen"] = "法恩",
   [":faen"] = "每当一名角色的武将牌翻面或横置时，你可以令其摸一张牌。",
 }
@@ -177,8 +185,13 @@ Fk:loadTranslationTable{
 --local hanhaoshihuan = General(extension, "hanhaoshihuan", "wei", 3)
 Fk:loadTranslationTable{
   ["hanhaoshihuan"] = "韩浩史涣",
+  ["~hanhaoshihuan"] = "那拈弓搭箭的将军，是何人？",
+  ["$shenduan1"] = "良机虽去，尚可截资断源！",
+  ["$shenduan2"] = "行军须慎，谋断当绝！",
   ["shenduan"] = "慎断",
   [":shenduan"] = "当你的黑色基本牌因弃置进入弃牌堆时，你可以将之当作【兵粮寸断】置于一名其他角色的判定区里。",
+  ["$yonglve1"] = "不必从言，自有主断！",
+  ["$yonglve2"] = "非常之机，当行非常之计！",
   ["yonglve"] = "勇略",
   [":yonglve"] = "你攻击范围内的一名其他角色的判定阶段开始时，你可以弃置其判定区里的一张牌，视为对该角色使用一张【杀】，若此【杀】未造成伤害，你摸一张牌。",
 }
@@ -216,6 +229,9 @@ local zhongyong = fk.CreateTriggerSkill{
 zhoucang:addSkill(zhongyong)
 Fk:loadTranslationTable{
   ["zhoucang"] = "周仓",
+  ["~zhoucang"] = "为将军操刀牵马，此生无憾。",
+  ["$zhongyong1"] = "驱刀飞血，直取寇首！",
+  ["$zhongyong2"] = "为将军提刀携马，万死不辞！",
   ["zhongyong"] = "忠勇",
   [":zhongyong"] = "当你于出牌阶段内使用的【杀】被目标角色使用的【闪】抵消时，你可以将此【闪】交给除该角色外的一名角色，若获得此【闪】的角色不是你，你可以对相同的目标再使用一张【杀】。",
   ["#zhongyong-choose"] = "忠勇：将此【闪】交给除其以外的一名角色，若不是你，你可以对其再使用一张【杀】",
@@ -281,6 +297,9 @@ benxi:addRelatedSkill(benxi_distance)
 wuyi:addSkill(benxi)
 Fk:loadTranslationTable{
   ["wuyi"] = "吴懿",
+  ["~wuyi"] = "奔波已疲，难以，再战。",
+  ["$benxi1"] = "奔战万里，袭关斩将。",
+  ["$benxi2"] = "袭敌千里，溃敌百步！",
   ["benxi"] = "奔袭",
   [":benxi"] = "锁定技，当你于回合内使用牌时，本回合你计算与其他角色的距离-1；你的回合内，若你与所有其他角色的距离均为1，则你无视其他角色的防具且你使用【杀】可以多指定一个目标。",
   ["@benxi-turn"] = "奔袭",
@@ -290,6 +309,7 @@ Fk:loadTranslationTable{
 local zhangsong = General(extension, "zhangsong", "shu", 3)
 local qiangzhi = fk.CreateTriggerSkill{
   name = "qiangzhi",
+  mute = true,
   anim_type = "drawcard",
   events = {fk.EventPhaseStart, fk.CardUsing},
   can_trigger = function(self, event, target, player, data)
@@ -330,10 +350,14 @@ local qiangzhi = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.EventPhaseStart then
       local to = room:getPlayerById(self.cost_data)
+      room:broadcastSkillInvoke(self.name, 1)
+      room:notifySkillInvoked(player, self.name, "control")
       local card = Fk:getCardById(room:askForCardChosen(player, to, "h", self.name))
       to:showCards(card)
       room:setPlayerMark(player, "@qiangzhi", card:getTypeString())  --TODO: Fk:translate
     else
+      room:broadcastSkillInvoke(self.name, 2)
+      room:notifySkillInvoked(player, self.name)
       player:drawCards(1)
     end
   end,
@@ -349,6 +373,7 @@ local qiangzhi = fk.CreateTriggerSkill{
 local xiantu = fk.CreateTriggerSkill{
   name = "xiantu",
   anim_type = "support",
+  mute = true,
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target ~= player and player:hasSkill(self.name) and target.phase == Player.Play
@@ -357,6 +382,8 @@ local xiantu = fk.CreateTriggerSkill{
     local room = player.room
     player:drawCards(2)
     local cards = room:askForCard(player, 2, 2, true, self.name, false)
+    room:broadcastSkillInvoke(self.name, 1)
+    room:notifySkillInvoked(player, self.name)
     local dummy = Fk:cloneCard("dilu")
     dummy:addSubcards(cards)
     room:obtainCard(target, dummy, false, fk.ReasonGive)
@@ -380,6 +407,8 @@ local xiantu = fk.CreateTriggerSkill{
       end
     else
       if player:getMark(self.name) == 0 then
+        room:broadcastSkillInvoke(self.name, 2)
+        room:notifySkillInvoked(player, self.name, "negative")
         room:loseHp(player, 1, self.name)
       else
         room:setPlayerMark(player, self.name, 0)
@@ -391,8 +420,13 @@ zhangsong:addSkill(qiangzhi)
 zhangsong:addSkill(xiantu)
 Fk:loadTranslationTable{
   ["zhangsong"] = "张松",
+  ["~zhangsong"] = "皇叔不听吾谏言，悔时晚矣！",
+  ["$qiangzhi1"] = "容我过目，即刻咏来。",
+  ["$qiangzhi2"] = "文书强识，才可博于运筹。",
   ["qiangzhi"] = "强识",
   [":qiangzhi"] = "出牌阶段开始时，你可以展示一名其他角色的一张手牌，若如此做，每当你于此阶段内使用与此牌类别相同的牌时，你可以摸一张牌。",
+  ["$xiantu1"] = "将军莫虑，且看此图。",
+  ["$xiantu2"] = "我已诚心相献，君何踌躇不前？",
   ["xiantu"] = "献图",
   [":xiantu"] = "一名其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，若如此做，此阶段结束时，若该角色未于此回合内杀死过一名角色，则你失去1点体力。",
   ["#qiangzhi-choose"] = "强识：展示一名其他角色的一张手牌，此阶段内你使用类别相同的牌时，你可以摸一张牌",
@@ -445,8 +479,13 @@ guyong:addSkill(shenxing)
 guyong:addSkill(bingyi)
 Fk:loadTranslationTable{
   ["guyong"] = "顾雍",
+  ["~guyong"] = "病驱渐重，国事难安……",
+  ["$shenxing1"] = "审时度势，乃容万变。",
+  ["$shenxing2"] = "此需斟酌一二。",
   ["shenxing"] = "慎行",
   [":shenxing"] = "出牌阶段，你可以弃置两张牌，然后摸一张牌。",
+  ["$bingyi1"] = "公正无私，秉持如一。",
+  ["$bingyi2"] = "诸君看仔细了！",
   ["bingyi"] = "秉壹",
   [":bingyi"] = "结束阶段开始时，你可以展示所有手牌，若均为同一颜色，则你令至多X名角色各摸一张牌（X为你的手牌数）。",
   ["#bingyi-target"] = "秉壹：你令至多X名角色各摸一张牌（X为你的手牌数）",
@@ -512,8 +551,13 @@ sunluban:addSkill(zenhui)
 sunluban:addSkill(jiaojin)
 Fk:loadTranslationTable{
   ["sunluban"] = "孙鲁班",
+  ["~sunluban"] = "本公主，何罪之有？",
+  ["$zenhui1"] = "你也休想置身事外！",
+  ["$zenhui2"] = "你可别不识抬举！",
   ["zenhui"] = "谮毁",
   [":zenhui"] = "出牌阶段限一次，当你使用【杀】或黑色非延时类锦囊牌指定唯一目标时，你令可以成为此牌目标的另一名其他角色选择一项：交给你一张牌并成为此牌的使用者；或成为此牌的额外目标。",
+  ["$jiaojin1"] = "就凭你、还想算计于我？",
+  ["$jiaojin2"] = "是谁借给你的胆子？",
   ["jiaojin"] = "骄矜",
   [":jiaojin"] = "每当你受到一名男性角色造成的伤害时，你可以弃置一张装备牌，令此伤害-1。",
   ["#zenhui-choose"] = "谮毁：你令可以令一名角色选择一项：交给你一张牌并成为此牌的使用者；或成为此牌的额外目标",
@@ -524,6 +568,7 @@ local nos__zhuhuan = General(extension, "nos__zhuhuan", "wu", 4)
 local youdi = fk.CreateTriggerSkill{
   name = "youdi",
   anim_type = "control",
+  mute = true,
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and not player:isNude()
@@ -538,9 +583,13 @@ local youdi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
+    room:broadcastSkillInvoke(self.name, 1)
+    room:notifySkillInvoked(player, self.name)
     local card = room:askForCardChosen(to, player, "he", self.name)
     room:throwCard({card}, self.name, player, to)
     if Fk:getCardById(card).trueName ~= "slash" and not to:isNude() then
+      room:broadcastSkillInvoke(self.name, 2)
+      room:notifySkillInvoked(player, self.name)
       local card2 = room:askForCardChosen(player, to, "he", self.name)
       room:obtainCard(player.id, card2, false)
     end
@@ -549,17 +598,93 @@ local youdi = fk.CreateTriggerSkill{
 nos__zhuhuan:addSkill(youdi)
 Fk:loadTranslationTable{
   ["nos__zhuhuan"] = "朱桓",
+  ["~nos__zhuhuan"] = "这巍巍巨城，吾竟无力撼动。",
+  ["$youdi1"] = "无名小卒，可敢再前进一步！",
+  ["$youdi2"] = "予以小利，必有大获。",
   ["youdi"] = "诱敌",
   [":youdi"] = "结束阶段开始时，你可以令一名其他角色弃置你的一张牌，若此牌不为【杀】，你获得该角色的一张牌。",
   ["#youdi-choose"] = "诱敌：令一名其他角色弃置你的一张牌，若不为【杀】，你获得其一张牌",
 }
 
+local zhuhuan = General(extension, "zhuhuan", "wu", 4, 4)
+local fenli = fk.CreateTriggerSkill{
+  name = "fenli",
+  events = {fk.EventPhaseChanging},
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self.name) then return false end
+    if data.to == Player.Draw then 
+      for _, p in ipairs(player.room:getOtherPlayers(player)) do
+        if #p.player_cards[Player.Hand] > #player.player_cards[Player.Hand] then
+          return false
+        end
+      end
+      return true
+    end
+    if data.to == Player.Play then 
+      for _, p in ipairs(player.room:getOtherPlayers(player)) do
+        if p.hp > player.hp then
+          return false
+        end
+      end
+      return true
+    end
+    if data.to == Player.Discard and #player.player_cards[Player.Equip] > 0 then 
+      for _, p in ipairs(player.room:getOtherPlayers(player)) do
+        if #p.player_cards[Player.Equip] > #player.player_cards[Player.Equip] then
+          return false
+        end
+      end
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:addPlayerMark(player, self.name .. "-turn", 1)
+    return true
+  end,
+}
+local pingkou = fk.CreateTriggerSkill{
+  name = "pingkou",
+  mute = true,
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and player:getMark("fenli-turn") > 0
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local num = player:getMark("fenli-turn")
+    local targets = table.map(room:getOtherPlayers(player), function(p)
+      return p.id
+    end)
+    local p = room:askForChoosePlayers(player, targets, 1, num, "#pingkou-target:::" .. tostring(num), self.name, true)
+    if #p > 0 then
+      room:broadcastSkillInvoke(self.name)
+      room:notifySkillInvoked(player, self.name)
+      table.forEach(p, function(pid)
+        room:damage{
+          from = player,
+          to = room:getPlayerById(pid),
+          damage = 1,
+          skillName = self.name,
+        }
+      end)
+    end
+  end,
+}
+zhuhuan:addSkill(fenli)
+zhuhuan:addSkill(pingkou)
 Fk:loadTranslationTable{
   ["zhuhuan"] = "朱桓",
+  ["~zhuhuan"] = "我不要死在这病榻之上……",
+  ["$fenli1"] = "以逸待劳，坐收渔利。",
+  ["$fenli2"] = "以主制客，占尽优势。",
   ["fenli"] = "奋励",
   [":fenli"] = "若你的手牌数为全场最多，你可以跳过摸牌阶段；若你的体力值为全场最多，你可以跳过出牌阶段；若你的装备区里有牌且数量为全场最多，你可以跳过弃牌阶段。",
+  ["$pingkou1"] = "对敌人仁慈，就是对自己残忍。",
+  ["$pingkou2"] = "反守为攻，直捣黄龙！",
   ["pingkou"] = "平寇",
   [":pingkou"] = "回合结束时，你可以对至多X名其他角色各造成1点伤害（X为你本回合跳过的阶段数）。",
+  ["#pingkou-target"] = "平寇：选择至多 %arg 名角色，各造成1点伤害",
 }
 
 local caifuren = General(extension, "caifuren", "qun", 3, 3, General.Female)
@@ -685,8 +810,13 @@ caifuren:addSkill(qieting)
 caifuren:addSkill(xianzhou)
 Fk:loadTranslationTable{
   ["caifuren"] = "蔡夫人",
+  ["~caifuren"] = "孤儿寡母，何必赶尽杀绝呢……",
+  ["$qieting1"] = "此人不露锋芒，断不可留！",
+  ["$qieting2"] = "想欺我蔡氏，痴心妄想！",
   ["qieting"] = "窃听",
   [":qieting"] = "一名其他角色的回合结束时，若其未于此回合内使用过指定另一名角色为目标的牌，你可以选择一项：将其装备区里的一张牌移动至你装备区里的相应位置；或摸一张牌。",
+  ["$xianzhou1"] = "献荆襄九郡，图一世之安。",
+  ["$xianzhou2"] = "丞相携天威而至，吾等安敢不降。",
   ["xianzhou"] = "献州",
   [":xianzhou"] = "限定技，出牌阶段，你可以将装备区里的所有牌交给一名其他角色，然后该角色选择一项：令你回复X点体力，或对其攻击范围内的至多X名角色各造成1点伤害（X为你以此法交给该角色的牌的数量）。",
   ["qieting_move"] = "将其一张装备移动给你",
@@ -737,6 +867,7 @@ local jianying = fk.CreateTriggerSkill{
 }
 local shibei = fk.CreateTriggerSkill{
   name = "shibei",
+  mute = true,
   anim_type = "defensive",
   frequency = Skill.Compulsory,
   events = {fk.Damaged},
@@ -746,12 +877,16 @@ local shibei = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if player:getMark(self.name) == 0 then
+      room:broadcastSkillInvoke(self.name, 1)
+      room:notifySkillInvoked(player, self.name)
       room:recover{
         who = player,
         num = 1,
         skillName = self.name
       }
     else
+      room:broadcastSkillInvoke(self.name, 2)
+      room:notifySkillInvoked(player, self.name, "negative")
       room:loseHp(player, 1, self.name)
     end
     room:addPlayerMark(player, self.name, 1)
@@ -769,8 +904,13 @@ jvshou:addSkill(jianying)
 jvshou:addSkill(shibei)
 Fk:loadTranslationTable{
   ["jvshou"] = "沮授",
+  ["~jvshou"] = "智士凋亡，河北哀矣……",
+  ["$jianying1"] = "由缓至急，循循而进。",
+  ["$jianying2"] = "事需缓图，欲速不达也。",
   ["jianying"] = "渐营",
   [":jianying"] = "每当你于出牌阶段内使用的牌与此阶段你使用的上一张牌点数或花色相同时，你可以摸一张牌。",
+  ["$shibei1"] = "矢志于北，尽忠于国！",
+  ["$shibei2"] = "命系袁氏，一心向北。",
   ["shibei"] = "矢北",
   [":shibei"] = "锁定技，每当你受到伤害后，若此伤害是你本回合第一次受到的伤害，你回复1点体力；否则你失去1点体力。",
   ["@jianying"] = "渐营",
