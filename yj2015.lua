@@ -247,12 +247,12 @@ local zhanjue_draw = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     -- 你摸牌
-    if player.isAlive() then
+    if not player.dead then
       room:drawCards(player,1)
       room:addPlayerMark(player, "zhanjue-turn")
     end
     -- 受伤者摸牌
-    if target.isAlive() then
+    if not target.dead then
       room:drawCards(target,1)
       if target == player then room:addPlayerMark(player, "zhanjue-turn") end
     end
