@@ -242,7 +242,7 @@ local zhanjue_draw = fk.CreateTriggerSkill{
   name = "#zhanjue_draw",
   refresh_events = {fk.Damaged},
   can_refresh = function(self, event, target, player, data)
-    return data.card.skillName == "zhanjue" and player:hasSkill(self.name)
+    return data.card and data.card.skillName == "zhanjue" and player:hasSkill(self.name)
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
