@@ -219,7 +219,7 @@ Fk:loadTranslationTable{
   [":zuoding"] = "当其他角色于其出牌阶段内使用♠牌指定目标后，若本阶段没有角色受到过伤害，你可以令其中一名目标角色摸一张牌。",
 }
 
-local liuchen = General(extension, "liuchen", "shu", 3, 3)
+local liuchen = General(extension, "liuchen", "shu", 4, 4)
 local zhanjue = fk.CreateViewAsSkill{
   name = "zhanjue",
   anim_type = "offensive",
