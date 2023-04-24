@@ -84,25 +84,23 @@ local jiangchi = fk.CreateTriggerSkill{
 local jiangchi_targetmod = fk.CreateTargetModSkill{
   name = "#jiangchi_targetmod",
   residue_func = function(self, player, skill, scope)
-    if skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 and scope == Player.HistoryPhase then
+    if player:hasSkill(self.name, true) and skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 and scope == Player.HistoryPhase then
       return 1
     end
   end,
   distance_limit_func =  function(self, player, skill)
-    if skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 then
+    if player:hasSkill(self.name, true) and skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 then
       return 999
     end
   end,
 }
 local jiangchi_prohibit = fk.CreateProhibitSkill{
   name = "#jiangchi_prohibit",
-  is_prohibited = function()
-  end,
   prohibit_use = function(self, player, card)
-    return player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
+    return player:hasSkill(self.name, true) and player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
   end,
   prohibit_response = function(self, player, card)
-    return player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
+    return player:hasSkill(self.name, true) and player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
   end,
 }
 jiangchi:addRelatedSkill(jiangchi_targetmod)
@@ -126,16 +124,18 @@ local nos__zhenlie = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local move1 = {}
-    move1.ids = room:getNCards(1)
-    move1.toArea = Card.Processing
-    move1.moveReason = fk.ReasonJustMove
-    move1.skillName = self.name
-    local move2 = {}
-    move2.ids = {data.card:getEffectiveId()}
-    move2.toArea = Card.DiscardPile
-    move2.moveReason = fk.ReasonJustMove
-    move2.skillName = self.name
+    local move1 = {
+      ids = room:getNCards(1),
+      toArea = Card.Processing,
+      moveReason = fk.ReasonJustMove,
+      skillName = self.name,
+    }
+    local move2 = {
+      ids = {data.card:getEffectiveId()},
+      toArea = Card.DiscardPile,
+      moveReason = fk.ReasonJustMove,
+      skillName = self.name,
+    }
     room:moveCards(move1, move2)
     data.card = Fk:getCardById(move1.ids[1])
     room:sendLog{
@@ -227,6 +227,7 @@ local miji = fk.CreateTriggerSkill{
     player:drawCards(n, self.name)
     room:setPlayerMark(player, self.name, n)
     room:askForUseActiveSkill(player, "#miji_active", "#miji-invoke", true)
+    room:setPlayerMark(player, self.name, 0)
   end,
 }
 local miji_active = fk.CreateActiveSkill{
@@ -253,7 +254,7 @@ local miji_active = fk.CreateActiveSkill{
     room:obtainCard(target, dummy, false, fk.ReasonGive)
   end,
 }
-miji:addRelatedSkill(miji_active)
+Fk:addSkill(miji_active)
 wangyi:addSkill(zhenlie)
 wangyi:addSkill(miji)
 Fk:loadTranslationTable{
@@ -288,21 +289,9 @@ local nos__qianxi = fk.CreateTriggerSkill{
       pattern = ".|.|spade,club,diamond",
     }
     room:judge(judge)
-    if self.qianxi_maxhp then
+    if judge.card.suit ~= Card.Heart then
       room:changeMaxHp(data.to, -1)
       return true
-    end
-  end,
-
-  refresh_events = {fk.FinishJudge},
-  can_refresh = function(self, event, target, player, data)
-    return data.reason == self.name
-  end,
-  on_refresh = function(self, event, target, player, data)
-    if data.card.suit == Card.Heart then
-      self.qianxi_maxhp = false
-    else
-      self.qianxi_maxhp = true
     end
   end,
 }
@@ -342,7 +331,7 @@ local qianxi = fk.CreateTriggerSkill{
     if #tos > 0 then
       to = tos[1]
     else
-      to = targets[math.random(1, #targets)]
+      to = table.random(targets)
     end
     room:setPlayerMark(room:getPlayerById(to), "@qianxi-turn", judge.card:getColorString())
   end,
@@ -379,7 +368,7 @@ local dangxian = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and data.to == Player.Start
   end,
   on_use = function(self, event, target, player, data)
-    data.to = Player.Play
+    player:gainAnExtraPhase(Player.Play)
   end,
 }
 local fuli = fk.CreateTriggerSkill{
@@ -418,7 +407,7 @@ Fk:loadTranslationTable{
 local nos__guanxingzhangbao = General(extension, "nos__guanxingzhangbao", "shu", 4)
 local nos__fuhun = fk.CreateTriggerSkill{
   name = "nos__fuhun",
-  anim_type = "control",
+  anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
@@ -442,9 +431,9 @@ local nos__fuhun = fk.CreateTriggerSkill{
     return true
   end,
 
-  refresh_events = {fk.EventPhaseStart},
+  refresh_events = {fk.EventPhaseChanging},  --TODO: TurnEnd
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and player.phase == Player.NotActive
+    return target == player and player:hasSkill(self.name, true) and data.to == Player.NotActive
   end,
   on_refresh = function(self, event, target, player, data)
     player.room:handleAddLoseSkills(player, "-wusheng|-paoxiao", nil, true, false)
@@ -476,7 +465,6 @@ local fuhun = fk.CreateViewAsSkill{
 }
 local fuhun_record = fk.CreateTriggerSkill{
   name = "#fuhun_record",
-  anim_type = "offensive",
 
   refresh_events = {fk.Damage, fk.EventPhaseStart},
   can_refresh = function(self, event, target, player, data)
@@ -537,7 +525,6 @@ local lihuo_targetmod = fk.CreateTargetModSkill{
 }
 local lihuo_record = fk.CreateTriggerSkill{
   name = "#lihuo_record",
-  anim_type = "negative",
 
   refresh_events = {fk.Damage, fk.CardUseFinished},
   can_refresh = function(self, event, target, player, data)
@@ -546,10 +533,12 @@ local lihuo_record = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     if event == fk.Damage then
-      data.card.lihuo = true
+      data.card.extra_data = data.card.extra_data or {}
+      table.insert(data.card.extra_data, "lihuo")
     else
-      if data.card.lihuo then
+      if data.card.extra_data and table.contains(data.card.extra_data, "lihuo") then
         room:loseHp(player, 1, self.name)
+        room:notifySkillInvoked(player, "lihuo", "negative")
       end
     end
   end,
@@ -557,14 +546,14 @@ local lihuo_record = fk.CreateTriggerSkill{
 local chunlao = fk.CreateTriggerSkill{
   name = "chunlao",
   anim_type = "support",
-  expand_pile = "chun",
+  expand_pile = "chengpu_chun",
   events = {fk.EventPhaseStart, fk.AskForPeaches},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self.name) then
       if event == fk.EventPhaseStart then
-        return target == player and player.phase == Player.Finish and #player:getPile("chun") == 0 and not player:isKongcheng()
+        return target == player and player.phase == Player.Finish and #player:getPile("chengpu_chun") == 0 and not player:isKongcheng()
       else
-        return target.dying and #player:getPile("chun") > 0
+        return target.dying and #player:getPile("chengpu_chun") > 0
       end
     end
   end,
@@ -574,7 +563,7 @@ local chunlao = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       cards = room:askForCard(player, 1, #player.player_cards[Player.Hand], false, self.name, true, "slash", "#chunlao-cost")
     else
-      cards = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|chun|.|.", "#chunlao-invoke", "chun")
+      cards = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|chengpu_chun|.|.", "#chunlao-invoke", "chengpu_chun")
     end
     if #cards > 0 then
       self.cost_data = cards
@@ -584,7 +573,7 @@ local chunlao = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.EventPhaseStart then
-      player:addToPile("chun", self.cost_data, false, self.name)
+      player:addToPile("chengpu_chun", self.cost_data, false, self.name)
     else
       room:moveCards({
         from = player.id,
@@ -594,14 +583,13 @@ local chunlao = fk.CreateTriggerSkill{
         skillName = self.name,
         specialName = self.name,
       })
-      player:removeCards(Player.Special, self.cost_data, "chun")
+      player:removeCards(Player.Special, self.cost_data, "chengpu_chun")
       local analeptic = Fk:cloneCard("analeptic")
-      local extra_data = {analepticRecover = true}
       room:useCard({
         card = analeptic,
         from = target.id,
         tos = {{target.id}},
-        extra_data = extra_data,
+        extra_data = {analepticRecover = true},
         skillName = self.name,
       })
     end
@@ -617,7 +605,7 @@ Fk:loadTranslationTable{
   [":lihuo"] = "你可以将一张普通【杀】当火【杀】使用，若此法使用的【杀】造成了伤害，在此【杀】结算后你失去1点体力；你使用火【杀】时，可以额外选择一个目标。",
   ["chunlao"] = "醇醪",
   [":chunlao"] = "回合结束阶段开始时，若你的武将牌上没有牌，你可以将任意数量的【杀】置于你的武将牌上，称为“醇”；当一名角色处于濒死状态时，你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】。",
-  ["chun"] = "醇",
+  ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
   ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】",
 }
@@ -629,7 +617,7 @@ local anxu = fk.CreateActiveSkill{
   target_num = 2,
   card_num = 0,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = function(self, to_select, selected)
     return false
@@ -646,9 +634,9 @@ local anxu = fk.CreateActiveSkill{
       return false
     end
   end,
-  on_use = function(self, room, use)
-    local target1 = room:getPlayerById(use.tos[1])
-    local target2 = room:getPlayerById(use.tos[2])
+  on_use = function(self, room, effect)
+    local target1 = room:getPlayerById(effect.tos[1])
+    local target2 = room:getPlayerById(effect.tos[2])
     local from, to
     if #target1.player_cards[Player.Hand] < #target2.player_cards[Player.Hand] then
       from = target1
@@ -660,7 +648,7 @@ local anxu = fk.CreateActiveSkill{
     local card = room:askForCardChosen(from, to, "h", self.name)
     room:obtainCard(from.id, card, true)
     if Fk:getCardById(card).suit ~= Card.Spade then
-      room:getPlayerById(use.from):drawCards(1)
+      room:getPlayerById(effect.from):drawCards(1)
     end
   end,
 }
@@ -753,7 +741,7 @@ local gongqi = fk.CreateActiveSkill{
   card_num = 1,
   target_num = 0,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name) == 0 and not player:isNude()
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
   end,
   card_filter = function(self, to_select, selected)
     return #selected == 0
@@ -827,7 +815,7 @@ local zishou = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and player.phase == Player.Draw and player:isWounded()
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and player:isWounded()
   end,
   on_use = function(self, event, target, player, data)
     data.n = data.n + player:getLostHp()
@@ -837,11 +825,11 @@ local zishou = fk.CreateTriggerSkill{
 local zongshi = fk.CreateMaxCardsSkill{
   name = "zongshi",
   correct_func = function(self, player)
-    local kingdoms = {}
-    for _, p in ipairs(Fk:currentRoom().alive_players) do
-      table.insertIfNeed(kingdoms, p.kingdom)
-    end
     if player:hasSkill(self.name) then
+      local kingdoms = {}
+      for _, p in ipairs(Fk:currentRoom().alive_players) do
+        table.insertIfNeed(kingdoms, p.kingdom)
+      end
       return #kingdoms
     else
       return 0
@@ -865,8 +853,7 @@ local shiyong = fk.CreateTriggerSkill{
   events = {fk.Damaged},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card ~= nil and
-      data.card.trueName == "slash" and data.card.color == Card.Red  --FIXME: drank damage
+    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red  --FIXME: drank damage
   end,
   on_use = function(self, event, target, player, data)
     player.room:changeMaxHp(player, -1)
@@ -902,14 +889,14 @@ local quanji = fk.CreateTriggerSkill{
     local room = player.room
     player:drawCards(1)
     local card = room:askForCard(player, 1, 1, false, self.name, false)
-    player:addToPile("quan", card, false, self.name)
+    player:addToPile("zhonghui_quan", card, false, self.name)
   end,
 }
 local quanji_maxcards = fk.CreateMaxCardsSkill{
   name = "#quanji_maxcards",
   correct_func = function(self, player)
     if player:hasSkill(self.name) then
-      return #player:getPile("quan")
+      return #player:getPile("zhonghui_quan")
     else
       return 0
     end
@@ -921,8 +908,8 @@ local zili = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and
-     player.phase == Player.Start and
-     #player:getPile("quan") > 2
+      player.phase == Player.Start and
+      #player:getPile("zhonghui_quan") > 2
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -948,29 +935,29 @@ local zili = fk.CreateTriggerSkill{
 local paiyi = fk.CreateActiveSkill{
   name = "paiyi",
   anim_type = "control",
-  target_num = 1,
   card_num = 1,
-  expand_pile = "quan",
+  target_num = 1,
+  expand_pile = "zhonghui_quan",
   can_use = function(self, player)
-    return #player:getPile("quan") > 0 and player:usedSkillTimes(self.name) == 0
+    return #player:getPile("zhonghui_quan") > 0 and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   target_filter = function(self, to_select, selected)
     return #selected == 0
   end,
   card_filter = function(self, to_select, selected)
-    return #selected == 0 and Self:getPileNameOfId(to_select) == "quan"
+    return #selected == 0 and Self:getPileNameOfId(to_select) == "zhonghui_quan"
   end,
-  on_use = function(self, room, use)
-    local player = room:getPlayerById(use.from)
-    local target = room:getPlayerById(use.tos[1])
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
     room:moveCards({
       from = player.id,
-      ids = use.cards,
+      ids = effect.cards,
       toArea = Card.DiscardPile,
       moveReason = fk.ReasonPutIntoDiscardPile,
       skillName = self.name,
     })
-    player:removeCards(Player.Special, use.cards, self.name)
+    player:removeCards(Player.Special, effect.cards, self.name)
     target:drawCards(2)
     if #target.player_cards[Player.Hand] > #player.player_cards[Player.Hand] then
       room:damage{
@@ -994,7 +981,7 @@ Fk:loadTranslationTable{
   [":zili"] = "觉醒技，回合开始阶段开始时，若“权”的数量达到3或更多，你须减1点体力上限，然后回复1点体力或摸两张牌，并获得技能“排异”。",
   ["paiyi"] = "排异",
   [":paiyi"] = "出牌阶段，你可以将一张“权”置入弃牌堆，令一名角色摸两张牌，然后若该角色的手牌数大于你的手牌数，你对其造成1点伤害。每阶段限一次。",
-  ["quan"] = "权",
+  ["zhonghui_quan"] = "权",
 }
 
 return extension
