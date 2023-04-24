@@ -129,8 +129,13 @@ caozhi:addSkill(luoying)
 caozhi:addSkill(jiushi)
 Fk:loadTranslationTable{
   ["caozhi"] = "曹植",
+  ["~caozhi"] = "本是同根生，相煎何太急。",
+  ["$luoying1"] = "这些都是我的。",
+  ["$luoying2"] = "别着急扔，给我就好。",
   ["luoying"] = "落英",
   [":luoying"] = "当其他角色的♣牌，因弃牌或判定而进入弃牌堆时，你可以获得之。",
+  ["$jiushi1"] = "置酒高殿上，亲友从我游。",
+  ["$jiushi2"] = "走马行酒醴，驱车布鱼肉。",
   ["jiushi"] = "酒诗",
   [":jiushi"] = "若你的武将牌正面朝上，你可以（在合理的时机）将你的武将牌翻面来视为使用一张【酒】。当你的武将牌背面朝上时你受到伤害，你可在伤害结算后将之翻回正面。",
   ["#jiushi_ex"] = "酒诗",
@@ -152,6 +157,9 @@ local yizhong = fk.CreateTriggerSkill{
 yujin:addSkill(yizhong)
 Fk:loadTranslationTable{
   ["yujin"] = "于禁",
+  ["~yujin"] = "我，无颜面对丞相了……",
+  ["$yizhong1"] = "不先为备，何以待敌？",
+  ["$yizhong2"] = "稳重行军，百战不殆！",
   ["yizhong"] = "毅重",
   [":yizhong"] = "锁定技，当你没有装备防具时，黑色的【杀】对你无效。",
 }
@@ -193,8 +201,13 @@ zhangchunhua:addSkill(jueqing)
 zhangchunhua:addSkill(shangshi)
 Fk:loadTranslationTable{
   ["zhangchunhua"] = "张春华",
+  ["~zhangchunhua"] = "怎能如此对我！",
+  ["$jueqing1"] = "你的死活，与我何干？",
+  ["$jueqing2"] = "无来无去，不悔不怨。",
   ["jueqing"] = "绝情",
   [":jueqing"] = "锁定技，你造成的伤害均视为体力流失。",
+  ["$shangshi1"] = "无情者伤人，有情者自伤。",
+  ["$shangshi2"] = "自损八百，可伤敌一千。",
   ["shangshi"] = "伤逝",
   [":shangshi"] = "除弃牌阶段外，每当你的手牌数小于你已损失的体力值时，可立即将手牌数补至等同于你已损失的体力值。",
 }
@@ -218,8 +231,12 @@ local nos__enyuan = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event ==  fk.HpRecover then
+      room:broadcastSkillInvoke(self.name, math.random(1,2))
+      room:notifySkillInvoked(player, self.name, "support")
       data.recoverBy:drawCards(data.num)
     else
+      room:broadcastSkillInvoke(self.name, math.random(3,4))
+      room:notifySkillInvoked(player, self.name)
       if data.from:isKongcheng() then
         room:loseHp(data.from, 1, self.name)
       else
@@ -269,8 +286,15 @@ nos__fazheng:addSkill(nos__enyuan)
 nos__fazheng:addSkill(nos__xuanhuo)
 Fk:loadTranslationTable{
   ["nos__fazheng"] = "法正",
+  ["~nos__fazheng"] = "辅翼既折，蜀汉衰矣……",
+  ["$nos__enyuan1"] = "得人恩果千年记。",
+  ["$nos__enyuan2"] = "滴水之恩，涌泉相报。",
+  ["$nos__enyuan3"] = "谁敢得罪我？",
+  ["$nos__enyuan4"] = "睚眦之怨，无不报复。",
   ["nos__enyuan"] = "恩怨",
   [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张♥手牌，否则该角色失去1点体力。",
+  ["$nos__xuanhuo1"] = "重用许靖，以眩远近。",
+  ["$nos__xuanhuo2"] = "给你的，十倍奉还给我。",
   ["nos__xuanhuo"] = "眩惑",
   [":nos__xuanhuo"] = "出牌阶段，你可将一张♥手牌交给一名其他角色，然后，你获得该角色的一张牌并立即交给除该角色外的其他角色。每回合限一次。",
   ["#nos__enyuan-give"] = "恩怨：你需交出一张♥手牌，否则失去1点体力",
@@ -375,8 +399,13 @@ fazheng:addSkill(enyuan)
 fazheng:addSkill(xuanhuo)
 Fk:loadTranslationTable{
   ["fazheng"] = "法正",
+  ["~fazheng"] = "汉室复兴，我，是看不到了……",
+  ["$enyuan1"] = "报之以李，还之以桃。",
+  ["$enyuan2"] = "伤了我，休想全身而退！",
   ["enyuan"] = "恩怨",
   [":enyuan"] = "你每次获得一名其他角色两张或更多的牌时，可令其摸一张牌；每当你受到1点伤害后，你可以令伤害来源选择一项：交给你一张手牌，或失去1点体力。",
+  ["$xuanhuo1"] = "收人钱财，替人消灾。",
+  ["$xuanhuo2"] = "哼，叫你十倍奉还！",
   ["xuanhuo"] = "眩惑",
   [":xuanhuo"] = "摸牌阶段，你可以放弃摸牌，改为令另一名角色摸两张牌，然后令其对其攻击范围内你指定的一名角色使用一张【杀】，若该角色未如此做，你获得其两张牌。",
   ["#enyuan-give"] = "恩怨：你需交出一张手牌，否则失去1点体力",
@@ -444,8 +473,12 @@ masu:addSkill(xinzhan)
 masu:addSkill(huilei)
 Fk:loadTranslationTable{
   ["masu"] = "马谡",
+  ["$xinzhan1"] = "吾通晓兵法，世人皆知。",
+  ["$xinzhan2"] = "用兵之道，攻心为上。",
   ["xinzhan"] = "心战",
   [":xinzhan"] = "出牌阶段，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的♥牌并获得之，其余以任意顺序置于牌堆顶。每回合限一次。",
+  ["$huilei1"] = "丞相视某如子，某以丞相为父。",
+  ["$huilei2"] = "谡愿以死安大局。",
   ["huilei"] = "挥泪",
   [":huilei"] = "锁定技，杀死你的角色立即弃置所有牌。",
 }
@@ -509,8 +542,13 @@ nos__xushu:addSkill(nos__wuyan)
 nos__xushu:addSkill(nos__jujian)
 Fk:loadTranslationTable{
   ["nos__xushu"] = "徐庶",
+  ["~nos__xushu"] = "娘……孩儿不孝……向您……请罪……",
+  ["$nos__wuyan1"] = "嘘，言多必失啊。",
+  ["$nos__wuyan2"] = "唉，一切尽在不言中。",
   ["nos__wuyan"] = "无言",
   [":nos__wuyan"] = "锁定技，你使用的非延时类锦囊对其他角色无效；其他角色使用的非延时类锦囊对你无效。",
+  ["$nos__jujian1"] = "我看好你！",
+  ["$nos__jujian2"] = "将军岂愿抓牌乎？",
   ["nos__jujian"] = "举荐",
   [":nos__jujian"] = "出牌阶段，你可以弃至多三张牌，然后让一名其他角色摸等量的牌，若你以此法弃牌不少于三张且均为同一类别，你回复1点体力。每回合限一次。",
 }
@@ -577,8 +615,13 @@ xushu:addSkill(wuyan)
 xushu:addSkill(jujian)
 Fk:loadTranslationTable{
   ["xushu"] = "徐庶",
+  ["~xushu"] = "忠孝不能两全，孩儿……",
+  ["$wuyan1"] = "吾，誓不为汉贼献一策！",
+  ["$wuyan2"] = "汝有良策，何必问我！",
   ["wuyan"] = "无言",
   [":wuyan"] = "锁定技，你防止你造成或受到的任何锦囊牌的伤害。",
+  ["$jujian1"] = "天下大任，望君莫辞！",
+  ["$jujian2"] = "卧龙之才，远胜于我。",
   ["jujian"] = "举荐",
   [":jujian"] = "回合结束阶段开始时，你可以弃置一张非基本牌，若如此做，你令一名其他角色选择一项执行：摸两张牌；或回复1点体力；或将其武将牌翻至正面向上并重置。",
   ["#jujian-choose"] = "举荐：你可以弃置一张非基本牌，令一名其他角色摸牌/回复体力/重置武将牌",
@@ -646,6 +689,9 @@ local nos__xuanfeng = fk.CreateTriggerSkill{
 nos__lingtong:addSkill(nos__xuanfeng)
 Fk:loadTranslationTable{
   ["nos__lingtong"] = "凌统",
+  ["~nos__lingtong"] = "大丈夫不惧死亡……",
+  ["$nos__xuanfeng1"] = "伤敌于千里之外！",
+  ["$nos__xuanfeng2"] = "索命于须臾之间！",
   ["nos__xuanfeng"] = "旋风",
   [":nos__xuanfeng"] = "每当你失去一次装备区里的牌时，你可以执行下列两项中的一下：1.视为对任意一名其他角色使用一张【杀】（此【杀】不计入每回合的使用限制）；2.对与你距离1以内的一名其他角色造成1点伤害。",
   ["#nos__xuanfeng-choose"] = "旋风：你可以视为使用一张【杀】，或对距离1的一名其他角色造成1点伤害",
@@ -707,6 +753,9 @@ local xuanfeng = fk.CreateTriggerSkill{
 lingtong:addSkill(xuanfeng)
 Fk:loadTranslationTable{
   ["lingtong"] = "凌统",
+  ["~lingtong"] = "大丈夫不惧死亡……",
+  ["$xuanfeng1"] = "伤敌于千里之外！",
+  ["$xuanfeng2"] = "索命于须臾之间！",
   ["xuanfeng"] = "旋风",
   [":xuanfeng"] = "当你失去装备区里的牌，或于弃牌阶段弃掉两张或更多的牌时，你可以依次弃置一至两名角色的共计两张牌。",
   ["#xuanfeng-choose"] = "旋风：你可以依次弃置一至两名角色的共计两张牌",
@@ -786,8 +835,13 @@ wuguotai:addSkill(ganlu)
 wuguotai:addSkill(buyi)
 Fk:loadTranslationTable{
   ["wuguotai"] = "吴国太",
+  ["~wuguotai"] = "卿等，务必用心辅佐仲谋……",
+  ["$ganlu1"] = "男婚女嫁，须当交换文定之物。",
+  ["$ganlu2"] = "此真乃吾之佳婿也。",
   ["ganlu"] = "甘露",
   [":ganlu"] = "出牌阶段，你可以选择两名角色，交换他们装备区里的所有牌，以此法交换的装备牌数量不能超过X（X为你已损失体力值）。每回合限一次。",
+  ["$buyi1"] = "吾乃吴国之母，何人敢放肆？",
+  ["$buyi2"] = "有老身在，汝等尽可放心。",
   ["buyi"] = "补益",
   [":buyi"] = "当有角色进入濒死状态时，你可以展示该角色的一张手牌：若此牌不为基本牌，则该角色弃掉这张牌并回复1点体力。",
 }
@@ -808,6 +862,9 @@ local pojun = fk.CreateTriggerSkill{
 xusheng:addSkill(pojun)
 Fk:loadTranslationTable{
   ["xusheng"] = "徐盛",
+  ["~xusheng"] = "盛，不能奋身出命，不亦辱乎……",
+  ["$pojun1"] = "	大军在此！汝等休想前进一步！",
+  ["$pojun2"] = "敬请，养精蓄锐！",
   ["pojun"] = "破军",
   [":pojun"] = "你每使用【杀】造成一次伤害，可令受到该伤害的角色摸X张牌，X为该角色当前的体力值（X最多为5），然后该角色将其武将牌翻面。",
 }
@@ -825,8 +882,13 @@ local jinjiu = fk.CreateFilterSkill{
 --gaoshun:addSkill(jinjiu)
 Fk:loadTranslationTable{
   ["gaoshun"] = "高顺",
+  ["~gaoshun"] = "生死有命……",
+  ["$xianzhen1"] = "攻无不克，战无不胜！",
+  ["$xianzhen2"] = "破阵斩将，易如反掌！",
   ["xianzhen"] = "陷阵",
   [":xianzhen"] = "出牌阶段，你可以与一名角色拼点，若你赢，你获得以下技能直到回合结束：无视与该角色的距离及其防具牌；可对该角色使用任意数量的【杀】。若你没赢，你不能使用【杀】直到回合结束。每回合限一次。",
+  ["$jinjiu1"] = "贬酒阙色，所以无污。",
+  ["$jinjiu2"] = "避嫌远疑，所以无误。",
   ["jinjiu"] = "禁酒",
   [":jinjiu"] = "锁定技，你的【酒】均视为【杀】。",
 }
@@ -907,8 +969,13 @@ chengong:addSkill(mingce)
 chengong:addSkill(zhichi)
 Fk:loadTranslationTable{
   ["chengong"] = "陈宫",
+  ["~chengong"] = "请出就戮！",
+  ["$mingce1"] = "如此，霸业可图也。",
+  ["$mingce2"] = "如此，一击可擒也。",
   ["mingce"] = "明策",
   [":mingce"] = "出牌阶段，你可以给其他任一角色一张装备牌或【杀】，该角色进行二选一：1.视为对其攻击范围内的另一名由你指定的角色使用一张【杀】；2.摸一张牌。每回合限一次。",
+  ["$zhichi1"] = "如今之计，唯有退守，再做决断。",
+  ["$zhichi2"] = "若吾，早知如此……",
   ["zhichi"] = "智迟",
   [":zhichi"] = "锁定技，你的回合外，你每受到一次伤害，任何【杀】或非延时类锦囊对你无效，直到该回合结束。",
   ["#mingce-choose"] = "明策：选择视为使用【杀】的目标",
