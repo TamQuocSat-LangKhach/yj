@@ -806,43 +806,35 @@ local jvshou = General(extension, "jvshou", "qun", 3)
 local jianying = fk.CreateTriggerSkill{
   name = "jianying",
   anim_type = "drawcard",
-  mute = true,
-  events = {fk.AfterCardUseDeclared, fk.CardUsing},
+  events = {fk.CardUsing},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) and player.phase == Player.Play then
-      return (event == fk.AfterCardUseDeclared) or (event == fk.CardUsing and self.cost_data)
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    if event == fk.AfterCardUseDeclared then
-      return true
-    else
-      return player.room:askForSkillInvoke(player, self.name)
-    end
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and self.cost_data
   end,
   on_use = function(self, event, target, player, data)
+    player:drawCards(1)
+  end,
+
+  refresh_events = {fk.AfterCardUseDeclared},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play
+  end,
+  on_refresh = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.AfterCardUseDeclared then
+    self.cost_data = false
+    if data.card.suit == Card.NoSuit then
+      room:setPlayerMark(player, "@jianying-phase", 0)
+      room:setPlayerMark(player, "jianying_suit-phase", 0)
+      room:setPlayerMark(player, "jianying_num-phase", 0)
       self.cost_data = false
-      if data.card.suit == Card.NoSuit then
-        room:setPlayerMark(player, "@jianying-phase", 0)
-        room:setPlayerMark(player, "jianying_suit-phase", 0)
-        room:setPlayerMark(player, "jianying_num-phase", 0)
-        self.cost_data = false
-      else
-        if data.card:getSuitString() == player:getMark("jianying_suit-phase") or data.card.number == player:getMark("jianying_num-phase") then
-          self.cost_data = true
-        else
-          self.cost_data = false
-        end
-        room:setPlayerMark(player, "@jianying-phase", string.format("%s-%d", Fk:translate(data.card:getSuitString()), data.card.number))
-        room:setPlayerMark(player, "jianying_suit-phase", data.card:getSuitString())
-        room:setPlayerMark(player, "jianying_num-phase", data.card.number)
-      end
     else
-      room:broadcastSkillInvoke(self.name)
-      room:notifySkillInvoked(player, self.name)
-      player:drawCards(1)
+      if data.card:getSuitString() == player:getMark("jianying_suit-phase") or data.card.number == player:getMark("jianying_num-phase") then
+        self.cost_data = true
+      else
+        self.cost_data = false
+      end
+      room:setPlayerMark(player, "@jianying-phase", string.format("%s-%d", Fk:translate(data.card:getSuitString()), data.card.number))
+      room:setPlayerMark(player, "jianying_suit-phase", data.card:getSuitString())
+      room:setPlayerMark(player, "jianying_num-phase", data.card.number)
     end
   end,
 }

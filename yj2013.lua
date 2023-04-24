@@ -99,32 +99,20 @@ local guohuai = General(extension, "guohuai", "wei", 4)
 local jingce = fk.CreateTriggerSkill{
   name = "jingce",
   anim_type = "drawcard",
-  mute = true,
-  events = {fk.EventPhaseEnd, fk.CardUsing},
+  events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) then
-      if event == fk.EventPhaseEnd then
-        return player.phase == Player.Play and player:getMark("@jingce-turn") >= player.hp
-      else
-        return player.phase < Player.Discard
-      end
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    if event == fk.EventPhaseEnd then
-      return player.room:askForSkillInvoke(player, self.name)
-    else
-      return true
-    end
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("@jingce-turn") >= player.hp
   end,
   on_use = function(self, event, target, player, data)
-    if event == fk.EventPhaseEnd then
-      player.room:broadcastSkillInvoke(self.name)
-      player.room:notifySkillInvoked(player, self.name)
-      player:drawCards(2)
-    else
-      player.room:addPlayerMark(player, "@jingce-turn", 1)
-    end
+    player:drawCards(2)
+  end,
+
+  refresh_events = {fk.CardUsing},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase < Player.Discard
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:addPlayerMark(player, "@jingce-turn", 1)
   end,
 }
 guohuai:addSkill(jingce)
