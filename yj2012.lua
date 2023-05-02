@@ -5,15 +5,19 @@ Fk:loadTranslationTable{
   ["yjcm2012"] = "一将成名2012",
 }
 
-local normal_tricks = {
-  "dismantlement", "snatch", "duel", "collateral",
-  "ex_nihilo", "savage_assault", "archery_attack", "god_salvation",
-  "amazing_grace", "iron_chain", "fire_attack",
-}
 local xunyou = General(extension, "xunyou", "wei", 3)
 local qice = fk.CreateViewAsSkill{
   name = "qice",
-  interaction = UI.ComboBox {choices = normal_tricks},
+  interaction = function()
+    local names = {}
+    for _, id in ipairs(Fk:getAllCardIds()) do
+      local card = Fk:getCardById(id)
+      if card.type == Card.TypeTrick and card.sub_type ~= Card.SubtypeDelayedTrick and card.trueName ~= "nullification" and card.name ~= "adaptation" then
+        table.insertIfNeed(names, card.name)
+      end
+    end
+    return UI.ComboBox {choices = names}
+  end,
   enabled_at_play = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,

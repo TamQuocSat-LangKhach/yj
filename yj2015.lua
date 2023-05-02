@@ -266,25 +266,21 @@ local qinwang = fk.CreateViewAsSkill{
   card_filter = function(self, to_select, selected)
     return #selected == 0
   end,
+  before_use = function(self, player)
+    Fk:currentRoom():askForDiscard(player, 1, 1, true, self.name, false, ".")
+  end,
   view_as = function(self, cards)
-    -- room:askForDiscard(Player, 1, 1, true, self.name, false, ".") --todo
-    if #cards == 1 then
-    else
-      return nil
-    end
     local c = Fk:cloneCard("slash")
     c.skillName = self.name
     return c
   end,
   enabled_at_play = function(self, player)
-    return not player:isNude() and player:getMark("qinwang_failed-phase") == 0 and not table.every(Fk:currentRoom().alive_players, function(p)
-      return p == player or p.kingdom ~= "shu"
-    end)
+    return not player:isNude() and player:getMark("qinwang_failed-phase") == 0 and
+      not table.every(Fk:currentRoom().alive_players, function(p) return p == player or p.kingdom ~= "shu" end)
   end,
   enabled_at_response = function(self, player)
-    return not table.every(Fk:currentRoom().alive_players, function(p)
-      return p == player or p.kingdom ~= "shu"
-    end)
+    return not player:isNude() and
+      not table.every(Fk:currentRoom().alive_players, function(p) return p == player or p.kingdom ~= "shu" end)
   end,
 }
 local qinwang_response = fk.CreateTriggerSkill{
@@ -395,7 +391,7 @@ local yanyu_record = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askForChoosePlayers(player, table.map(table.filter(room:getAlivePlayers(), function(p)
-      return p.gender == General.Male end), function(p) return p.id end), 1, 1, "#yanyu-choose", self.name, true)
+      return p.gender == General.Male end), function(p) return p.id end), 1, 1, "#yanyu-draw", self.name, true)
     if #to > 0 then
       self.cost_data = room:getPlayerById(to[1])
       return true
@@ -415,7 +411,7 @@ Fk:loadTranslationTable{
   ["yanyu"] = "燕语",
   [":yanyu"] = "出牌阶段，你可以重铸【杀】；出牌阶段结束时，若你于此阶段内重铸过两张或更多的【杀】，则你可以令一名男性角色摸两张牌。",
   ["#yanyu_record"] = "燕语",
-  ["#yanyu-choose"] = "燕语：你可以令一名男性角色摸两张牌",
+  ["#yanyu-draw"] = "燕语：你可以令一名男性角色摸两张牌",
 
   ["~xiahoushi"] = "愿有来世，不负前缘……",
   ["$qiaoshi1"] = "樵前情窦开，君后寻迹来。",
@@ -487,10 +483,96 @@ Fk:loadTranslationTable{
   ["~zhangyi"] = "大丈夫当战死沙场，马革裹尸而还。",
 }
 
+local quancong = General(extension, "quancong", "wu", 4)
+local zhenshan = fk.CreateViewAsSkill{
+  name = "zhenshan",
+  pattern = ".|.|.|.|.|basic",
+  interaction = function()
+    local names = {}
+    for _, id in ipairs(Fk:getAllCardIds()) do
+      local card = Fk:getCardById(id)
+      if card.type == Card.TypeBasic then
+        table.insertIfNeed(names, card.name)
+      end
+    end
+    return UI.ComboBox {choices = names}
+  end,
+  card_filter = function()
+    return false
+  end,
+  view_as = function(self, cards)
+    local card = Fk:cloneCard(self.interaction.data)
+    card.skillName = self.name
+    return card
+  end,
+  before_use = function(self, player)
+    local room = Fk:currentRoom()
+    local targets = table.map(table.filter(room.alive_players, function(p)
+      return (#p.player_cards[Player.Hand] < #player.player_cards[Player.Hand]) end), function(p) return p.id end)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#zhenshan-choose", self.name, true)
+    if #to > 0 then
+      to = to[1]
+    else
+      to =table.random(targets)
+    end
+    local cards1 = table.clone(player.player_cards[Player.Hand])
+    local cards2 = table.clone(room:getPlayerById(to).player_cards[Player.Hand])
+    local move1 = {
+      from = player.id,
+      ids = cards1,
+      toArea = Card.Processing,
+      moveReason = fk.ReasonExchange,
+      proposer = player.id,
+      skillName = self.name,
+      moveVisible = false,  --FIXME: this is still visible! same problem with dimeng!
+    }
+    local move2 = {
+      from = to,
+      ids = cards2,
+      toArea = Card.Processing,
+      moveReason = fk.ReasonExchange,
+      proposer = player.id,
+      skillName = self.name,
+      moveVisible = false,
+    }
+    room:moveCards(move1, move2)
+    local move3 = {
+      ids = cards1,
+      fromArea = Card.Processing,
+      to = to,
+      toArea = Card.PlayerHand,
+      moveReason = fk.ReasonExchange,
+      proposer = player.id,
+      skillName = self.name,
+      moveVisible = false,
+    }
+    local move4 = {
+      ids = cards2,
+      fromArea = Card.Processing,
+      to = player.id,
+      toArea = Card.PlayerHand,
+      moveReason = fk.ReasonExchange,
+      proposer = player.id,
+      skillName = self.name,
+      moveVisible = false,
+    }
+    room:moveCards(move3, move4)
+  end,
+  enabled_at_play = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and not player:isKongcheng() and
+      not table.every(Fk:currentRoom().alive_players, function (p) return #p.player_cards[Player.Hand] >= #player.player_cards[Player.Hand] end)
+  end,
+  enabled_at_response = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and not player:isKongcheng() and
+      not table.every(Fk:currentRoom().alive_players, function (p) return #p.player_cards[Player.Hand] >= #player.player_cards[Player.Hand] end)
+  end,
+}
+quancong:addSkill(zhenshan)
 Fk:loadTranslationTable{
   ["quancong"] = "全琮",
   ["zhenshan"] = "振赡",
   [":zhenshan"] = "每回合限一次，当你需要使用或打出一张基本牌时，你可以与一名手牌数少于你的角色交换手牌，若如此做，视为你使用或打出此牌。",
+  ["#zhenshan-choose"] = "振赡：与一名手牌数少于你的角色交换手牌",
 
   ["$zhenshan1"] = "看我如何以无用之力换己所需，哈哈哈！",
   ["$zhenshan2"] = "民不足食，何以养军？",

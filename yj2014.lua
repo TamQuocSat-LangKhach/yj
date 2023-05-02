@@ -351,40 +351,33 @@ local xiantu = fk.CreateTriggerSkill{
   name = "xiantu",
   anim_type = "support",
   mute = true,
-  events = {fk.EventPhaseStart},
+  events = {fk.EventPhaseStart, fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self.name) and target.phase == Player.Play
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, data, "#xiantu-invoke::"..target.id)
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    player:drawCards(2)
-    local cards = room:askForCard(player, 2, 2, true, self.name, false, ".", "#xiantu-give::"..target.id)
-    room:broadcastSkillInvoke(self.name, 1)
-    room:notifySkillInvoked(player, self.name)
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(cards)
-    room:obtainCard(target, dummy, false, fk.ReasonGive)
-  end,
-
-  refresh_events = {fk.EventPhaseEnd, fk.Death},
-  can_refresh = function(self, event, target, player, data)
-    if player:hasSkill(self.name, true) and player:usedSkillTimes(self.name) > 0 and not player.dead then
-      if event == fk.EventPhaseEnd then
-        return target.phase == Player.Play
+    if target ~= player and player:hasSkill(self.name, true) and target.phase == Player.Play then
+      if event == fk.EventPhaseStart then
+        return player:hasSkill(self.name)
       else
-        return true
+        return player:usedSkillTimes(self.name) > 0
       end
     end
   end,
-  on_refresh = function(self, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      return player.room:askForSkillInvoke(player, self.name, data, "#xiantu-invoke::"..target.id)
+    else
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.Death then
-      if data.damage and room.current.id == data.damage.from.id then
-        room:setPlayerMark(player, self.name, 1)
-      end
+    if event == fk.EventPhaseStart then
+      player:drawCards(2)
+      local cards = room:askForCard(player, 2, 2, true, self.name, false, ".", "#xiantu-give::"..target.id)
+      room:broadcastSkillInvoke(self.name, 1)
+      room:notifySkillInvoked(player, self.name)
+      local dummy = Fk:cloneCard("dilu")
+      dummy:addSubcards(cards)
+      room:obtainCard(target, dummy, false, fk.ReasonGive)
     else
       if player:getMark(self.name) == 0 then
         room:broadcastSkillInvoke(self.name, 2)
@@ -393,6 +386,17 @@ local xiantu = fk.CreateTriggerSkill{
       else
         room:setPlayerMark(player, self.name, 0)
       end
+    end
+  end,
+
+  refresh_events = {fk.Death},
+  can_refresh = function(self, event, target, player, data)
+    return player:hasSkill(self.name, true) and player:usedSkillTimes(self.name) > 0 and not player.dead
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if data.damage and data.damage.from and room.current.id == data.damage.from.id then
+      room:setPlayerMark(player, self.name, 1)
     end
   end,
 }
@@ -873,7 +877,7 @@ Fk:loadTranslationTable{
   [":jianying"] = "每当你于出牌阶段内使用的牌与此阶段你使用的上一张牌点数或花色相同时，你可以摸一张牌。",
   ["shibei"] = "矢北",
   [":shibei"] = "锁定技，每当你受到伤害后，若此伤害是你本回合第一次受到的伤害，你回复1点体力；否则你失去1点体力。",
-  ["@jianying-turn"] = "渐营",
+  ["@jianying-phase"] = "渐营",
 
   ["$jianying1"] = "由缓至急，循循而进。",
   ["$jianying2"] = "事需缓图，欲速不达也。",
