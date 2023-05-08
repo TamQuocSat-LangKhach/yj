@@ -304,7 +304,7 @@ nos__madai:addSkill(nos__qianxi)
 Fk:loadTranslationTable{
   ["nos__madai"] = "马岱",
   ["nos__qianxi"] = "潜袭",
-  [":nos__qianxi"] = "每当你使用【杀】对距离为1的目标角色造成伤害时，你可以进行一次判定，若判定结果不为♥，你防止此伤害，改为令其减1点体力上限。",
+  [":nos__qianxi"] = "每当你使用【杀】对距离为1的目标角色造成伤害时，你可以进行一次判定，若判定结果不为<font color='red'>♥</font>，你防止此伤害，改为令其减1点体力上限。",
 }
 
 local madai = General(extension, "madai", "shu", 4)
@@ -435,9 +435,9 @@ local nos__fuhun = fk.CreateTriggerSkill{
     return true
   end,
 
-  refresh_events = {fk.EventPhaseChanging},  --TODO: TurnEnd
+  refresh_events = {fk.TurnEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and data.to == Player.NotActive
+    return target == player and player:hasSkill(self.name, true)
   end,
   on_refresh = function(self, event, target, player, data)
     player.room:handleAddLoseSkills(player, "-wusheng|-paoxiao", nil, true, false)
@@ -449,7 +449,7 @@ nos__guanxingzhangbao:addRelatedSkill("paoxiao")
 Fk:loadTranslationTable{
   ["nos__guanxingzhangbao"] = "关兴张苞",
   ["nos__fuhun"] = "父魂",
-  [":nos__fuhun"] = "摸牌阶段，你可以放弃摸牌，改为亮出牌堆顶的两张牌并获得之，若亮出的牌颜色不同，你获得技能“武圣”、“咆哮”，直到回合结束。",
+  [":nos__fuhun"] = "摸牌阶段，你可以放弃摸牌，改为亮出牌堆顶的两张牌并获得之，若亮出的牌颜色不同，你获得技能〖武圣〗、〖咆哮〗，直到回合结束。",
 }
 
 local guanxingzhangbao = General(extension, "guanxingzhangbao", "shu", 4)
@@ -470,14 +470,14 @@ local fuhun = fk.CreateViewAsSkill{
 local fuhun_record = fk.CreateTriggerSkill{
   name = "#fuhun_record",
 
-  refresh_events = {fk.Damage, fk.EventPhaseStart},
+  refresh_events = {fk.Damage, fk.TurnEnd},
   can_refresh = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) then
+    if target == player then
       if event == fk.Damage then
-        return data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play and
+        return player:hasSkill(self.name) and data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play and
           not (player:hasSkill("wusheng", true) and player:hasSkill("wusheng", true))
       else
-        return player:hasSkill(self.name, true) and player.phase == Player.NotActive
+        return player:hasSkill(self.name, true)
       end
     end
   end,
@@ -567,7 +567,7 @@ local chunlao = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       cards = room:askForCard(player, 1, #player.player_cards[Player.Hand], false, self.name, true, "slash", "#chunlao-cost")
     else
-      cards = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|chengpu_chun|.|.", "#chunlao-invoke", "chengpu_chun")
+      cards = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|chengpu_chun|.|.", "#chunlao-invoke::"..target.id, "chengpu_chun")
     end
     if #cards > 0 then
       self.cost_data = cards
@@ -611,7 +611,7 @@ Fk:loadTranslationTable{
   [":chunlao"] = "回合结束阶段开始时，若你的武将牌上没有牌，你可以将任意数量的【杀】置于你的武将牌上，称为“醇”；当一名角色处于濒死状态时，你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】。",
   ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
-  ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】",
+  ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为 %dest 使用一张【酒】",
 }
 
 local bulianshi = General(extension, "bulianshi", "wu", 3, 3, General.Female)
@@ -665,14 +665,11 @@ local zhuiyi = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = {}
-    for _, p in ipairs(room:getOtherPlayers(player)) do
-      table.insert(targets, p.id)
-    end
+    local targets = table.map(room:getOtherPlayers(player), function (p) return p.id end)
     if data.damage then
       table.removeOne(targets, data.damage.from.id)
     end
-    local p = room:askForChoosePlayers(player, targets, 1, 1, "#zhuiyi-target", self.name, true)
+    local p = room:askForChoosePlayers(player, targets, 1, 1, "#zhuiyi-choose", self.name, true)
     if #p > 0 then
       self.cost_data = p[1]
       return true
@@ -681,7 +678,7 @@ local zhuiyi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
-    to:drawCards(3)
+    to:drawCards(3, self.name)
     if to:isWounded() then
       room:recover{
         who = to,
@@ -700,7 +697,7 @@ Fk:loadTranslationTable{
   [":anxu"] = "出牌阶段，你可以选择两名手牌数不相等的其他角色，令其中手牌少的角色获得手牌多的角色一张手牌并展示之，若此牌不为♠，你摸一张牌。每阶段限一次。",
   ["zhuiyi"] = "追忆",
   [":zhuiyi"] = "你死亡时，可以令一名其他角色（杀死你的角色除外）摸三张牌并回复1点体力。",
-  ["#zhuiyi-target"] = "追忆：你死亡时，可以令一名其他角色（凶手除外）摸三张牌并回复1点体力",
+  ["#zhuiyi-choose"] = "追忆：你可以令一名角色摸三张牌并回复1点体力",
 }
 
 --local nos_handang = General(extension, "nos_handang", "wu", 4)
@@ -854,13 +851,33 @@ local huaxiong = General(extension, "huaxiong", "qun", 6)
 local shiyong = fk.CreateTriggerSkill{
   name = "shiyong",
   anim_type = "negative",
-  events = {fk.Damaged},
   frequency = Skill.Compulsory,
+  events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red  --FIXME: drank damage
+    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and
+      (data.card.color == Card.Red or player:getMark(self.name) > 0)
   end,
   on_use = function(self, event, target, player, data)
     player.room:changeMaxHp(player, -1)
+    player.room:setPlayerMark(player, self.name, 0)
+  end,
+
+  refresh_events = {fk.TargetConfirmed, fk.CardUseFinished},
+  can_refresh = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) then
+      if event == fk.TargetConfirmed then
+        return data.extra_data and data.extra_data.drankBuff
+      else
+        return data.card.trueName == "slash"
+      end
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if event == fk.TargetConfirmed then
+      player.room:setPlayerMark(player, self.name, 1)
+    else
+      player.room:setPlayerMark(player, self.name, 0)
+    end
   end,
 }
 huaxiong:addSkill(shiyong)

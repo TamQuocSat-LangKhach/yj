@@ -69,7 +69,6 @@ local mingjian = fk.CreateActiveSkill{
 }
 local mingjian_record = fk.CreateTriggerSkill{
   name = "#mingjian_record",
-  frequency = Skill.Compulsory,
 
   refresh_events = {fk.EventPhaseChanging},
   can_refresh = function(self, event, target, player, data)
@@ -188,7 +187,7 @@ local qingxi = fk.CreateTriggerSkill{
       data.damage = data.damage + 1
       return
     end
-    if #room:askForDiscard(data.to, n, n, false, self.name, true, ".", "#qingxi-discard") == n then
+    if #room:askForDiscard(data.to, n, n, false, self.name, true, ".", "#qingxi-discard:::"..n) == n then
       room:throwCard({player:getEquipment(Card.SubtypeWeapon)}, self.name, player, data.to)
     else
       data.damage = data.damage + 1
@@ -203,6 +202,7 @@ Fk:loadTranslationTable{
   [":qianju"] = "锁定技，你计算与其他角色的距离-X。（X为你已损失的体力值）",
   ["qingxi"] = "倾袭",
   [":qingxi"] = "当你使用【杀】造成伤害时，若你装备区内有武器牌，你可以令该角色选择一项：1.弃置X张手牌，然后弃置你的武器牌；2.令此【杀】伤害+1（X为该武器的攻击范围）。",
+  ["#qingxi-discard"] = "倾袭：你需弃置%arg张手牌，否则伤害+1",
 
   ["$qingxi1"] = "策马疾如电，溃敌一瞬间。",
   ["$qingxi2"] = "虎豹骑岂能徒有虚名？杀！",
@@ -353,6 +353,9 @@ local qiaoshi = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target ~= player and player:hasSkill(self.name) and target.phase == Player.Finish and #player.player_cards[Player.Hand] == #target.player_cards[Player.Hand]
   end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#qiaoshi-invoke::"..target.id)
+  end,
   on_use = function(self, event, target, player, data)
     player:drawCards(1, self.name)
     target:drawCards(1, self.name)
@@ -410,6 +413,7 @@ Fk:loadTranslationTable{
   [":qiaoshi"] = "其他角色的结束阶段，若其手牌数等于你，你可以与其各摸一张牌。",
   ["yanyu"] = "燕语",
   [":yanyu"] = "出牌阶段，你可以重铸【杀】；出牌阶段结束时，若你于此阶段内重铸过两张或更多的【杀】，则你可以令一名男性角色摸两张牌。",
+  ["#qiaoshi-invoke"] = "樵拾：你可以与 %dest 各摸一张牌",
   ["#yanyu_record"] = "燕语",
   ["#yanyu-draw"] = "燕语：你可以令一名男性角色摸两张牌",
 
@@ -430,10 +434,10 @@ local wurong = fk.CreateActiveSkill{
     return not player:isKongcheng() and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = function(self, to_select, selected)
-    return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
+    return false
   end,
   target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0 and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -635,7 +639,6 @@ Fk:loadTranslationTable{
 local zhuzhi = General(extension, "zhuzhi", "wu", 4)
 local function doAnguo(player, type, source)
   local room = player.room
-  source = source or player
   if type == "draw" then
     if table.every(room:getOtherPlayers(player), function (p) return #p.player_cards[Player.Hand] >= #player.player_cards[Player.Hand] end) then
       player:drawCards(1)
@@ -699,7 +702,7 @@ local anguo = fk.CreateActiveSkill{
       end
     end
     for i = #types, 1, -1 do
-      doAnguo(player, type)
+      doAnguo(player, type, player)
     end
   end,
 }

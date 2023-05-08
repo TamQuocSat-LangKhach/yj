@@ -33,9 +33,9 @@ local chengxiang = fk.CreateTriggerSkill{
       for i = #card_ids, 1, -1 do
         local id = card_ids[i]
         if sum + Fk:getCardById(id).number > 13 then
-            room:takeAG(player, id, room.players)
-            table.insert(throw, id)
-            table.removeOne(card_ids, id)
+          room:takeAG(player, id, room.players)
+          table.insert(throw, id)
+          table.removeOne(card_ids, id)
         end
       end
       if #card_ids == 0 then break end
@@ -164,7 +164,7 @@ local yuce = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
-    local card = player.room:askForCard(player, 1, 1, false, self.name, true)
+    local card = player.room:askForCard(player, 1, 1, false, self.name, true, ".", "#yuce-invoke")
     if #card > 0 then
       self.cost_data = card[1]
       return true
@@ -184,7 +184,7 @@ local yuce = fk.CreateTriggerSkill{
     else
       local types = {"basic", "trick", "equip"}
       table.removeOne(types, Fk:getCardById(c):getTypeString())
-      if #room:askForDiscard(data.from, 1, 1, false, self.name, true, ".|.|.|hand|.|"..table.concat(types, ","), "#yuce-discard") == 0 then
+      if #room:askForDiscard(data.from, 1, 1, false, self.name, true, ".|.|.|hand|.|"..table.concat(types, ","), "#yuce-discard:::"..Fk:getCardById(c):getTypeString()) == 0 then
         room:recover{
           who = player,
           num = 1,
@@ -204,7 +204,8 @@ Fk:loadTranslationTable{
   ["yuce"] = "御策",
   [":yuce"] = "每当你受到一次伤害后，你可以展示一张手牌，令伤害来源弃置一张类别不同的手牌，否则，你回复1点体力。",
   ["#junxing-discard"] = "峻刑：你需弃置一张不同类别的手牌，否则翻面并摸弃牌数的牌",
-  ["#yuce-discard"] = "御策：你需弃置一张不同类别的手牌，否则其回复1点体力",
+  ["#yuce-invoke"] = "御策：你可以展示一张手牌，伤害来源需弃置一张类别不同的手牌，否则你回复1点体力",
+  ["#yuce-discard"] = "御策：你需弃置一张非%arg手牌，否则其回复1点体力",
 
   ["$junxing1"] = "严刑峻法，以破奸诡之胆。",
   ["$junxing2"] = "你招还是不招？",
@@ -236,7 +237,7 @@ Fk:loadTranslationTable{
   ["guanping"] = "关平",
   ["longyin"] = "龙吟",
   [":longyin"] = "每当一名角色在其出牌阶段使用【杀】时，你可以弃置一张牌令此【杀】不计入出牌阶段使用次数，若此【杀】为红色，你摸一张牌。",
-  ["#longyin-invoke"] = "龙吟：你可以弃置一张牌令%dest的【杀】不计入次数限制",
+  ["#longyin-invoke"] = "龙吟：你可以弃置一张牌令 %dest 的【杀】不计入次数限制",
 
   ["$longyin1"] = "破阵杀敌，愿献犬马之劳！",
   ["$longyin2"] = "虎啸既响，龙吟当附！",
@@ -387,7 +388,15 @@ local zongxuan = fk.CreateTriggerSkill{
       local id = room:askForAG(player, cards, true, self.name)  --TODO: temporarily use AG. AG function need cancelable!
       if id ~= nil then
         table.removeOne(cards, id)
+        room:moveCards({
+          ids = {id},
+          fromArea = Card.DiscardPile,
+          toArea = Card.DrawPile,
+          moveReason = fk.ReasonJustMove,
+          skillName = self.name,
+        })
         table.insert(room.draw_pile, 1, id)
+        table.remove(room.draw_pile, #room.draw_pile)  --FIXME: ？？？
         room:closeAG(player)
       else
         room:closeAG(player)
@@ -404,7 +413,8 @@ local zhiyan = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p) return p.id end), 1, 1, "#zhiyan-choose", self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p)
+      return p.id end), 1, 1, "#zhiyan-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -672,7 +682,7 @@ local nos__mieji = fk.CreateTriggerSkill{
         table.insertIfNeed(targets, p.id)
       end
     end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__mieji-choose", self.name, true)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__mieji-choose:::"..data.card:toLogString(), self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -724,7 +734,7 @@ Fk:loadTranslationTable{
   [":nos__mieji"] = "你使用黑色非延时类锦囊仅指定一个目标时，可以额外指定一个目标。",
   ["nos__fencheng"] = "焚城",
   [":nos__fencheng"] = "限定技，出牌阶段，你可令所有其他角色依次选择一项：弃置X张牌，或受到1点火焰伤害。（X为该角色装备区里牌的数量且至少为1）",
-  ["#nos__mieji-choose"] = "灭计：你可以额外指定一个目标",
+  ["#nos__mieji-choose"] = "灭计：你可以为%arg额外指定一个目标",
   ["#nos__fencheng-discard"] = "焚城：你需弃置%arg张牌，否则受到1点火焰伤害",
 
   ["$nos__juece1"] = "哼！你走投无路了。",

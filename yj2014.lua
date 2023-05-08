@@ -203,7 +203,7 @@ local zhongyong = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(target), function(p)
-      return p.id end), 1, 1, "#zhongyong-choose", self.name, true)
+      return p.id end), 1, 1, "#zhongyong-choose::"..target.id, self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -225,7 +225,7 @@ Fk:loadTranslationTable{
   ["zhoucang"] = "周仓",
   ["zhongyong"] = "忠勇",
   [":zhongyong"] = "当你于出牌阶段内使用的【杀】被目标角色使用的【闪】抵消时，你可以将此【闪】交给除该角色外的一名角色，若获得此【闪】的角色不是你，你可以对相同的目标再使用一张【杀】。",
-  ["#zhongyong-choose"] = "忠勇：将此【闪】交给除其以外的一名角色，若不是你，你可以对其再使用一张【杀】",
+  ["#zhongyong-choose"] = "忠勇：将此【闪】交给除 %dest 以外的一名角色，若不是你，你可以对其再使用一张【杀】",
   ["#zhongyong-slash"] = "忠勇：你可以对 %dest 再使用一张【杀】",
 
   ["$zhongyong1"] = "驱刀飞血，直取寇首！",
@@ -454,7 +454,8 @@ local bingyi = fk.CreateTriggerSkill{
         return
       end
     end
-    local tos = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p) return p.id end), 1, #cards, "#bingyi-choose", self.name, true)
+    local tos = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p)
+      return p.id end), 1, #cards, "#bingyi-choose:::"..#cards, self.name, true)
     if #tos > 0 then
       for _, p in ipairs(tos) do
         room:getPlayerById(p):drawCards(1)
@@ -470,7 +471,7 @@ Fk:loadTranslationTable{
   [":shenxing"] = "出牌阶段，你可以弃置两张牌，然后摸一张牌。",
   ["bingyi"] = "秉壹",
   [":bingyi"] = "结束阶段开始时，你可以展示所有手牌，若均为同一颜色，则你令至多X名角色各摸一张牌（X为你的手牌数）。",
-  ["#bingyi-choose"] = "秉壹：令至多X名角色各摸一张牌（X为你的手牌数）",
+  ["#bingyi-choose"] = "秉壹：令至多%arg名角色各摸一张牌",
 
   ["$shenxing1"] = "审时度势，乃容万变。",
   ["$shenxing2"] = "此需斟酌一二。",
@@ -498,7 +499,7 @@ local zenhui = fk.CreateTriggerSkill{
         table.insertIfNeed(targets, p.id)
       end
     end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#zenhui-choose", self.name, true)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#zenhui-choose:::"..data.card:toLogString(), self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -543,7 +544,7 @@ Fk:loadTranslationTable{
   [":zenhui"] = "出牌阶段限一次，当你使用【杀】或黑色非延时类锦囊牌指定唯一目标时，你令可以成为此牌目标的另一名其他角色选择一项：交给你一张牌并成为此牌的使用者；或成为此牌的额外目标。",
   ["jiaojin"] = "骄矜",
   [":jiaojin"] = "每当你受到一名男性角色造成的伤害时，你可以弃置一张装备牌，令此伤害-1。",
-  ["#zenhui-choose"] = "谮毁：你令可以令一名角色选择一项：交给你一张牌并成为此牌的使用者；或成为此牌的额外目标",
+  ["#zenhui-choose"] = "谮毁：你可以令一名角色选择一项：交给你一张牌并成为%arg的使用者；或成为此牌的额外目标",
   ["#zenhui-give"] = "谮毁：交给 %dest 一张牌以成为此牌使用者，否则你成为此牌额外目标",
   ["#jiaojin-discard"] = "骄矜：你可以弃置一张装备牌，令此伤害-1",
 
@@ -612,7 +613,7 @@ local fenli = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    local phases = {"DrawPhase", "PlayPhase", "DiscardPhase"}
+    local phases = {"phase_draw", "phase_play", "phase_discard"}
     return player.room:askForSkillInvoke(player, self.name, data, "#fenli-invoke:::"..phases[data.to - 3])
   end,
   on_use = function(self, event, target, player, data)
@@ -637,7 +638,7 @@ local pingkou = fk.CreateTriggerSkill{
       end
     end
     local targets = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), function(p)
-      return p.id end), 1, n, "#pingkou-choose:::"..tostring(n), self.name, true)
+      return p.id end), 1, n, "#pingkou-choose:::"..n, self.name, true)
     if #targets > 0 then
       self.cost_data = targets
       return true
@@ -665,9 +666,6 @@ Fk:loadTranslationTable{
   [":pingkou"] = "回合结束时，你可以对至多X名其他角色各造成1点伤害（X为你本回合跳过的阶段数）。",
   ["#fenli-invoke"] = "奋励：你可以跳过%arg",
   ["#pingkou-choose"] = "平寇：你可以对至多%arg名角色各造成1点伤害",
-  ["DrawPhase"] = "摸牌阶段",
-  ["PlayPhase"] = "出牌阶段",
-  ["DiscardPhase"] = "弃牌阶段", --FIXME: move this
 
   ["$fenli1"] = "以逸待劳，坐收渔利。",
   ["$fenli2"] = "以主制客，占尽优势。",
@@ -765,7 +763,7 @@ local xianzhou = fk.CreateActiveSkill{
     local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
       return target:inMyAttackRange(p) end), function (p) return p.id end)
     if #targets > 0 then
-      local tos = room:askForChoosePlayers(target, targets, 1, n, "#xianzhou-choose", self.name)
+      local tos = room:askForChoosePlayers(target, targets, 1, n, "#xianzhou-choose:::"..n, self.name)
       if #tos > 0 then
         for _, p in ipairs(tos) do
           room:damage{
@@ -797,7 +795,7 @@ Fk:loadTranslationTable{
   ["xianzhou"] = "献州",
   [":xianzhou"] = "限定技，出牌阶段，你可以将装备区里的所有牌交给一名其他角色，然后该角色选择一项：令你回复X点体力，或对其攻击范围内的至多X名角色各造成1点伤害（X为你以此法交给该角色的牌的数量）。",
   ["qieting_move"] = "将其一张装备移动给你",
-  ["#xianzhou-choose"] = "献州：对你攻击范围内的至多X名角色各造成1点伤害，或点“取消”令其回复X点体力",
+  ["#xianzhou-choose"] = "献州：对你攻击范围内的至多%arg名角色各造成1点伤害，或点“取消”令其回复体力",
 
   ["$qieting1"] = "此人不露锋芒，断不可留！",
   ["$qieting2"] = "想欺我蔡氏，痴心妄想！",
