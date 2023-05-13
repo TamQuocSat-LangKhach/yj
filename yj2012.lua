@@ -928,9 +928,12 @@ local zili = fk.CreateTriggerSkill{
   frequency = Skill.Wake,
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and
+    return target == player and player:hasSkill(self.name) and
       player.phase == Player.Start and
-      #player:getPile("zhonghui_quan") > 2
+      player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  can_wake = function(self, event, target, player, data)
+    return #player:getPile("zhonghui_quan") > 2
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
