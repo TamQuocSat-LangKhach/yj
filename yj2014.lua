@@ -458,7 +458,7 @@ local bingyi = fk.CreateTriggerSkill{
       return p.id end), 1, #cards, "#bingyi-choose:::"..#cards, self.name, true)
     if #tos > 0 then
       for _, p in ipairs(tos) do
-        room:getPlayerById(p):drawCards(1)
+        room:getPlayerById(p):drawCards(1, self.name)
       end
     end
   end,

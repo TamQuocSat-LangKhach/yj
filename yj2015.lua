@@ -72,28 +72,22 @@ local mingjian_record = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseChanging},
   can_refresh = function(self, event, target, player, data)
-    return player:getMark("@@mingjian") > 0 and data.to == Player.NotActive and target == player
+    return player:getMark("@@mingjian") > 0 and data.to == Player.Start and target == player
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
+    room:addPlayerMark(player, "@@mingjian-turn", player:getMark("@@mingjian"))
+    room:addPlayerMark(player, "AddMaxCards-turn", player:getMark("@@mingjian"))
     room:setPlayerMark(player, "@@mingjian", 0)
   end,
 }
 local mingjian_targetmod = fk.CreateTargetModSkill{
   name = "#mingjian_targetmod",
   residue_func = function(self, player, skill, scope)
-    if skill.trueName == "slash_skill" and player:getMark("@@mingjian") > 0 and scope == Player.HistoryPhase then
-      return player:getMark("@@mingjian")
+    if skill.trueName == "slash_skill" and player:getMark("@@mingjian-turn") > 0 and scope == Player.HistoryPhase then
+      return player:getMark("@@mingjian-turn")
     end
   end,
-}
-local mingjian_maxcardmod = fk.CreateMaxCardsSkill{
-  name = "#mingjian_maxcardmod",
-  correct_func = function(self, player)
-    if player:getMark("@@mingjian") > 0 then
-      return player:getMark("@@mingjian")
-    end
-  end
 }
 local xingshuai = fk.CreateTriggerSkill{
   name = "xingshuai$",
@@ -135,7 +129,6 @@ local xingshuai = fk.CreateTriggerSkill{
 }
 mingjian:addRelatedSkill(mingjian_record)
 mingjian:addRelatedSkill(mingjian_targetmod)
-mingjian:addRelatedSkill(mingjian_maxcardmod)
 caorui:addSkill(huituo)
 caorui:addSkill(mingjian)
 caorui:addSkill(xingshuai)
@@ -216,12 +209,105 @@ Fk:loadTranslationTable{
   ["~caoxiu"] = "兵行险招，终有一失。",
 }
 
+local zhongyao = General(extension, "zhongyao", "wei", 3)
+local huomo = fk.CreateViewAsSkill{
+  name = "huomo",
+  pattern = ".|.|.|.|.|basic",
+  interaction = function()
+    local names = {}
+    for _, id in ipairs(Fk:getAllCardIds()) do
+      local card = Fk:getCardById(id)
+      if card.type == Card.TypeBasic and Self:usedCardTimes(card.trueName, Player.HistoryTurn) == 0 then
+        table.insertIfNeed(names, card.name)
+      end
+    end
+    if #names == 0 then return false end
+    return UI.ComboBox {choices = names}
+  end,
+  card_filter = function()
+    return false
+  end,
+  view_as = function(self, cards)
+    if not self.interaction.data then return end
+    local card = Fk:cloneCard(self.interaction.data)
+    card.skillName = self.name
+    return card
+  end,
+  enabled_at_play = function(self, player)
+    return not player:isNude()
+  end,
+  enabled_at_response = function(self, player, response)
+    return not response and not player:isNude()
+  end,
+}
+local huomo_trigger = fk.CreateTriggerSkill{  --FIXME: 体验不佳！
+  name = "#huomo_trigger",
+  events = {fk.PreCardUse, fk.PreCardRespond},
+  mute = true,
+  priority = 10,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name, true) and table.contains(data.card.skillNames, "huomo")
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    room:doIndicate(player.id, TargetGroup:getRealTargets(data.tos))
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local card = room:askForCard(player, 1, 1, true, "huomo", true, ".|.|spade,club|.|.|^basic", "#huomo-card")
+    if #card > 0 then
+      room:moveCards({
+        ids = card,
+        from = player.id,
+        toArea = Card.DrawPile,
+        moveReason = fk.ReasonJustMove,
+        skillName = "huomo",
+      })
+      return false
+    else
+      return true
+    end
+  end,
+}
+local zuoding = fk.CreateTriggerSkill{
+  name = "zuoding",
+  anim_type = "drawcard",
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target ~= player and target.phase == Player.Play and data.firstTarget and
+      data.card.suit == Card.Spade and #AimGroup:getAllTargets(data.tos) > 0 and player:getMark("zuoding-phase") == 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    local to = player.room:askForChoosePlayers(player, AimGroup:getAllTargets(data.tos), 1, 1, "#zuoding-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:getPlayerById(self.cost_data):drawCards(1, self.name)
+  end,
+
+  refresh_events = {fk.Damaged},
+  can_refresh = function(self, event, target, player, data)
+    return player:hasSkill(self.name, true) and player.room.current.phase == Player.Play
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:addPlayerMark(player, "zuoding-phase", 1)
+  end,
+}
+huomo:addRelatedSkill(huomo_trigger)
+zhongyao:addSkill(huomo)
+zhongyao:addSkill(zuoding)
 Fk:loadTranslationTable{
   ["zhongyao"] = "钟繇",
   ["huomo"] = "活墨",
   [":huomo"] = "当你需要使用基本牌时（你本回合使用过的基本牌除外），你可以将一张黑色非基本牌置于牌堆顶，视为使用此基本牌。",
   ["zuoding"] = "佐定",
   [":zuoding"] = "当其他角色于其出牌阶段内使用♠牌指定目标后，若本阶段没有角色受到过伤害，你可以令其中一名目标角色摸一张牌。",
+  ["#huomo-card"] = "活墨：将一张黑色非基本牌置于牌堆顶",
+  ["#zuoding-choose"] = "佐定：你可以令一名目标角色摸一张牌",
 
   ["$huomo1"] = "笔墨写春秋，挥毫退万敌！",
   ["$huomo2"] = "妙笔在手，研墨在心。",
@@ -230,7 +316,7 @@ Fk:loadTranslationTable{
   ["~zhongyao"] = "墨尽，岁终。",
 }
 
-local liuchen = General(extension, "liuchen", "shu", 4, 4)
+local liuchen = General(extension, "liuchen", "shu", 4)
 local zhanjue = fk.CreateViewAsSkill{
   name = "zhanjue",
   anim_type = "offensive",
@@ -590,6 +676,86 @@ Fk:loadTranslationTable{
   ["~quancong"] = "儿啊，好好报答吴王知遇之恩……",
 }
 
+local sunxiu = General(extension, "sunxiu", "wu", 3)
+local yanzhu = fk.CreateActiveSkill{
+  name = "yanzhu",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and not Fk:currentRoom():getPlayerById(to_select):isNude()-- and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local cancelable = true
+    if #target.player_cards[Player.Equip] == 0 then
+      cancelable = false
+    end
+    if #room:askForDiscard(target, 1, 1, true, self.name, cancelable, ".", "#yanzhu-discard:"..player.id) == 0 and cancelable then
+      local dummy = Fk:cloneCard("dilu")
+      dummy:addSubcards(target.player_cards[Player.Equip])
+      room:obtainCard(player, dummy, true, fk.ReasonGive)
+      room:handleAddLoseSkills(player, "-yanzhu", nil, true, false)
+      room:addPlayerMark(player, self.name, 1)
+    end
+  end,
+}
+local xingxue = fk.CreateTriggerSkill{
+  name = "xingxue",
+  anim_type = "support",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish
+  end,
+  on_cost = function(self, event, target, player, data)
+    local n = player.hp
+    if player:getMark("yanzhu") > 0 then
+      n = player.maxHp
+    end
+    local tos = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p)
+      return p.id end), 1, n, "#xingxue-choose:::"..n, self.name, true)
+    if #tos > 0 then
+      self.cost_data = tos
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    for _, id in ipairs(self.cost_data) do
+      local to = room:getPlayerById(id)
+      to:drawCards(1, self.name)
+      local card = room:askForCard(to, 1, 1, true, self.name, false, ".", "#xingxue-card")
+      room:moveCards({
+        ids = card,
+        from = id,
+        toArea = Card.DrawPile,
+        moveReason = fk.ReasonJustMove,
+        skillName = self.name,
+      })
+    end
+  end,
+}
+local zhaofu = fk.CreateAttackRangeSkill{  --FIXME!!!
+  name = "zhaofu",
+  correct_func = function (self, from, to)
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      if p:hasSkill(self.name) and from.kingdom == "wu" and p:distanceTo(to) == 1 then
+        return 999
+      end
+      return 0
+    end
+  end,
+}
+sunxiu:addSkill(yanzhu)
+sunxiu:addSkill(xingxue)
+--sunxiu:addSkill(zhaofu)
 Fk:loadTranslationTable{
   ["sunxiu"] = "孙休",
   ["yanzhu"] = "宴诛",
@@ -598,6 +764,9 @@ Fk:loadTranslationTable{
   [":xingxue"] = "结束阶段，你可以令X名角色依次摸一张牌并将一张牌置于牌堆顶（X为你的体力值）。",
   ["zhaofu"] = "诏缚",
   [":zhaofu"] = "主公技，锁定技，与你距离为1的角色视为在其他吴势力角色的攻击范围内。",
+  ["#yanzhu-discard"] = "宴诛：弃置一张牌，或点“取消”将所有装备交给 %src（若没装备则必须弃一张牌）",
+  ["#xingxue-choose"] = "兴学：你可以令至多%arg名角色依次摸一张牌并将一张牌置于牌堆顶",
+  ["#xingxue-card"] = "兴学：将一张牌置于牌堆顶",
 
   ["$yanzhu1"] = "不诛此权臣，朕，何以治天下？",
   ["$yanzhu2"] = "大局已定，你还是放弃吧。",

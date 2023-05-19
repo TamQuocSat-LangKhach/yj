@@ -700,9 +700,9 @@ Fk:loadTranslationTable{
   ["#zhuiyi-choose"] = "追忆：你可以令一名角色摸三张牌并回复1点体力",
 }
 
---local nos_handang = General(extension, "nos_handang", "wu", 4)
-local nos_gongqi = fk.CreateViewAsSkill{
-  name = "nos_gongqi",
+local nos__handang = General(extension, "nos__handang", "wu", 4)
+local nos__gongqi = fk.CreateViewAsSkill{
+  name = "nos__gongqi",
   anim_type = "offensive",
   pattern = "slash",
   card_filter = function(self, to_select, selected)
@@ -717,22 +717,62 @@ local nos_gongqi = fk.CreateViewAsSkill{
     return card
   end,
 }
-local gongqi_targetmod = fk.CreateTargetModSkill{
-  name = "#gongqi_targetmod",
+local nos__gongqi_targetmod = fk.CreateTargetModSkill{
+  name = "#nos__gongqi_targetmod",
   distance_limit_func =  function(self, player, skill, card)
-    if card ~= nil and table.contains(card.skillNames, "gongqi") then
+    if table.contains(card.skillNames, "nos__gongqi") then
       return 999
     end
   end,
 }
-nos_gongqi:addRelatedSkill(gongqi_targetmod)
---handang:addSkill(nos_gongqi)
+local nos__jiefan = fk.CreateTriggerSkill{
+  name = "nos__jiefan",
+  anim_type = "support",
+  events = {fk.AskForPeaches, fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+    if event == fk.AskForPeaches then
+      return player:hasSkill(self.name) and target.dying and player.room.current and player.room.current ~= player
+    else
+      return target == player and data.card and data.card.extra_data and table.contains(data.card.extra_data, self.name)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.AskForPeaches then
+      self.cost_data = player.room:askForUseCard(player, "slash", "slash",
+        "#nos__jiefan-slash:"..target.id..":"..player.room.current.id, true, {must_targets = {player.room.current.id}})
+      return self.cost_data
+    else
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.AskForPeaches then
+      local use = self.cost_data
+      use.card.extra_data = use.card.extra_data or {}
+      table.insert(use.card.extra_data, self.name)
+      room:setPlayerMark(player, "jiefan-phase", target.id)  --FIXME: 多人濒死
+      room:useCard(use)
+      room:setPlayerMark(player, "jiefan-phase", 0)
+    else
+      local to = room:getPlayerById(player:getMark("jiefan-phase"))
+      if not to.dead then
+        room:useVirtualCard("peach", nil, player, to, self.name)
+      end
+      return true
+    end
+  end,
+}
+nos__gongqi:addRelatedSkill(nos__gongqi_targetmod)
+nos__handang:addSkill(nos__gongqi)
+nos__handang:addSkill(nos__jiefan)
 Fk:loadTranslationTable{
-  ["nos_handang"] = "韩当",
-  ["nos_gongqi"] = "弓骑",
-  [":nos_gongqi"] = "你可以将一张装备牌当【杀】使用或打出；你以此法使用的【杀】无距离限制。",
-  ["nos_jiefan"] = "解烦",
-  [":nos_jiefan"] = "你的回合外，当一名角色处于濒死状态时，你可以对当前回合角色使用一张【杀】，此【杀】造成伤害时，你防止此伤害，视为对该濒死角色使用了一张【桃】。",
+  ["nos__handang"] = "韩当",
+  ["nos__gongqi"] = "弓骑",
+  [":nos__gongqi"] = "你可以将一张装备牌当【杀】使用或打出；你以此法使用的【杀】无距离限制。",
+  ["nos__jiefan"] = "解烦",
+  [":nos__jiefan"] = "你的回合外，当一名角色处于濒死状态时，你可以对当前回合角色使用一张【杀】，此【杀】造成伤害时，你防止此伤害，视为对该濒死角色使用了一张【桃】。",
+  ["#nos__jiefan-slash"] = "解烦：你可以对 %dest 使用【杀】，若造成伤害，防止此伤害并视为对 %src 使用【桃】",
 }
 
 local handang = General(extension, "handang", "wu", 4)
