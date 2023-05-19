@@ -72,22 +72,28 @@ local mingjian_record = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseChanging},
   can_refresh = function(self, event, target, player, data)
-    return player:getMark("@@mingjian") > 0 and data.to == Player.Start and target == player
+    return player:getMark("@@mingjian") > 0 and data.to == Player.NotActive and target == player
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     room:setPlayerMark(player, "@@mingjian", 0)
-    room:addPlayerMark(player, "@@mingjian-turn", 1)
-    room:addPlayerMark(player, "AddMaxCards-turn", 1)
   end,
 }
 local mingjian_targetmod = fk.CreateTargetModSkill{
   name = "#mingjian_targetmod",
   residue_func = function(self, player, skill, scope)
-    if skill.trueName == "slash_skill" and player:getMark("@@mingjian-turn") > 0 and scope == Player.HistoryPhase then
-      return 1
+    if skill.trueName == "slash_skill" and player:getMark("@@mingjian") > 0 and scope == Player.HistoryPhase then
+      return player:getMark("@@mingjian")
     end
   end,
+}
+local mingjian_maxcardmod = fk.CreateMaxCardsSkill{
+  name = "#mingjian_maxcardmod",
+  correct_func = function(self, player)
+    if player:getMark("@@mingjian") > 0 then
+      return player:getMark("@@mingjian")
+    end
+  end
 }
 local xingshuai = fk.CreateTriggerSkill{
   name = "xingshuai$",
@@ -129,6 +135,7 @@ local xingshuai = fk.CreateTriggerSkill{
 }
 mingjian:addRelatedSkill(mingjian_record)
 mingjian:addRelatedSkill(mingjian_targetmod)
+mingjian:addRelatedSkill(mingjian_maxcardmod)
 caorui:addSkill(huituo)
 caorui:addSkill(mingjian)
 caorui:addSkill(xingshuai)
