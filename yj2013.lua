@@ -515,14 +515,19 @@ local duodao = fk.CreateTriggerSkill{
     else
       prompt = "#duodao-discard"
     end
-    return #player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", prompt) > 0
+    local cids = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", prompt, true)
+    if #cids > 0 then
+      self.cost_data = cids 
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:throwCard(self.cost_data, self.name, player, player)
-    if data.from == nil or data.from.dead then return end
-    local weapon = data.from:getEquipment(Card.SubtypeWeapon)
-    if weapon ~= nil then
+    local from = data.from
+    if not from or from.dead then return end
+    local weapon = from:getEquipment(Card.SubtypeWeapon)
+    if weapon then
       room:obtainCard(player.id, weapon, true, fk.ReasonPrey)
     end
   end
@@ -544,7 +549,7 @@ panzhangmazhong:addSkill(anjian)
 Fk:loadTranslationTable{
   ["panzhangmazhong"] = "潘璋马忠",
   ["duodao"] = "夺刀",
-  [":duodao"] = "每当你受到【杀】造成的一次伤害后，你可以弃置一张牌，然后获得伤害来源装备区里的武器牌。",
+  [":duodao"] = "当你受到【杀】造成的伤害后，你可以弃置一张牌，然后获得伤害来源装备区里的武器牌。",
   ["anjian"] = "暗箭",
   [":anjian"] = "锁定技，当你使用的【杀】对目标角色造成伤害时，若你不在其攻击范围内，则此【杀】伤害+1。",
   ["#duodao-invoke"] = "夺刀：你可以弃置一张牌，若%dest装备区有武器牌则获得之",
