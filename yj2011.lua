@@ -267,8 +267,9 @@ local nos__xuanhuo = fk.CreateActiveSkill{
     local id = room:askForCardChosen(player, target, "he", self.name)
     room:obtainCard(player, id, false, fk.ReasonPrey)
     local to
-    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(target), function(p)
-      return p.id end), 1, 1, "#nos__xuanhuo-choose:::"..Fk:getCardById(id):toLogString(), self.name)
+    local targets = table.map(room:getOtherPlayers(target), function(p) return p.id end)
+    if #targets == 0 then return false end
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#nos__xuanhuo-choose:::"..Fk:getCardById(id):toLogString(), self.name, false)
     if #tos > 0 then
       to = tos[1]
     else
@@ -286,7 +287,7 @@ Fk:loadTranslationTable{
   ["nos__enyuan"] = "恩怨",
   [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张<font color='red'>♥</font>手牌，否则该角色失去1点体力。",
   ["nos__xuanhuo"] = "眩惑",
-  [":nos__xuanhuo"] = "出牌阶段，你可将一张<font color='red'>♥</font>手牌交给一名其他角色，然后，你获得该角色的一张牌并立即交给除该角色外的其他角色。每回合限一次。",
+  [":nos__xuanhuo"] = "出牌阶段限一次，你可将一张<font color='red'>♥</font>手牌交给一名其他角色，然后你获得该角色的一张牌并交给除该角色外的其他角色。",
   ["#nos__enyuan-give"] = "恩怨：你需交给 %src 一张<font color='red'>♥</font>手牌，否则失去1点体力",
   ["#nos__xuanhuo-choose"] = "眩惑：选择获得%arg的角色",
 
@@ -373,7 +374,7 @@ local xuanhuo = fk.CreateTriggerSkill{
       dummy:addSubcards(cards)
       room:obtainCard(player, dummy, false, fk.ReasonPrey)
     else
-      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanhuo-choose::"..to.id, self.name)
+      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanhuo-choose::"..to.id, self.name, false)
       local victim
       if #tos > 0 then
         victim = tos[1]
@@ -399,7 +400,7 @@ fazheng:addSkill(xuanhuo)
 Fk:loadTranslationTable{
   ["fazheng"] = "法正",
   ["enyuan"] = "恩怨",
-  [":enyuan"] = "你每次获得一名其他角色两张或更多的牌时，可令其摸一张牌；每当你受到1点伤害后，你可以令伤害来源选择一项：交给你一张手牌，或失去1点体力。",
+  [":enyuan"] = "当你获得一名其他角色两张或更多的牌时，可令其摸一张牌；当你受到1点伤害后，你可以令伤害来源选择一项：交给你一张手牌，或失去1点体力。",
   ["xuanhuo"] = "眩惑",
   [":xuanhuo"] = "摸牌阶段，你可以放弃摸牌，改为令另一名角色摸两张牌，然后令其对其攻击范围内你指定的一名角色使用一张【杀】，若该角色未如此做，你获得其两张牌。",
   ["#enyuan-give"] = "恩怨：你需交给 %src 一张手牌，否则失去1点体力",
@@ -1024,7 +1025,7 @@ local mingce = fk.CreateActiveSkill{
     if #targets == 0 then
       target:drawCards(1, self.name)
     else
-      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#mingce-choose::"..target.id, self.name)
+      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#mingce-choose::"..target.id, self.name, false)
       local to
       if #tos > 0 then
         to = tos[1]
@@ -1068,9 +1069,9 @@ chengong:addSkill(zhichi)
 Fk:loadTranslationTable{
   ["chengong"] = "陈宫",
   ["mingce"] = "明策",
-  [":mingce"] = "出牌阶段，你可以给其他任一角色一张装备牌或【杀】，该角色进行二选一：1.视为对其攻击范围内的另一名由你指定的角色使用一张【杀】；2.摸一张牌。每回合限一次。",
+  [":mingce"] = "出牌阶段限一次，你可以交给一名其他角色一张装备牌或【杀】，其选择一项：1.视为对其攻击范围内的另一名由你指定的角色使用一张【杀】；2.摸一张牌。",
   ["zhichi"] = "智迟",
-  [":zhichi"] = "锁定技，你的回合外，你每受到一次伤害，任何【杀】或非延时类锦囊对你无效，直到该回合结束。",
+  [":zhichi"] = "锁定技，你的回合外，当你受到伤害后，此回合【杀】和普通锦囊牌对你无效。",
   ["#mingce-choose"] = "明策：选择 %dest 视为使用【杀】的目标",
   ["mingce_slash"] = "视为使用【杀】",
   ["@zhichi-turn"] = "智迟",

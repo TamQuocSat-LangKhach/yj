@@ -113,7 +113,7 @@ caozhang:addSkill(jiangchi)
 Fk:loadTranslationTable{
   ["caozhang"] = "曹彰",
   ["jiangchi"] = "将驰",
-  [":jiangchi"] = "摸牌阶段摸牌时，你可以选择一项：1.额外摸一张牌，若如此做，你不能使用或打出【杀】，直到回合结束。2.少摸一张牌，若如此做，出牌阶段你使用【杀】无距离限制，且你可以额外使用一张【杀】，直到回合结束。",
+  [":jiangchi"] = "摸牌阶段，你可以选择一项：1.额外摸一张牌，此回合你不能使用或打出【杀】。2.少摸一张牌，此回合出牌阶段你使用【杀】无距离限制，且你【杀】的使用上限+1。",
   ["jiangchi+1"] = "多摸一张牌，本回合不能使用或打出【杀】",
   ["jiangchi-1"] = "少摸一张牌，本阶段使用【杀】无距离限制且次数+1",
 }
@@ -169,7 +169,7 @@ local nos__miji = fk.CreateTriggerSkill{
     if judge.card.color == Card.Black then
       local cards = room:getNCards(player.maxHp - player.hp)
       room:fillAG(player, cards)
-      local tos = room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), function(p) return p.id end), 1, 1, "#nos__miji-choose", self.name)
+      local tos = room:askForChoosePlayers(player, table.map(room.alive_players, function(p) return p.id end), 1, 1, "#nos__miji-choose", self.name, false)
       local to
       if #tos > 0 then
         to = tos[1]
@@ -193,7 +193,7 @@ Fk:loadTranslationTable{
   ["nos__zhenlie"] = "贞烈",
   [":nos__zhenlie"] = "当你的判定牌生效前，你可以亮出牌堆顶的一张牌代替之。",
   ["nos__miji"] = "秘计",
-  [":nos__miji"] = "回合开始阶段或回合结束阶段开始时，若你已受伤，你可以进行一次判定，若判定结果为黑色，你观看牌堆顶的X张牌（X为你已损失的体力值），然后将这些牌交给一名角色。",
+  [":nos__miji"] = "准备阶段或结束阶段开始时，若你已受伤，你可以进行一次判定：若结果为黑色，你观看牌堆顶的X张牌（X为你已损失的体力值），然后将这些牌交给一名角色。",
   ["#nos__miji-choose"] = "秘计：选择一名角色获得“秘计”牌",
 }
 
@@ -330,7 +330,7 @@ local qianxi = fk.CreateTriggerSkill{
       end
     end
     if #targets == 0 then return end
-    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#qianxi-choose", self.name)
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#qianxi-choose", self.name, true)
     local to
     if #tos > 0 then
       to = tos[1]
@@ -801,7 +801,7 @@ local gongqi = fk.CreateActiveSkill{
     room:addPlayerMark(player, "gongqi-turn", 999)
     if Fk:getCardById(effect.cards[1]).type == Card.TypeEquip then
       local to = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
-        return not p:isNude() end), function(p) return p.id end), 1, 1, "#gongqi-choose", self.name)
+        return not p:isNude() end), function(p) return p.id end), 1, 1, "#gongqi-choose", self.name, true)
       if #to > 0 then
         local target = room:getPlayerById(to[1])
         local id = room:askForCardChosen(player, target, "he", self.name)
@@ -848,9 +848,9 @@ handang:addSkill(jiefan)
 Fk:loadTranslationTable{
   ["handang"] = "韩当",
   ["gongqi"] = "弓骑",
-  [":gongqi"] = "出牌阶段限一次，你可以弃置一张牌使你本回合的攻击范围无限。若弃置的为装备牌，你可以弃置一名其他角色的一张牌。",
+  [":gongqi"] = "出牌阶段限一次，你可以弃置一张牌，此回合你的攻击范围无限。若你以此法弃置的牌为装备牌，你可以弃置一名其他角色的一张牌。",
   ["jiefan"] = "解烦",
-  [":jiefan"] = "限定技，出牌阶段，你可以选择一名角色，然后令攻击范围内含有该角色的所有角色各选择一项：1.弃置一张武器牌；2.令其摸一张牌。",
+  [":jiefan"] = "限定技，出牌阶段，你可以选择一名角色，然后令攻击范围内有该角色的所有角色各选择一项：1.弃置一张武器牌；2.令其摸一张牌。",
   ["#gongqi-choose"] = "弓骑：你可以弃置一名其他角色的一张牌",
   ["#jiefan-discard"] = "解烦：弃置一张武器牌，否则 %dest 摸一张牌",
 }

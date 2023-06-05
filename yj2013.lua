@@ -586,22 +586,10 @@ local zongxuan = fk.CreateTriggerSkill{
         end
       end
     end
-    while #cards > 0 do
-      room:fillAG(player, cards)
-      local id = room:askForAG(player, cards, true, self.name)  --TODO: temporarily use AG. AG function need cancelable!
-      if id ~= nil then
-        table.removeOne(cards, id)
-        room:moveCards({
-          ids = {id},
-          fromArea = Card.DiscardPile,
-          toArea = Card.DrawPile,
-          moveReason = fk.ReasonJustMove,
-          skillName = self.name,
-        })
-        room:closeAG(player)
-      else
-        room:closeAG(player)
-        break
+    if #cards > 0 then
+      local top = room:askForGuanxing(player, cards, nil, nil, "zongxuan", true, {nil, "zongxuanNoput"}).top
+      for i = #top, 1, -1 do
+        table.insert(room.draw_pile, 1, top[i])
       end
     end
   end,
@@ -648,9 +636,10 @@ yufan:addSkill(zhiyan)
 Fk:loadTranslationTable{
   ["yufan"] = "虞翻",
   ["zongxuan"] = "纵玄",
-  [":zongxuan"] = "每当你的牌因弃置进入弃牌堆前，你可以将此牌置于牌堆顶。",
+  [":zongxuan"] = "当你的牌因弃置而移至弃牌堆后，你可以将其中至少一张牌置于牌堆顶。",
   ["zhiyan"] = "直言",
-  [":zhiyan"] = "回合结束阶段开始时，你可以令一名角色摸一张牌并展示之，若此牌为装备牌，该角色回复1点体力并使用此牌。",
+  [":zhiyan"] = "结束阶段开始时，你可以令一名角色摸一张牌并展示之，若此牌为装备牌，该角色回复1点体力并使用此牌。",
+  ["zongxuanNoput"] = "不置于牌堆顶",
   ["#zhiyan-choose"] = "直言：你可以令一名角色摸一张牌并展示之",
 
   ["$zongxuan1"] = "依易设象，以占吉凶。",

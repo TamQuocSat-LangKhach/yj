@@ -923,7 +923,7 @@ local huaiyi = fk.CreateActiveSkill{
     end
     room:throwCard(throw, self.name, player, player)
     local targets = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return (not p:isNude()) end), function(p) return p.id end), 1, #throw, "#huaiyi-choose:::"..tostring(#throw), self.name)
+      return (not p:isNude()) end), function(p) return p.id end), 1, #throw, "#huaiyi-choose:::"..tostring(#throw), self.name, true)
     if #targets > 0 then
       local get = {}
       for _, p in ipairs(targets) do

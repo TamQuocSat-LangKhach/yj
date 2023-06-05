@@ -272,7 +272,7 @@ local benxi = fk.CreateTriggerSkill{
       if #targets > 0 then
         local tos = room:askForChoosePlayers(player, targets, 1, 1, "#benxi-choose", self.name, true)
         if #tos > 0 then
-          TargetGroup:pushTargets(data.targetGroup, tos)  --TODO: sort by action order
+          TargetGroup:pushTargets(data.targetGroup, tos)
         end
       end
     else
@@ -686,38 +686,12 @@ local qieting = fk.CreateTriggerSkill{
     local room = player.room
     local choices = {"draw1"}
     local ids = {}
-    if #target.player_cards[Player.Equip] > 0 then
-      for _, e in ipairs(target.player_cards[Player.Equip]) do
-        if player:getEquipment(Fk:getCardById(e).sub_type) == nil then
-          table.insert(ids, e)
-        end
-      end
-      if #ids > 0 then
-        table.insert(choices, 1, "qieting_move")
-      end
+    if target:canMoveCardsInBoardTo(player, "e") then
+      table.insert(choices, 1, "qieting_move")
     end
     local choice = room:askForChoice(player, choices, self.name)
     if choice == "qieting_move" then
-      room:fillAG(player, ids)
-      local id = room:askForAG(player, ids, true, self.name)
-      room:closeAG(player)
-      room:moveCards({
-        from = target.id,
-        ids = {id},
-        toArea = Card.Processing,
-        moveReason = fk.ReasonJustMove,
-        proposer = player.id,
-        skillName = self.name,
-      })
-      room:moveCards({
-        ids = {id},
-        fromArea = Card.Processing,
-        to = player.id,
-        toArea = Card.PlayerEquip,
-        moveReason = fk.ReasonJustMove,
-        proposer = player.id,
-        skillName = self.name,
-      })
+      room:askForMoveCardInBoard(player, target, player, self.name, "e", target)
     else
       player:drawCards(1, self.name)
     end
@@ -763,7 +737,7 @@ local xianzhou = fk.CreateActiveSkill{
     local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
       return target:inMyAttackRange(p) end), function (p) return p.id end)
     if #targets > 0 then
-      local tos = room:askForChoosePlayers(target, targets, 1, n, "#xianzhou-choose:::"..n, self.name)
+      local tos = room:askForChoosePlayers(target, targets, 1, n, "#xianzhou-choose:::"..n, self.name, true)
       if #tos > 0 then
         for _, p in ipairs(tos) do
           room:damage{
@@ -793,7 +767,7 @@ Fk:loadTranslationTable{
   ["qieting"] = "窃听",
   [":qieting"] = "一名其他角色的回合结束时，若其未于此回合内使用过指定另一名角色为目标的牌，你可以选择一项：将其装备区里的一张牌移动至你装备区里的相应位置；或摸一张牌。",
   ["xianzhou"] = "献州",
-  [":xianzhou"] = "限定技，出牌阶段，你可以将装备区里的所有牌交给一名其他角色，然后该角色选择一项：令你回复X点体力，或对其攻击范围内的至多X名角色各造成1点伤害（X为你以此法交给该角色的牌的数量）。",
+  [":xianzhou"] = "限定技，出牌阶段，你可以将装备区里的所有牌交给一名其他角色，然后该角色选择一项：1. 令你回复X点体力；2. 对其攻击范围内的至多X名角色各造成1点伤害（X为你以此法交给该角色的牌的数量）。",
   ["qieting_move"] = "将其一张装备移动给你",
   ["#xianzhou-choose"] = "献州：对你攻击范围内的至多%arg名角色各造成1点伤害，或点“取消”令其回复体力",
 
