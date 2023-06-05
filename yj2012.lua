@@ -500,53 +500,58 @@ Fk:loadTranslationTable{
 }
 
 local chengpu = General(extension, "chengpu", "wu", 4)
-local lihuo = fk.CreateViewAsSkill{
+local lihuo = fk.CreateTriggerSkill{
   name = "lihuo",
+  events = {fk.AfterCardUseDeclared, fk.AfterCardTargetDeclared},
   anim_type = "offensive",
-  pattern = "slash",
-  card_filter = function(self, to_select, selected)
-    if #selected == 1 then return false end
-    return Fk:getCardById(to_select).name == "slash"
+  can_trigger = function(self, event, target, player, data)
+    if not (target == player and player:hasSkill(self.name)) then return false end
+    if event == fk.AfterCardUseDeclared then return data.card.name == "slash"
+    else return data.card.name == "fire__slash" end
   end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then
-      return nil
+  on_cost = function(self, event, target, player, data)
+    if event == fk.AfterCardUseDeclared then
+      return player.room:askForSkillInvoke(player, self.name)
+    else
+      local availableTargets = table.map(table.filter(player.room:getOtherPlayers(player), function(p)
+        return not table.contains(TargetGroup:getRealTargets(data.tos), p.id) and data.card.skill:getDistanceLimit(p, data.card) + player:getAttackRange() >= player:distanceTo(p) and not player:isProhibited(p, data.card)
+      end), function(p)
+        return p.id 
+      end)
+      if #availableTargets == 0 then return false end
+      local targets = player.room:askForChoosePlayers(player, availableTargets, 1, 1, "#lihuo-targets", self.name, true)
+      if #targets > 0 then
+        self.cost_data = targets
+        return true
+      end
     end
-    local c = Fk:cloneCard("fire__slash")
-    c:addSubcard(cards[1])
-    c.skillName = self.name
-    return c
+    return false
   end,
-}
-local lihuo_targetmod = fk.CreateTargetModSkill{
-  name = "#lihuo_targetmod",
-  extra_target_func = function(self, player, skill)
-    if player:hasSkill("lihuo") and skill.name == "fire__slash_skill" then
-      return 1
+  on_use = function(self, event, target, player, data)
+    if event == fk.AfterCardUseDeclared then  
+      local fireSlash = Fk:cloneCard("fire__slash")
+      fireSlash.skillName = self.name
+      fireSlash:addSubcard(data.card)
+      data.card = fireSlash
+    else
+      table.insert(data.tos, self.cost_data)
     end
-    return 0
   end,
 }
 local lihuo_record = fk.CreateTriggerSkill{
   name = "#lihuo_record",
-
-  refresh_events = {fk.Damage, fk.CardUseFinished},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and data.card and data.card.skillName == "lihuo"
+  events = {fk.CardUseFinished},
+  frequency = Skill.Compulsory,
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and table.contains(data.card.skillNames, "lihuo") and data.damageDealt 
   end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.Damage then
-      data.card.extra_data = data.card.extra_data or {}
-      table.insert(data.card.extra_data, "lihuo")
-    else
-      if data.card.extra_data and table.contains(data.card.extra_data, "lihuo") then
-        room:loseHp(player, 1, self.name)
-        room:notifySkillInvoked(player, "lihuo", "negative")
-      end
-    end
+  on_use = function(self, event, target, player, data)
+    player.room:loseHp(player, 1, self.name)
   end,
 }
+lihuo:addRelatedSkill(lihuo_record)
+
 local chunlao = fk.CreateTriggerSkill{
   name = "chunlao",
   anim_type = "support",
@@ -599,16 +604,16 @@ local chunlao = fk.CreateTriggerSkill{
     end
   end,
 }
-lihuo:addRelatedSkill(lihuo_targetmod)
-lihuo:addRelatedSkill(lihuo_record)
 chengpu:addSkill(lihuo)
 chengpu:addSkill(chunlao)
 Fk:loadTranslationTable{
   ["chengpu"] = "程普",
   ["lihuo"] = "疬火",
-  [":lihuo"] = "你可以将一张普通【杀】当火【杀】使用，若此法使用的【杀】造成了伤害，在此【杀】结算后你失去1点体力；你使用火【杀】时，可以额外选择一个目标。",
+  [":lihuo"] = "你可以将一张普通【杀】当火【杀】使用，若此法使用的【杀】造成了伤害，在此【杀】结算后你失去1点体力；你使用火【杀】时，可以令一名角色也成为此【杀】的目标。",
   ["chunlao"] = "醇醪",
   [":chunlao"] = "回合结束阶段开始时，若你的武将牌上没有牌，你可以将任意数量的【杀】置于你的武将牌上，称为“醇”；当一名角色处于濒死状态时，你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】。",
+  
+  ["#lihuo-targets"] = "疬火：你可以令一名角色也成为此【杀】的目标",
   ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
   ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为 %dest 使用一张【酒】",
