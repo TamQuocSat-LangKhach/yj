@@ -125,7 +125,8 @@ Fk:loadTranslationTable{
   ["luoying"] = "落英",
   [":luoying"] = "当其他角色的♣牌，因弃牌或判定而进入弃牌堆时，你可以获得之。",
   ["jiushi"] = "酒诗",
-  [":jiushi"] = "若你的武将牌正面朝上，你可以（在合理的时机）将你的武将牌翻面来视为使用一张【酒】。当你的武将牌背面朝上时你受到伤害，你可在伤害结算后将之翻回正面。",
+  [":jiushi"] = "若你的武将牌正面朝上，你可以（在合理的时机）将你的武将牌翻面来视为使用一张【酒】。当你的武将牌背面朝上时你受到伤害，"..
+  "你可在伤害结算后将之翻回正面。",
   ["#jiushi_record"] = "酒诗",
 
   ["$luoying1"] = "这些都是我的。",
@@ -142,7 +143,8 @@ local yizhong = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.PreCardEffect},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and data.card.trueName == "slash" and player.id == data.to and data.card.color == Card.Black and player:getEquipment(Card.SubtypeArmor) == nil
+    return player:hasSkill(self.name) and data.card.trueName == "slash" and player.id == data.to and
+      data.card.color == Card.Black and player:getEquipment(Card.SubtypeArmor) == nil
   end,
   on_use = function()
     return true
@@ -285,7 +287,8 @@ nos__fazheng:addSkill(nos__xuanhuo)
 Fk:loadTranslationTable{
   ["nos__fazheng"] = "法正",
   ["nos__enyuan"] = "恩怨",
-  [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张<font color='red'>♥</font>手牌，否则该角色失去1点体力。",
+  [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张<font color='red'>♥</font>手牌，"..
+  "否则该角色失去1点体力。",
   ["nos__xuanhuo"] = "眩惑",
   [":nos__xuanhuo"] = "出牌阶段限一次，你可将一张<font color='red'>♥</font>手牌交给一名其他角色，然后你获得该角色的一张牌并交给除该角色外的其他角色。",
   ["#nos__enyuan-give"] = "恩怨：你需交给 %src 一张<font color='red'>♥</font>手牌，否则失去1点体力",
@@ -472,7 +475,8 @@ masu:addSkill(huilei)
 Fk:loadTranslationTable{
   ["masu"] = "马谡",
   ["xinzhan"] = "心战",
-  [":xinzhan"] = "出牌阶段，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的<font color='red'>♥</font>牌并获得之，其余以任意顺序置于牌堆顶。每回合限一次。",
+  [":xinzhan"] = "出牌阶段，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的<font color='red'>♥</font>牌并获得之，"..
+  "其余以任意顺序置于牌堆顶。每回合限一次。",
   ["huilei"] = "挥泪",
   [":huilei"] = "锁定技，杀死你的角色立即弃置所有牌。",
 
@@ -489,7 +493,7 @@ local nos__wuyan = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.PreCardEffect},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and data.card.name ~= "nullification" then
+    if player:hasSkill(self.name) and data.card:isCommonTrick() and data.card.name ~= "nullification" then
       if player.id == data.from then
         return player.id ~= data.to
       end
@@ -570,7 +574,8 @@ local jujian = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function(p) return p.id end), 1, 1, ".|.|.|.|.|trick,equip", "#jujian-choose", self.name, true)
+    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function(p)
+      return p.id end), 1, 1, ".|.|.|.|.|^basic", "#jujian-choose", self.name, true)
     if #tos > 0 then
       self.cost_data = {tos[1], id}
       return true
@@ -680,7 +685,8 @@ nos__lingtong:addSkill(nos__xuanfeng)
 Fk:loadTranslationTable{
   ["nos__lingtong"] = "凌统",
   ["nos__xuanfeng"] = "旋风",
-  [":nos__xuanfeng"] = "每当你失去一次装备区里的牌时，你可以执行下列两项中的一下：1.视为对任意一名其他角色使用一张【杀】（此【杀】不计入每回合的使用限制）；2.对与你距离1以内的一名其他角色造成1点伤害。",
+  [":nos__xuanfeng"] = "每当你失去一次装备区里的牌时，你可以执行下列两项中的一下：1.视为对任意一名其他角色使用一张【杀】"..
+  "（此【杀】不计入每回合的使用限制）；2.对与你距离1以内的一名其他角色造成1点伤害。",
   ["#nos__xuanfeng-choose"] = "旋风：你可以视为使用一张【杀】，或对距离1的一名其他角色造成1点伤害",
   ["nos__xuanfeng_slash"] = "视为对其使用【杀】",
   ["nos__xuanfeng_damage"] = "对其造成1点伤害",
@@ -803,7 +809,7 @@ local ganlu = fk.CreateActiveSkill{
     }
     room:moveCards(move1, move2)
     local move3 = {
-      ids = cards1,
+      ids = table.filter(cards1, function(id) return room:getCardArea(id) == Card.Processing end),
       fromArea = Card.Processing,
       to = effect.tos[2],
       toArea = Card.PlayerEquip,
@@ -812,7 +818,7 @@ local ganlu = fk.CreateActiveSkill{
       skillName = self.name,
     }
     local move4 = {
-      ids = cards2,
+      ids = table.filter(cards2, function(id) return room:getCardArea(id) == Card.Processing end),
       fromArea = Card.Processing,
       to = effect.tos[1],
       toArea = Card.PlayerEquip,
@@ -918,16 +924,17 @@ local xianzhen = fk.CreateActiveSkill{
 local xianzhen_trigger = fk.CreateTriggerSkill{
   name = "#xianzhen_trigger",
   mute = true,
-  frequency = Skill.Compulsory,
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and
       player.room:getPlayerById(data.to):getMark("xianzhen_win-turn") > 0
   end,
+  on_cost = function(self, event, target, player, data)
+    return true
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:addPlayerMark(room:getPlayerById(data.to), fk.MarkArmorNullified)
-    player:addCardUseHistory(data.card.trueName, -1)
     data.extra_data = data.extra_data or {}
     data.extra_data.xianzhen = data.extra_data.xianzhen or {}
     data.extra_data.xianzhen[tostring(data.to)] = (data.extra_data.xianzhen[tostring(data.to)] or 0) + 1
@@ -945,20 +952,21 @@ local xianzhen_trigger = fk.CreateTriggerSkill{
         room:removePlayerMark(p, fk.MarkArmorNullified, num)
       end
     end
-    data.xianzhen = nil
+    data.extra_data.xianzhen = nil
   end,
 }
-local xianzhen_distance = fk.CreateDistanceSkill{
-  name = "#xianzhen_distance",
-  correct_func = function(self, from, to)
-    if from:hasSkill(self.name) then
-      if to:getMark("xianzhen_win-turn") > 0 then
-        from:setFixedDistance(to, 1)
-      else
-        from:removeFixedDistance(to)
-      end
+local xianzhen_targetmod = fk.CreateTargetModSkill{
+  name = "#xianzhen_targetmod",
+  residue_func = function(self, player, skill, scope, card, to)
+    if player:usedSkillTimes("xianzhen", Player.HistoryTurn) > 0 and skill.trueName == "slash_skill" and scope == Player.HistoryPhase and
+      to:getMark("xianzhen_win-turn") > 0 then
+      return 999
     end
-    return 0
+  end,
+  distance_limit_func =  function(self, player, skill, card, to)
+    if player:usedSkillTimes("xianzhen", Player.HistoryTurn) > 0 and to:getMark("xianzhen_win-turn") > 0 then
+      return 999
+    end
   end,
 }
 local xianzhen_prohibit = fk.CreateProhibitSkill{
@@ -979,14 +987,15 @@ local jinjiu = fk.CreateFilterSkill{
   end,
 }
 xianzhen:addRelatedSkill(xianzhen_trigger)
-xianzhen:addRelatedSkill(xianzhen_distance)
+xianzhen:addRelatedSkill(xianzhen_targetmod)
 xianzhen:addRelatedSkill(xianzhen_prohibit)
 gaoshun:addSkill(xianzhen)
 gaoshun:addSkill(jinjiu)
 Fk:loadTranslationTable{
   ["gaoshun"] = "高顺",
   ["xianzhen"] = "陷阵",
-  [":xianzhen"] = "出牌阶段，你可以与一名角色拼点，若你赢，你获得以下技能直到回合结束：无视与该角色的距离及其防具牌；可对该角色使用任意数量的【杀】。若你没赢，你不能使用【杀】直到回合结束。每回合限一次。",
+  [":xianzhen"] = "出牌阶段，你可以与一名角色拼点，若你赢，你获得以下技能直到回合结束：无视与该角色的距离及其防具牌；可对该角色使用任意数量的【杀】。"..
+  "若你没赢，你不能使用【杀】直到回合结束。每回合限一次。",
   ["jinjiu"] = "禁酒",
   [":jinjiu"] = "锁定技，你的【酒】均视为【杀】。",
 
@@ -1052,13 +1061,14 @@ local zhichi = fk.CreateTriggerSkill{
       if event == fk.Damaged then
         return target == player
       else
-        return player.id == data.to and player:getMark("@zhichi-turn") > 0 and (data.card.trueName == "slash" or (data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick))
+        return player.id == data.to and player:getMark("@@zhichi-turn") > 0 and
+          (data.card.trueName == "slash" or data.card:isCommonTrick())
       end
     end
   end,
   on_use = function(self, event, target, player, data)
     if event == fk.Damaged then
-      player.room:setPlayerMark(player, "@zhichi-turn", 1)
+      player.room:setPlayerMark(player, "@@zhichi-turn", 1)
     else
       return true
     end
@@ -1074,7 +1084,7 @@ Fk:loadTranslationTable{
   [":zhichi"] = "锁定技，你的回合外，当你受到伤害后，此回合【杀】和普通锦囊牌对你无效。",
   ["#mingce-choose"] = "明策：选择 %dest 视为使用【杀】的目标",
   ["mingce_slash"] = "视为使用【杀】",
-  ["@zhichi-turn"] = "智迟",
+  ["@@zhichi-turn"] = "智迟",
 
   ["$mingce1"] = "如此，霸业可图也。",
   ["$mingce2"] = "如此，一击可擒也。",

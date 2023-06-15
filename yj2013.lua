@@ -515,9 +515,9 @@ local duodao = fk.CreateTriggerSkill{
     else
       prompt = "#duodao-discard"
     end
-    local cids = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", prompt, true)
-    if #cids > 0 then
-      self.cost_data = cids 
+    local card = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", prompt, true)
+    if #card > 0 then
+      self.cost_data = card
       return true
     end
   end,
@@ -538,7 +538,8 @@ local anjian = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and not data.to:inMyAttackRange(player) and not data.chain
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and
+      not data.to:inMyAttackRange(player) and not data.chain
   end,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1
@@ -612,8 +613,11 @@ local zhiyan = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
-    local card = Fk:getCardById(to:drawCards(1)[1])
+    local id = to:drawCards(1)[1]
+    if room:getCardOwner(id) ~= to then return end
+    local card = Fk:getCardById(id)
     to:showCards(card)
+    room:delay(2000)  --防止天机图卡手牌
     if card.type == Card.TypeEquip then
       room:useCard({
         from = to.id,
@@ -709,7 +713,7 @@ local danshou = fk.CreateActiveSkill{
       room:throwCard({id}, self.name, target, player)
     elseif #effect.cards == 2 then
       local card = room:askForCard(target, 1, 1, true, self.name, false, ".", "#danshou-give::"..player.id)
-      room:obtainCard(player, card[1], false, fk.ReasonGive)
+      room:obtainCard(player.id, card[1], false, fk.ReasonGive)
     elseif #effect.cards == 3 then
       room:damage{
         from = player,
@@ -800,7 +804,7 @@ local qiuyuan = fk.CreateTriggerSkill{
     room:doIndicate(player.id, {to})
     local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, true, "jink", "#qiuyuan-give::"..player.id)
     if #card > 0 then
-      room:obtainCard(player, Fk:getCardById(card[1]), true, fk.ReasonGive)
+      room:obtainCard(player.id, Fk:getCardById(card[1]), true, fk.ReasonGive)
     else
       TargetGroup:pushTargets(data.targetGroup, to)
     end
