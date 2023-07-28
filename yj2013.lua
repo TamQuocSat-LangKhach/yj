@@ -95,6 +95,106 @@ Fk:loadTranslationTable{
   ["~caochong"] = "子桓哥哥……",
 }
 
+local nos__caochong = General(extension, "nos__caochong", "wei", 3)
+local nos__chengxiang = fk.CreateTriggerSkill{
+  name = "nos__chengxiang",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and target:hasSkill(self.name)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local card_ids = room:getNCards(4)
+    local get, throw = {}, {}
+    room:moveCards({
+      ids = card_ids,
+      toArea = Card.Processing,
+      moveReason = fk.ReasonPut,
+    })
+    table.forEach(room.players, function(p)
+      room:fillAG(p, card_ids)
+    end)
+    while true do
+      local sum = 0
+      table.forEach(get, function(id)
+        sum = sum + Fk:getCardById(id).number
+      end)
+      for i = #card_ids, 1, -1 do
+        local id = card_ids[i]
+        if sum + Fk:getCardById(id).number >= 13 then
+          room:takeAG(player, id, room.players)
+          table.insert(throw, id)
+          table.removeOne(card_ids, id)
+        end
+      end
+      if #card_ids == 0 then break end
+      local card_id = room:askForAG(player, card_ids, false, self.name)
+      --if card_id == nil then break end
+      room:takeAG(player, card_id, room.players)
+      table.insert(get, card_id)
+      table.removeOne(card_ids, card_id)
+      if #card_ids == 0 then break end
+    end
+    table.forEach(room.players, function(p)
+      room:closeAG(p)
+    end)
+    if #get > 0 then
+      local dummy = Fk:cloneCard("dilu")
+      dummy:addSubcards(get)
+      room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
+    end
+    if #throw > 0 then
+      room:moveCards({
+        ids = throw,
+        toArea = Card.DiscardPile,
+        moveReason = fk.ReasonPutIntoDiscardPile,
+      })
+    end
+  end
+}
+local nos__renxin = fk.CreateTriggerSkill{
+  name = "nos__renxin",
+  anim_type = "support",
+  events = {fk.AskForPeaches},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target ~= player and target.dying and not player:isKongcheng()
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#nos__renxin-invoke::"..target.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local dummy = Fk:cloneCard("dilu")
+    dummy:addSubcards(player.player_cards[Player.Hand])
+    room:obtainCard(target.id, dummy, false, fk.ReasonGive)
+    player:turnOver()
+    room:recover({
+      who = target,
+      num = 1,
+      recoverBy = player.id,
+      skillName = self.name
+    })
+    return true
+  end,
+}
+nos__caochong:addSkill(nos__chengxiang)
+nos__caochong:addSkill(nos__renxin)
+Fk:loadTranslationTable{
+  ["nos__caochong"] = "曹冲",
+  ["nos__chengxiang"] = "称象",
+  [":nos__chengxiang"] = "每当你受到一次伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于13的牌。",
+  ["nos__renxin"] = "仁心",
+  [":nos__renxin"] = "当一名其他角色处于濒死状态时，你可以将武将牌翻面并将所有手牌(至少一张)交给该角色。若如此做，该角色回复1点体力。",
+  ["#nos__renxin-invoke"] = "仁心：你可以将所有手牌交给 %dest ，令其回复一点体力",
+
+  ["$nos__chengxiang1"] = "依我看，小事一桩。",
+  ["$nos__chengxiang2"] = "孰重孰轻，一称便知。",
+  ["$nos__renxin1"] = "仁者爱人，人恒爱之。",
+  ["$nos__renxin2"] = "有我在，别怕。",
+  ["~nos__caochong"] = "子桓哥哥……",
+}
+
 local guohuai = General(extension, "guohuai", "wei", 4)
 local jingce = fk.CreateTriggerSkill{
   name = "jingce",
@@ -770,15 +870,13 @@ local zhuikong_prohibit = fk.CreateProhibitSkill{
 }
 local zhuikong_distance = fk.CreateDistanceSkill{
   name = "#zhuikong_distance",
-  correct_func = function(self, from, to)
-    if to:hasSkill(self.name) then
+  correct_func = function(self, from, to) return 0 end, --TODO: remove it
+  fixed_func = function(self, from, to)
+    if to:hasSkill("zhuikong") then
       if to:getMark("zhuikong-turn") > 0 then
-        from:setFixedDistance(to, 1)
-      else
-        from:removeFixedDistance(to)
+        return 1
       end
     end
-    return 0
   end,
 }
 local qiuyuan = fk.CreateTriggerSkill{
@@ -829,6 +927,91 @@ Fk:loadTranslationTable{
   ["$qiuyuan1"] = "逆贼逞凶，卿可灭之。",
   ["$qiuyuan2"] = "求父亲救救大汉江山吧！",
   ["~fuhuanghou"] = "陛下为何不救臣妾……",
+}
+
+local nos__fuhuanghou = General(extension, "nos__fuhuanghou", "qun", 3, 3, General.Female)
+local nos__zhuikong = fk.CreateTriggerSkill{
+  name = "nos__zhuikong",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and target ~= player and target.phase == Player.Start then
+      return player:isWounded() and not player:isKongcheng() and not target:isKongcheng()
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, data, "#nos__zhuikong-invoke::"..target.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local pindian = player:pindian({target}, self.name)
+    if pindian.results[target.id].winner == player then
+      target:skip(Player.Play)
+    else
+      room:addPlayerMark(player, "nos__zhuikong-turn", 1)
+    end
+  end
+}
+local nos__zhuikong_distance = fk.CreateDistanceSkill{
+  name = "#nos__zhuikong_distance",
+  correct_func = function(self, from, to) return 0 end,
+  fixed_func = function(self, from, to)
+    if to:hasSkill("nos__zhuikong") then
+      if to:getMark("nos__zhuikong-turn") > 0 then
+        return 1
+      end
+    end
+  end,
+}
+local nos__qiuyuan = fk.CreateTriggerSkill{
+  name = "nos__qiuyuan",
+  anim_type = "defensive",
+  events = {fk.TargetConfirming},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return p.id ~= data.from end), function (p) return p.id end)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__qiuyuan-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = self.cost_data
+    room:doIndicate(player.id, {to})
+    local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, true, ".|.|.|hand", "#nos__qiuyuan-give::"..player.id)
+    if #card > 0 then
+      local card = Fk:getCardById(card[1])
+      room:obtainCard(player.id, card, true, fk.ReasonGive)
+      if card.name ~= "jink" then
+        TargetGroup:pushTargets(data.targetGroup, to)
+      end
+    end
+  end,
+}
+nos__zhuikong:addRelatedSkill(nos__zhuikong_distance)
+nos__fuhuanghou:addSkill(nos__zhuikong)
+nos__fuhuanghou:addSkill(nos__qiuyuan)
+Fk:loadTranslationTable{
+  ["nos__fuhuanghou"] = "伏皇后",
+  ["nos__zhuikong"] = "惴恐",
+  [":nos__zhuikong"] = "一名角色的回合开始时，若你已受伤，你可以和该角色进行一次拼点。若你赢，该角色跳过本回合的出牌阶段；若你没赢，该角色与你距离为1直到回合结束。",
+  ["nos__qiuyuan"] = "求援",
+  [":nos__qiuyuan"] = "当你成为【杀】的目标时，你可以令一名有手牌的其他角色交给你一张手牌。若此牌不为【闪】，该角色也成为此【杀】的目标（该角色不得是此【杀】的使用者）。",
+  ["#nos__zhuikong-invoke"] = "惴恐：你可以与 %dest 拼点，若赢则其本回合跳过出牌阶段",
+  ["#nos__qiuyuan-choose"] = "求援：令另一名其他角色交给你一张手牌",
+  ["#nos__qiuyuan-give"] = "求援：你需交给 %dest 一张手牌",
+
+  ["$nos__zhuikong1"] = "诚惶诚恐，夜不能寐。",
+  ["$nos__zhuikong2"] = "嘘，隔墙有耳。",
+  ["$nos__qiuyuan1"] = "逆贼逞凶，卿可灭之。",
+  ["$nos__qiuyuan2"] = "求父亲救救大汉江山吧！",
+  ["~nos__fuhuanghou"] = "陛下为何不救臣妾……",
 }
 
 local nos__liru = General(extension, "nos__liru", "qun", 3)
