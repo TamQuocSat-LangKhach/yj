@@ -35,7 +35,7 @@ local sidi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.CardUseFinished then
-      player:addToPile(self.name, room:getNCards(1), false, self.name)
+      player:addToPile(self.name, room:getNCards(1), true, self.name)
     else
       room:moveCards({
         from = player.id,

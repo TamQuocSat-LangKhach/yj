@@ -349,8 +349,6 @@ local qianxi = fk.CreateTriggerSkill{
 }
 local qianxi_prohibit = fk.CreateProhibitSkill{
   name = "#qianxi_prohibit",
-  is_prohibited = function()
-  end,
   prohibit_use = function(self, player, card)
     return player:getMark("@qianxi-turn") ~= 0 and card:getColorString() == player:getMark("@qianxi-turn")
   end,
@@ -588,7 +586,7 @@ local chunlao = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.EventPhaseStart then
-      player:addToPile("chengpu_chun", self.cost_data, false, self.name)
+      player:addToPile("chengpu_chun", self.cost_data, true, self.name)
     else
       room:moveCards({
         from = player.id,
@@ -964,7 +962,7 @@ local quanji = fk.CreateTriggerSkill{
     player:drawCards(1)
     if player:isKongcheng() then return end
     local card = room:askForCard(player, 1, 1, false, self.name, false, ".", "#quanji-card")
-    player:addToPile("zhonghui_quan", card, false, self.name)
+    player:addToPile("zhonghui_quan", card, true, self.name)
   end,
 }
 local quanji_maxcards = fk.CreateMaxCardsSkill{

@@ -971,8 +971,6 @@ local xianzhen_targetmod = fk.CreateTargetModSkill{
 }
 local xianzhen_prohibit = fk.CreateProhibitSkill{
   name = "#xianzhen_prohibit",
-  is_prohibited = function()
-  end,
   prohibit_use = function(self, player, card)
     return player:getMark("xianzhen_lose-turn") > 0 and card.trueName == "slash"
   end,
