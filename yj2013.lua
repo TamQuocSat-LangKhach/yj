@@ -968,12 +968,15 @@ local nos__qiuyuan = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetConfirming},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+    if not (target == player and player:hasSkill(self.name) and data.card.trueName == "slash") then return end
+    local targets = table.map(table.filter(player.room:getOtherPlayers(player), function(p)
+      return p.id ~= data.from and not p:isKongcheng() end), function (p) return p.id end)
+    return #targets > 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return p.id ~= data.from end), function (p) return p.id end)
+      return p.id ~= data.from and not p:isKongcheng() end), function (p) return p.id end)
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__qiuyuan-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
@@ -984,7 +987,7 @@ local nos__qiuyuan = fk.CreateTriggerSkill{
     local room = player.room
     local to = self.cost_data
     room:doIndicate(player.id, {to})
-    local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, true, ".|.|.|hand", "#nos__qiuyuan-give::"..player.id)
+    local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, false, ".|.|.|hand", "#nos__qiuyuan-give::"..player.id)
     if #card > 0 then
       local card = Fk:getCardById(card[1])
       room:obtainCard(player.id, card, true, fk.ReasonGive)
