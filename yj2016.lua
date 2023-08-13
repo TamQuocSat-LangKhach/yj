@@ -178,7 +178,7 @@ local taoluan = fk.CreateViewAsSkill{
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
       if (card.type == Card.TypeBasic or card:isCommonTrick()) and not card.is_derived and
-        ((Fk.currentResponsePattern == nil and card.skill:canUse(Self)) or
+        ((Fk.currentResponsePattern == nil and Self:canUse(card)) or
         (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(card))) then
         if mark == 0 or (not table.contains(mark, card.trueName)) then
           table.insertIfNeed(names, card.name)
