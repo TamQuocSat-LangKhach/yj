@@ -11,6 +11,7 @@ local wengua = fk.CreateActiveSkill{
   anim_type = "support",
   card_num = 1,
   target_num = 0,
+  prompt = "#wengua",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
   end,
@@ -52,10 +53,10 @@ local wengua_trigger = fk.CreateTriggerSkill{
     if event == fk.GameStart then
       return player:hasSkill(self.name, true)
     elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
-      return data == self and not table.find(player.room.alive_players, function(p) return p:hasSkill("wengua", true) end)
+      return data == self and not table.find(player.room:getOtherPlayers(player), function(p) return p:hasSkill("wengua", true) end)
     else
       return target == player and player:hasSkill(self.name, true, true) and
-        not table.find(player.room.alive_players, function(p) return p:hasSkill("wengua", true) end)
+        not table.find(player.room:getOtherPlayers(player), function(p) return p:hasSkill("wengua", true) end)
     end
   end,
   on_refresh = function(self, event, target, player, data)
@@ -67,7 +68,7 @@ local wengua_trigger = fk.CreateTriggerSkill{
         end
       end
     elseif event == fk.EventLoseSkill or event == fk.Deathed then
-      for _, p in ipairs(room:getOtherPlayers(player, true, true)) do
+      for _, p in ipairs(room:getOtherPlayers(player)) do
         room:handleAddLoseSkills(p, "-wengua&", nil, false, true)
       end
     end
@@ -78,6 +79,7 @@ local wengua_active = fk.CreateActiveSkill{
   anim_type = "support",
   card_num = 1,
   target_num = 1,
+  prompt = "#wengua&",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
@@ -92,7 +94,7 @@ local wengua_active = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local id = effect.cards[1]
     room:obtainCard(target.id, id, false, fk.ReasonGive)
-    if room:getCardOwner(id) ~= target then return end  --小心陈珪！
+    if room:getCardOwner(id) ~= target or room:getCardArea(id) ~= Card.PlayerHand then return end
     local choices = {"Cancel", "Top", "Bottom"}
     local choice = room:askForChoice(target, choices, "wengua",
       "#wengua-choice::"..player.id..":"..Fk:getCardById(id):toLogString())
@@ -131,6 +133,7 @@ local fuzhu = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    room:doIndicate(player.id, {target.id})
     local n = 0
     local cards = table.simpleClone(room.draw_pile)
     for _, id in ipairs(cards) do
@@ -160,9 +163,11 @@ Fk:loadTranslationTable{
   [":wengua"] = "每名角色出牌阶段限一次，其可以交给你一张牌，然后你可以将此牌置于牌堆顶或牌堆底，你与其从另一端摸一张牌。",
   ["fuzhu"] = "伏诛",
   [":fuzhu"] = "一名男性角色结束阶段，若牌堆剩余牌数不大于你体力值的十倍，你可以依次对其使用牌堆中所有的【杀】（不能超过游戏人数），然后洗牌。",
+  ["#wengua"] = "问卦：你可以将一张牌置于牌堆顶或牌堆底，从另一端摸两张牌",
   ["#wengua-choice"] = "问卦：你可以将 %arg 置于牌堆顶或牌堆底，然后你与 %dest 从另一端摸一张牌",
   ["wengua&"] = "问卦",
   [":wengua&"] = "出牌阶段限一次，你可以交给徐氏一张牌，然后其可以将此牌置于牌堆顶或牌堆底，其与你从另一端摸一张牌。",
+  ["#wengua&"] = "问卦：你可以交给徐氏一张牌，然后其可以将此牌置于牌堆顶或牌堆底，从另一端各摸一张牌",
   ["#fuzhu-invoke"] = "伏诛：你可以对 %dest 使用牌堆中所有【杀】！",
 
   ["$wengua1"] = "阴阳相生相克，万事周而复始。",

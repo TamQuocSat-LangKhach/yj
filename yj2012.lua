@@ -9,15 +9,17 @@ local xunyou = General(extension, "xunyou", "wei", 3)
 local qice = fk.CreateViewAsSkill{
   name = "qice",
   interaction = function()
-    local names = {}
+    local names, all_names = {} , {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
-      if card:isCommonTrick() and not card.is_derived and
-        card.trueName ~= "nullification" and card.name ~= "adaptation" then
-        table.insertIfNeed(names, card.name)
+      if card:isCommonTrick() and not card.is_derived then
+        table.insertIfNeed(all_names, card.name)
+        if Self:canUse(card) and not Self:prohibitUse(card) then
+          table.insertIfNeed(names, card.name)
+        end
       end
     end
-    return UI.ComboBox {choices = names}
+    return UI.ComboBox {choices = names, all_choices = all_names}
   end,
   card_filter = function()
     return false
@@ -41,15 +43,11 @@ local zhiyu = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    player:drawCards(1)
-    local cards = player.player_cards[Player.Hand]
+    player:drawCards(1, self.name)
+    local cards = player:getCardIds("h")
     player:showCards(cards)
-    if data.from and not data.from.dead and not data.from:isKongcheng() then
-      for _, id in ipairs(cards) do
-        if Fk:getCardById(id).color ~= Fk:getCardById(cards[1]).color then
-          return
-        end
-      end
+    if data.from and not data.from.dead and not data.from:isKongcheng() and
+      table.every(cards, function(id) return #cards == 0 or Fk:getCardById(id).color == Fk:getCardById(cards[1]).color end) then
       room:askForDiscard(data.from, 1, 1, false, self.name, false)
     end
   end,
@@ -59,7 +57,7 @@ xunyou:addSkill(zhiyu)
 Fk:loadTranslationTable{
   ["xunyou"] = "荀攸",
   ["qice"] = "奇策",
-  [":qice"] = "出牌阶段，你可以将所有的手牌（至少一张）当做任意一张非延时类锦囊牌使用。每阶段限一次。",
+  [":qice"] = "出牌阶段限一次，你可以将所有的手牌当任意一张非延时类锦囊牌使用。",
   ["zhiyu"] = "智愚",
   [":zhiyu"] = "每当你受到一次伤害后，你可以摸一张牌，然后展示所有手牌，若颜色均相同，伤害来源弃置一张手牌。",
 }
@@ -209,9 +207,8 @@ local zhenlie = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) and data.from ~= player.id then
-      return data.card:isCommonTrick() or data.card.trueName == "slash"
-    end
+    return target == player and player:hasSkill(self.name) and data.from ~= player.id and
+      (data.card:isCommonTrick() or data.card.trueName == "slash")
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -219,7 +216,7 @@ local zhenlie = fk.CreateTriggerSkill{
     if player.dead then return end
     table.insertIfNeed(data.nullifiedTargets, player.id)
     local to = room:getPlayerById(data.from)
-    if to:isNude() then return end
+    if to.dead or to:isNude() then return end
     local id = room:askForCardChosen(player, to, "he", self.name)
     room:throwCard({id}, self.name, to, player)
   end,
@@ -236,12 +233,12 @@ local miji = fk.CreateTriggerSkill{
     local n = player:getLostHp()
     player:drawCards(n, self.name)
     room:setPlayerMark(player, self.name, n)
-    room:askForUseActiveSkill(player, "#miji_active", "#miji-invoke", true)
+    room:askForUseActiveSkill(player, "miji_active", "#miji-invoke", true)
     room:setPlayerMark(player, self.name, 0)
   end,
 }
 local miji_active = fk.CreateActiveSkill{
-  name = "#miji_active",
+  name = "miji_active",
   anim_type = "support",
   max_card_num = function ()
     return Self:getMark("miji")
@@ -273,7 +270,7 @@ Fk:loadTranslationTable{
   [":zhenlie"] = "当你成为其他角色使用【杀】或普通锦囊牌的目标后，你可以失去1点体力使此牌对你无效，然后你弃置其一张牌。",
   ["miji"] = "秘计",
   [":miji"] = "结束阶段，你可以摸至多X张牌（X为你已损失的体力值），然后你可以将等量的手牌交给其他角色。",
-  ["#miji_active"] = "秘计",
+  ["miji_active"] = "秘计",
   ["#miji-invoke"] = "秘计：你可以将牌交给一名其他角色",
 
   ["$zhenlie1"] = "虽是妇人，亦当奋身一搏！",
@@ -296,7 +293,7 @@ local nos__qianxi = fk.CreateTriggerSkill{
     local judge = {
       who = data.to,
       reason = self.name,
-      pattern = ".|.|spade,club,diamond",
+      pattern = ".|.|^heart",
     }
     room:judge(judge)
     if judge.card.suit ~= Card.Heart then
@@ -377,7 +374,7 @@ local dangxian = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and data.to == Player.Start
   end,
   on_use = function(self, event, target, player, data)
-    player:gainAnExtraPhase(Player.Play)
+    player:gainAnExtraPhase(Player.Play, true)
   end,
 }
 local fuli = fk.CreateTriggerSkill{
@@ -617,7 +614,6 @@ Fk:loadTranslationTable{
   ["chunlao"] = "醇醪",
   [":chunlao"] = "回合结束阶段开始时，若你的武将牌上没有牌，你可以将任意数量的【杀】置于你的武将牌上，称为“醇”；"..
   "当一名角色处于濒死状态时，你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】。",
-
   ["#lihuo-choose"] = "疬火：你可以为此%arg增加一个目标",
   ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
@@ -676,7 +672,7 @@ local zhuiyi = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(room:getOtherPlayers(player), function (p) return p.id end)
-    if data.damage then
+    if data.damage and data.damage.from then
       table.removeOne(targets, data.damage.from.id)
     end
     local p = room:askForChoosePlayers(player, targets, 1, 1, "#zhuiyi-choose", self.name, true)
@@ -704,7 +700,7 @@ bulianshi:addSkill(zhuiyi)
 Fk:loadTranslationTable{
   ["bulianshi"] = "步练师",
   ["anxu"] = "安恤",
-  [":anxu"] = "出牌阶段，你可以选择两名手牌数不相等的其他角色，令其中手牌少的角色获得手牌多的角色一张手牌并展示之，若此牌不为♠，你摸一张牌。每阶段限一次。",
+  [":anxu"] = "出牌阶段限一次，你可以选择两名手牌数不相等的其他角色，令其中手牌少的角色获得手牌多的角色一张手牌并展示之，若此牌不为♠，你摸一张牌。",
   ["zhuiyi"] = "追忆",
   [":zhuiyi"] = "你死亡时，可以令一名其他角色（杀死你的角色除外）摸三张牌并回复1点体力。",
   ["#zhuiyi-choose"] = "追忆：你可以令一名角色摸三张牌并回复1点体力",
@@ -743,7 +739,13 @@ local nos__jiefan = fk.CreateTriggerSkill{
     if event == fk.AskForPeaches then
       return player:hasSkill(self.name) and target.dying and player.room.current and player.room.current ~= player
     else
-      return target == player and data.card and data.card.extra_data and table.contains(data.card.extra_data, self.name)
+      if target == player and data.card then
+        local e = player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
+        if e then
+          local use = e.data[1]
+          return use.extra_data and use.extra_data.jiefan and use.extra_data.jiefan[1] == player.id
+        end
+      end
     end
   end,
   on_cost = function(self, event, target, player, data)
@@ -759,17 +761,19 @@ local nos__jiefan = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.AskForPeaches then
       local use = self.cost_data
-      use.card.extra_data = use.card.extra_data or {}
-      table.insert(use.card.extra_data, self.name)
-      room:setPlayerMark(player, "jiefan-phase", target.id)  --FIXME: 多人濒死
+      use.extra_data = use.extra_data or {}
+      use.extra_data.jiefan = {player.id, target.id}
       room:useCard(use)
-      room:setPlayerMark(player, "jiefan-phase", 0)
     else
-      local to = room:getPlayerById(player:getMark("jiefan-phase"))
-      if not to.dead then
-        room:useVirtualCard("peach", nil, player, to, self.name)
+      local e = room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
+      if e then
+        local use = e.data[1]
+        local to = room:getPlayerById(use.extra_data.jiefan[2])
+        if not to.dead then
+          room:useVirtualCard("peach", nil, player, to, self.name)
+        end
+        return true
       end
-      return true
     end
   end,
 }
@@ -804,6 +808,7 @@ local gongqi = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     room:throwCard(effect.cards, self.name, player, player)
+    if player.dead then return end
     room:addPlayerMark(player, "gongqi-turn", 999)
     if Fk:getCardById(effect.cards[1]).type == Card.TypeEquip then
       local to = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
@@ -841,7 +846,7 @@ local jiefan = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     for _, p in ipairs(room:getOtherPlayers(target)) do
       if p:inMyAttackRange(target) then
-        if #room:askForDiscard(p, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#jiefan-discard::"..target.id) == 0 then  --TODO: pattern weapon
+        if #room:askForDiscard(p, 1, 1, true, self.name, true, ".|.|.|.|.|weapon", "#jiefan-discard::"..target.id) == 0 then
           target:drawCards(1, self.name)
         end
       end
@@ -905,30 +910,19 @@ local shiyong = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and
-      (data.card.color == Card.Red or player:getMark(self.name) > 0)
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:changeMaxHp(player, -1)
-    player.room:setPlayerMark(player, self.name, 0)
-  end,
-
-  refresh_events = {fk.TargetConfirmed, fk.CardUseFinished},
-  can_refresh = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) then
-      if event == fk.TargetConfirmed then
-        return data.extra_data and data.extra_data.drankBuff
-      else
-        return data.card.trueName == "slash"
+    if target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" then
+      if data.card.color == Card.Red then
+        return true
+      end
+      local e = player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
+      if e then
+        local use = e.data[1]
+        return use.extra_data and use.extra_data.drankBuff
       end
     end
   end,
-  on_refresh = function(self, event, target, player, data)
-    if event == fk.TargetConfirmed then
-      player.room:setPlayerMark(player, self.name, 1)
-    else
-      player.room:setPlayerMark(player, self.name, 0)
-    end
+  on_use = function(self, event, target, player, data)
+    player.room:changeMaxHp(player, -1)
   end,
 }
 huaxiong:addSkill(shiyong)

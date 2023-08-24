@@ -5,6 +5,187 @@ Fk:loadTranslationTable{
   ["yczh2016"] = "原创之魂2016",
 }
 
+local liyans = General(extension, "liyans", "shu", 3)
+local duliang = fk.CreateActiveSkill{
+  name = "duliang",
+  anim_type = "support",
+  card_num = 0,
+  target_num = 1,
+  prompt = "#duliang",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isNude()
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local card = room:askForCardChosen(player, target, "he", self.name)
+    room:obtainCard(player.id, card, false, fk.ReasonPrey)
+    if player.dead or target.dead then return end
+    local choice = room:askForChoice(player, {"duliang_view", "duliang_draw"}, self.name, "#duliang-choice::"..target.id)
+    if choice == "duliang_view" then
+      local cards = room:getNCards(2)
+      room:fillAG(target, cards)
+      room:delay(3000)
+      room:closeAG(target)
+      local dummy = Fk:cloneCard("dilu")
+      for _, id in ipairs(cards) do
+        if Fk:getCardById(id).type == Card.TypeBasic then
+          dummy:addSubcard(id)
+          table.removeOne(cards, id)
+        end
+      end
+      if #dummy.subcards > 0 then
+        room:obtainCard(target.id, dummy, false, fk.ReasonJustMove)
+      end
+      if #dummy.subcards < 2 then
+        for i = #cards, 1, -1 do
+          table.insert(room.draw_pile, 1, cards[i])
+        end
+      end
+    else
+      room:addPlayerMark(target, "@duliang", 1)
+    end
+  end,
+}
+local duliang_trigger = fk.CreateTriggerSkill{
+  name = "#duliang_trigger",
+  mute = true,
+  events = {fk.DrawNCards},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:getMark("@duliang") > 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    data.n = data.n + player:getMark("@duliang")
+    player.room:setPlayerMark(player, "@duliang", 0)
+  end,
+}
+local fulin = fk.CreateMaxCardsSkill{
+  name = "fulin",
+  frequency = Skill.Compulsory,
+  exclude_from = function(self, player, card)
+    return player:hasSkill(self.name) and card:getMark("@@fulin-inhand") > 0
+  end,
+}
+local fulin_record = fk.CreateTriggerSkill{
+  name = "#fulin_record",
+
+  refresh_events = {fk.AfterCardsMove, fk.TurnEnd},
+  can_refresh = function(self, event, target, player, data)
+    if player:hasSkill("fulin") then
+      if event == fk.AfterCardsMove and player.phase ~= Player.NotActive then
+        for _, move in ipairs(data) do
+          if move.to == player.id and move.toArea == Card.PlayerHand then
+            return true
+          end
+        end
+      elseif event == fk.TurnEnd then
+        return target == player
+      end
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.AfterCardsMove then
+      for _, move in ipairs(data) do
+        if move.to == player.id and move.toArea == Card.PlayerHand then
+          for _, info in ipairs(move.moveInfo) do
+            room:setCardMark(Fk:getCardById(info.cardId), "@@fulin-inhand", 1)
+          end
+        end
+      end
+    else
+      for _, id in ipairs(player:getCardIds("h")) do
+        room:setCardMark(Fk:getCardById(id), "@@fulin-inhand", 0)
+      end
+    end
+  end,
+}
+duliang:addRelatedSkill(duliang_trigger)
+fulin:addRelatedSkill(fulin_record)
+liyans:addSkill(duliang)
+liyans:addSkill(fulin)
+Fk:loadTranslationTable{
+  ["liyans"] = "李严",
+  ["duliang"] = "督粮",
+  [":duliang"] = "出牌阶段限一次，你可以获得一名其他角色一张牌，然后选择一项：1.其观看牌堆顶的两张牌，获得其中的基本牌；2.其下个摸牌阶段额外摸一张牌。",
+  ["fulin"] = "腹鳞",
+  [":fulin"] = "锁定技，你于回合内获得的牌不计入手牌上限。",
+  ["#duliang"] = "督粮：获得一名其他角色一张牌，然后令其获得基本牌或其下个摸牌阶段多摸一张牌",
+  ["duliang_view"] = "观看牌堆顶的两张牌，获得其中的基本牌",
+  ["duliang_draw"] = "下个摸牌阶段额外摸一张牌",
+  ["#duliang-choice"] = "督粮：选择令 %dest 执行的一项",
+  ["@duliang"] = "督粮",
+  ["@@fulin-inhand"] = "腹鳞",
+}
+
+local sundeng = General(extension, "sundeng", "wu", 4)
+local kuangbi = fk.CreateActiveSkill{
+  name = "kuangbi",
+  anim_type = "support",
+  card_num = 0,
+  target_num = 1,
+  prompt = "#kuangbi",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isNude()
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local cards = room:askForCard(target, 1, 3, true, self.name, false, ".", "#kuangbi-card:"..player.id)
+    local dummy = Fk:cloneCard("dilu")
+    dummy:addSubcards(cards)
+    player:addToPile(self.name, dummy, false, self.name)
+    room:setPlayerMark(player, self.name, target.id)
+  end,
+}
+local kuangbi_trigger = fk.CreateTriggerSkill {
+  name = "#kuangbi_trigger",
+  mute = true,
+  events = {fk.TurnStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:getMark("kuangbi") ~= 0 and #player:getPile("kuangbi") ~= 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(player:getMark("kuangbi"))
+    room:setPlayerMark(player, "kuangbi", 0)
+    local dummy = Fk:cloneCard("dilu")
+    dummy:addSubcards(player:getPile("kuangbi"))
+    room:obtainCard(player, dummy, false, fk.ReasonJustMove)
+    if not to.dead then
+      room:doIndicate(player.id, {to.id})
+      to:drawCards(#dummy.subcards, "kuangbi")
+    end
+  end,
+}
+kuangbi:addRelatedSkill(kuangbi_trigger)
+sundeng:addSkill(kuangbi)
+Fk:loadTranslationTable{
+  ["sundeng"] = "孙登",
+  ["kuangbi"] = "匡弼",
+  [":kuangbi"] = "出牌阶段限一次，你可以令一名其他角色将一至三张牌置于你的武将牌上。若如此做，你的下回合开始时，你获得武将牌上所有牌，其摸等量的牌。",
+  ["#kuangbi"] = "匡弼：令一名角色将至多三张牌置为“匡弼”牌，你下回合开始时获得“匡弼”牌，其摸等量牌",
+  ["#kuangbi-card"] = "匡弼：将至多三张牌置为 %src 的“匡弼”牌",
+}
+
 local cenhun = General(extension, "cenhun", "wu", 3)
 local jishe = fk.CreateActiveSkill{
   name = "jishe",
