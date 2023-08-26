@@ -312,7 +312,7 @@ local zongzuo = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.GameStart then
-      room:broadcastSkillInvoke(self.name)
+      player:broadcastSkillInvoke(self.name)
       room:notifySkillInvoked(player, self.name, "defensive")
       local kingdoms = {}
       for _, p in ipairs(player.room:getAlivePlayers()) do

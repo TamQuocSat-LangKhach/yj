@@ -326,7 +326,7 @@ local qiangzhi = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke(self.name, 1)
+    player:broadcastSkillInvoke(self.name, 1)
     room:notifySkillInvoked(player, self.name, "control")
     local to = room:getPlayerById(self.cost_data)
     local card = Fk:getCardById(room:askForCardChosen(player, to, "h", self.name))
@@ -347,7 +347,7 @@ local qiangzhi_trigger = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke("qiangzhi", 2)
+    player:broadcastSkillInvoke("qiangzhi", 2)
     room:notifySkillInvoked(player, "qiangzhi", "drawcard")
     player:drawCards(1, "qiangzhi")
   end,
@@ -365,7 +365,7 @@ local xiantu = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke(self.name, 1)
+    player:broadcastSkillInvoke(self.name, 1)
     room:notifySkillInvoked(player, self.name)
     player:drawCards(2, self.name)
     if player:isNude() then return end
@@ -404,7 +404,7 @@ local xiantu_trigger = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke("xiantu", 2)
+    player:broadcastSkillInvoke("xiantu", 2)
     room:notifySkillInvoked(player, "xiantu", "negative")
     room:loseHp(player, 1, "xiantu")
   end,
@@ -588,12 +588,12 @@ local youdi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
-    room:broadcastSkillInvoke(self.name, 1)
+    player:broadcastSkillInvoke(self.name, 1)
     room:notifySkillInvoked(player, self.name)
     local card = room:askForCardChosen(to, player, "he", self.name)
     room:throwCard({card}, self.name, player, to)
     if Fk:getCardById(card).trueName ~= "slash" and not to:isNude() then
-      room:broadcastSkillInvoke(self.name, 2)
+      player:broadcastSkillInvoke(self.name, 2)
       room:notifySkillInvoked(player, self.name)
       local card2 = room:askForCardChosen(player, to, "he", self.name)
       room:obtainCard(player.id, card2, false)
@@ -845,7 +845,7 @@ local shibei = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if player:getMark("shibei-turn") == 0 then
-      room:broadcastSkillInvoke(self.name, 1)
+      player:broadcastSkillInvoke(self.name, 1)
       room:notifySkillInvoked(player, self.name)
       room:recover{
         who = player,
@@ -853,7 +853,7 @@ local shibei = fk.CreateTriggerSkill{
         skillName = self.name
       }
     else
-      room:broadcastSkillInvoke(self.name, 2)
+      player:broadcastSkillInvoke(self.name, 2)
       room:notifySkillInvoked(player, self.name, "negative")
       room:loseHp(player, 1, self.name)
     end

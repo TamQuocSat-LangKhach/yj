@@ -761,7 +761,7 @@ local nos__danshou = fk.CreateTriggerSkill{
   events = {fk.Damage},
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke("danshou")
+    player:broadcastSkillInvoke("danshou")
     room:notifySkillInvoked(player, self.name)
     player:drawCards(1, self.name)
     room.logic:breakTurn()
