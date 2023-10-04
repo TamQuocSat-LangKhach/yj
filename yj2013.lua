@@ -172,7 +172,7 @@ local nos__renxin = fk.CreateTriggerSkill{
     room:recover({
       who = target,
       num = 1,
-      recoverBy = player.id,
+      recoverBy = player,
       skillName = self.name
     })
     return true
