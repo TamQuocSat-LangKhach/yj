@@ -201,18 +201,13 @@ local jingce = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("@jingce-turn") >= player.hp
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and #player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e) 
+      local use = e.data[1]
+      return use.from == player.id
+    end, Player.HistoryTurn) >= player.hp
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(2, self.name)
-  end,
-
-  refresh_events = {fk.CardUsing},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase < Player.Discard
-  end,
-  on_refresh = function(self, event, target, player, data)
-    player.room:addPlayerMark(player, "@jingce-turn", 1)
   end,
 }
 guohuai:addSkill(jingce)
