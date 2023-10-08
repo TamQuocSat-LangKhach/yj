@@ -60,12 +60,18 @@ Fk:loadTranslationTable{
   [":qice"] = "出牌阶段限一次，你可以将所有的手牌当任意一张非延时类锦囊牌使用。",
   ["zhiyu"] = "智愚",
   [":zhiyu"] = "每当你受到一次伤害后，你可以摸一张牌，然后展示所有手牌，若颜色均相同，伤害来源弃置一张手牌。",
+
+  ["$qice1"] = "倾力为国，算无遗策。",
+  ["$qice2"] = "奇策在此，谁与争锋？",
+  ["$zhiyu1"] = "大勇若怯，大智如愚。",
+  ["$zhiyu2"] = "愚者既出，智者何存？",
+  ["~xunyou"] = "主公，臣下……先行告退……",
 }
 
 local caozhang = General(extension, "caozhang", "wei", 4)
 local jiangchi = fk.CreateTriggerSkill{
   name = "jiangchi",
-  anim_type = "drawcard",
+  mute = true,
   events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name)
@@ -78,7 +84,11 @@ local jiangchi = fk.CreateTriggerSkill{
     local choice = player.room:askForChoice(player, choices, self.name)
     if choice == "jiangchi+1" then
       data.n = data.n + 1
+      player.room:notifySkillInvoked(player, self.name, "defensive")
+      player:broadcastSkillInvoke(self.name, 1)
     else
+      player.room:notifySkillInvoked(player, self.name, "offensive")
+      player:broadcastSkillInvoke(self.name, 2)
       data.n = data.n - 1
     end
     player.room:addPlayerMark(player, choice.."-turn", 1)
@@ -117,6 +127,10 @@ Fk:loadTranslationTable{
   "且你【杀】的使用上限+1。",
   ["jiangchi+1"] = "多摸一张牌，本回合不能使用或打出【杀】",
   ["jiangchi-1"] = "少摸一张牌，本阶段使用【杀】无距离限制且次数+1",
+
+  ["$jiangchi1"] = "谨遵父训，不可逞匹夫之勇。",
+  ["$jiangchi2"] = "吾定当身先士卒，振魏武雄风！",
+  ["~caozhang"] = "子桓，你害我！",
 }
 
 local nos__wangyi = General(extension, "nos__wangyi", "wei", 3, 3, General.Female)
@@ -199,6 +213,12 @@ Fk:loadTranslationTable{
   [":nos__miji"] = "准备阶段或结束阶段开始时，若你已受伤，你可以进行一次判定：若结果为黑色，你观看牌堆顶的X张牌（X为你已损失的体力值），"..
   "然后将这些牌交给一名角色。",
   ["#nos__miji-choose"] = "秘计：选择一名角色获得“秘计”牌",
+
+  ["$nos__zhenlie1"] = "我，绝不屈服！",
+  ["$nos__zhenlie2"] = "休要小看妇人志气！",
+  ["$nos__miji1"] = "奇谋，只在绝境中诞生！",
+  ["$nos__miji2"] = "我将尽我所能！",
+  ["~nos__wangyi"] = "忠义已尽，死又何妨？",
 }
 
 local wangyi = General(extension, "wangyi", "wei", 3, 3, General.Female)
@@ -309,6 +329,10 @@ Fk:loadTranslationTable{
   ["nos__qianxi"] = "潜袭",
   [":nos__qianxi"] = "每当你使用【杀】对距离为1的目标角色造成伤害时，你可以进行一次判定，若判定结果不为<font color='red'>♥</font>，"..
   "你防止此伤害，改为令其减1点体力上限。",
+
+  ["$nos__qianxi1"] = "伤其十指，不如断其一指！",
+  ["$nos__qianxi2"] = "斩草除根，除恶务尽！",
+  ["~nos__madai"] = "反骨贼已除，丞相放心……",
 }
 
 local madai = General(extension, "madai", "shu", 4)
@@ -362,6 +386,10 @@ Fk:loadTranslationTable{
   [":qianxi"] = "准备阶段，你可以进行判定，然后令距离为1的一名角色本回合不能使用或打出与结果颜色相同的手牌。",
   ["#qianxi-choose"] = "潜袭：令一名角色本回合不能使用或打出%arg手牌",
   ["@qianxi-turn"] = "潜袭",
+
+  ["$qianxi1"] = "喊什么喊？我敢杀你！",
+  ["$qianxi2"] = "笑什么笑？叫你得意！",
+  ["~madai"] = "我怎么会死在这里……",
 }
 
 local liaohua = General(extension, "liaohua", "shu", 4)
@@ -408,6 +436,12 @@ Fk:loadTranslationTable{
   [":dangxian"] = "锁定技，回合开始时，你执行一个额外的出牌阶段。",
   ["fuli"] = "伏枥",
   [":fuli"] = "限定技，当你处于濒死状态时，你可以将体力值回复至X点（X为现存势力数），然后将你的武将牌翻面。",
+
+  ["$dangxian1"] = "先锋就由老夫来当！",
+  ["$dangxian2"] = "看我先行破敌！",
+  ["$fuli1"] = "今天是个拼命的好日子！",
+  ["$fuli2"] = "有老夫在，蜀汉就不会倒下！",
+  ["~liaohua"] = "今后，就靠你们啦……",
 }
 
 local nos__guanxingzhangbao = General(extension, "nos__guanxingzhangbao", "shu", 4)
@@ -452,6 +486,12 @@ Fk:loadTranslationTable{
   ["nos__guanxingzhangbao"] = "关兴张苞",
   ["nos__fuhun"] = "父魂",
   [":nos__fuhun"] = "摸牌阶段，你可以放弃摸牌，改为亮出牌堆顶的两张牌并获得之，若亮出的牌颜色不同，你获得技能〖武圣〗、〖咆哮〗，直到回合结束。",
+
+  ["$nos__fuhun1"] = "不血父仇，誓不罢休！",
+  ["$nos__fuhun2"] = "承父遗志，横扫叛贼！",
+  ["$wusheng_nos__guanxingzhangbao"] = "蜀汉重任，后继有人！",
+  ["$paoxiao_nos__guanxingzhangbao"] = "哼！",
+  ["~nos__guanxingzhangbao"] = "吾得父亲之遗志，未袭父亲之神勇。",
 }
 
 local guanxingzhangbao = General(extension, "guanxingzhangbao", "shu", 4)
@@ -499,6 +539,12 @@ Fk:loadTranslationTable{
   ["guanxingzhangbao"] = "关兴张苞",
   ["fuhun"] = "父魂",
   [":fuhun"] = "你可以将两张手牌当【杀】使用或打出；当你于出牌阶段内以此法造成伤害后，本回合获得〖武圣〗和〖咆哮〗。",
+
+  ["$fuhun1"] = "光复汉室，重任在肩！",
+  ["$fuhun2"] = "将门虎子，承我父志！",
+  ["$wusheng_guanxingzhangbao"] = "一夫当关，万夫莫当！",
+  ["$paoxiao_guanxingzhangbao"] = "喝啊！",
+  ["~guanxingzhangbao"] = "未能手刃仇敌，愧对先父。",
 }
 
 local chengpu = General(extension, "chengpu", "wu", 4)
@@ -618,6 +664,12 @@ Fk:loadTranslationTable{
   ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
   ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为 %dest 使用一张【酒】",
+
+  ["$lihuo1"] = "将士们，引火对敌！",
+  ["$lihuo2"] = "和我同归于尽吧！",
+  ["$chunlao1"] = "唉，帐中不可无酒啊！",
+  ["$chunlao2"] = "无碍，且饮一杯！",
+  ["~chengpu"] = "没，没有酒了……",
 }
 
 local bulianshi = General(extension, "bulianshi", "wu", 3, 3, General.Female)
@@ -704,6 +756,12 @@ Fk:loadTranslationTable{
   ["zhuiyi"] = "追忆",
   [":zhuiyi"] = "你死亡时，可以令一名其他角色（杀死你的角色除外）摸三张牌并回复1点体力。",
   ["#zhuiyi-choose"] = "追忆：你可以令一名角色摸三张牌并回复1点体力",
+
+  ["$anxu1"] = "和鸾雍雍，万福攸同。",
+  ["$anxu2"] = "君子乐胥，万邦之屏。",
+  ["$zhuiyi1"] = "终其永怀，恋心殷殷。",
+  ["$zhuiyi2"] = "妾心所系，如月之恒。",
+  ["~bulianshi"] = "江之永矣，不可方思。",
 }
 
 local nos__handang = General(extension, "nos__handang", "wu", 4)
@@ -788,6 +846,12 @@ Fk:loadTranslationTable{
   [":nos__jiefan"] = "你的回合外，当一名角色处于濒死状态时，你可以对当前回合角色使用一张【杀】，此【杀】造成伤害时，你防止此伤害，"..
   "视为对该濒死角色使用了一张【桃】。",
   ["#nos__jiefan-slash"] = "解烦：你可以对 %dest 使用【杀】，若造成伤害，防止此伤害并视为对 %src 使用【桃】",
+
+  ["$nos__gongqi1"] = "鼠辈，哪里走！",
+  ["$nos__gongqi2"] = "吃我一箭！",
+  ["$nos__jiefan1"] = "休想趁人之危！",
+  ["$nos__jiefan2"] = "退后，这里交给我！",
+  ["~nos__handang"] = "今后，只能靠你了。",
 }
 
 local handang = General(extension, "handang", "wu", 4)
@@ -864,6 +928,12 @@ Fk:loadTranslationTable{
   [":jiefan"] = "限定技，出牌阶段，你可以选择一名角色，然后令攻击范围内有该角色的所有角色各选择一项：1.弃置一张武器牌；2.令其摸一张牌。",
   ["#gongqi-choose"] = "弓骑：你可以弃置一名其他角色的一张牌",
   ["#jiefan-discard"] = "解烦：弃置一张武器牌，否则 %dest 摸一张牌",
+
+  ["$gongqi1"] = "看我箭弩弓张，取你性命！",
+  ["$gongqi2"] = "龙驹陷阵，神弓破敌！",
+  ["$jiefan1"] = "公且放心，这里有我。",
+  ["$jiefan2"] = "排愁消烦忧，祛害避凶邪。",
+  ["~handang"] = "臣将战死，难为君王解忧了。",
 }
 
 local liubiao = General(extension, "liubiao", "qun", 4)
@@ -901,12 +971,18 @@ Fk:loadTranslationTable{
   [":zishou"] = "摸牌阶段，你可以额外摸X张牌（X为你已损失的体力值），然后跳过你的出牌阶段。",
   ["zongshi"] = "宗室",
   [":zongshi"] = "锁定技，场上每有一种势力，你的手牌上限便+1。",
+
+  ["$zishou1"] = "荆襄之地，固若金汤。",
+  ["$zishou2"] = "江河霸主，何惧之有？",
+  ["$zongshi1"] = "汉室百年，坚如磐石。",
+  ["$zongshi2"] = "宗室子弟，尽收民心。",
+  ["~liubiao"] = "优柔寡断，要不得啊。",
 }
 
 local huaxiong = General(extension, "huaxiong", "qun", 6)
 local shiyong = fk.CreateTriggerSkill{
   name = "shiyong",
-  anim_type = "negative",
+  mute = true,
   frequency = Skill.Compulsory,
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
@@ -922,6 +998,25 @@ local shiyong = fk.CreateTriggerSkill{
     end
   end,
   on_use = function(self, event, target, player, data)
+    local audio = 0
+    if target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" then
+      if data.card.color == Card.Red then
+        audio = 2
+      end
+      local e = player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
+      if e then
+        local use = e.data[1]
+        if use.extra_data and use.extra_data.drankBuff then
+          if audio == 2 then
+            audio = -1
+          else
+            audio = 1
+          end
+        end
+      end
+    end
+    player.room:notifySkillInvoked(player, self.name, "negative")
+    player:broadcastSkillInvoke(self.name, audio)
     player.room:changeMaxHp(player, -1)
   end,
 }
@@ -930,6 +1025,10 @@ Fk:loadTranslationTable{
   ["huaxiong"] = "华雄",
   ["shiyong"] = "恃勇",
   [":shiyong"] = "锁定技，每当你受到一次红色【杀】或【酒】【杀】造成的伤害后，你减1点体力上限。",
+
+  ["$shiyong1"] = "好大一股酒气啊！",
+  ["$shiyong2"] = "好大一股杀气啊！",
+  ["~huaxiong"] = "皮厚不挡刀啊……",
 }
 
 local zhonghui = General(extension, "zhonghui", "wei", 4)
@@ -1052,6 +1151,14 @@ Fk:loadTranslationTable{
   [":paiyi"] = "出牌阶段，你可以将一张“权”置入弃牌堆，令一名角色摸两张牌，然后若该角色的手牌数大于你的手牌数，你对其造成1点伤害。每阶段限一次。",
   ["zhonghui_quan"] = "权",
   ["#quanji-card"] = "权计：将一张手牌置为“权”",
+
+  ["$quanji1"] = "这仇，我记下了。",
+  ["$quanji2"] = "先让你得意几天。",
+  ["$zili1"] = "时机已到，今日起兵！",
+  ["$zili2"] = "欲取天下，当在此时！",
+  ["$paiyi1"] = "妨碍我的人，都得死！",
+  ["$paiyi2"] = "此地容不下你！",
+  ["~zhonghui"] = "伯约，让你失望了。",
 }
 
 return extension
