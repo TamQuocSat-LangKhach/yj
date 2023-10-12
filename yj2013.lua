@@ -1,8 +1,6 @@
 local extension = Package("yjcm2013")
 extension.extensionName = "yj"
 
-local U = require "packages/utility/utility"
-
 Fk:loadTranslationTable{
   ["yjcm2013"] = "一将成名2013",
 }
@@ -12,6 +10,9 @@ local chengxiang = fk.CreateTriggerSkill{
   name = "chengxiang",
   anim_type = "masochism",
   events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and target:hasSkill(self.name)
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local card_ids = room:getNCards(4)
@@ -99,6 +100,9 @@ local nos__chengxiang = fk.CreateTriggerSkill{
   name = "nos__chengxiang",
   anim_type = "masochism",
   events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and target:hasSkill(self.name)
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local card_ids = room:getNCards(4)
@@ -211,6 +215,7 @@ Fk:loadTranslationTable{
   ["guohuai"] = "郭淮",
   ["jingce"] = "精策",
   [":jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
+  ["@jingce-turn"] = "精策",
 
   ["$jingce1"] = "方策精详，有备无患。",
   ["$jingce2"] = "精兵据敌，策守如山。",
@@ -348,12 +353,20 @@ local jianyong = General(extension, "jianyong", "shu", 3)
 local qiaoshui = fk.CreateTriggerSkill{
   name = "qiaoshui",
   anim_type = "control",
-  events = {fk.EventPhaseStart},
+  events = {fk.EventPhaseStart, fk.TargetSpecifying},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and not player:isKongcheng()
+    if target == player then
+      if event == fk.EventPhaseStart then
+        return player:hasSkill(self.name) and player.phase == Player.Play and not player:isKongcheng()
+      else
+        return player:getMark("@@qiaoshui-turn") > 0 and
+          data.card.type ~= Card.TypeEquip and data.card.sub_type ~= Card.SubtypeDelayedTrick
+      end
+    end
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
+    if event == fk.EventPhaseStart then
       local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
         return not p:isKongcheng() end), function(p) return p.id end)
       if #targets == 0 then return end
@@ -361,49 +374,59 @@ local qiaoshui = fk.CreateTriggerSkill{
       if #to > 0 then
         self.cost_data = to[1]
         return true
+      end
+    else
+      room:setPlayerMark(player, "@@qiaoshui-turn", 0)
+      if data.targetGroup then
+        local targets = {}
+        if #data.targetGroup > 1 and table.contains(AimGroup:getAllTargets(data.tos), player.id) then  --多目标牌取消自己
+          table.insert(targets, player.id)
+        end
+        for _, p in ipairs(room:getOtherPlayers(player)) do
+          if #data.targetGroup > 1 then
+            if table.contains(AimGroup:getAllTargets(data.tos), p.id) or not player:isProhibited(p, data.card) then
+              table.insertIfNeed(targets, p.id)
+            end
+          else
+            if not table.contains(AimGroup:getAllTargets(data.tos), p.id) and not player:isProhibited(p, data.card) then
+              if (data.card.name == "peach" and p:isWounded()) or data.card.name ~= "peach" then
+                table.insertIfNeed(targets, p.id)
+              end
+            end
+          end
+        end
+        if #targets == 0 then return end
+        local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiaoshui-choose:::"..data.card:toLogString(), self.name, true)
+        if #to > 0 then
+          self.cost_data = to[1]
+          return true
+        end
+      end
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    if event == fk.EventPhaseStart then
       local to = room:getPlayerById(self.cost_data)
       local pindian = player:pindian({to}, self.name)
       if pindian.results[to.id].winner == player then
         room:addPlayerMark(player, "@@qiaoshui-turn", 1)
       else
-      room:addPlayerMark(player, "@@qiaoshui_lose-turn", 1)
+        room:addPlayerMark(player, "qiaoshui-turn", 1)
       end
-  end,
-}
-local qiaoshui_delay = fk.CreateTriggerSkill{
-  name = "#qiaoshui_delay",
-  events = {fk.AfterCardTargetDeclared},
-  mute = true,
-  frequency = Skill.Compulsory,
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:getMark("@@qiaoshui-turn") > 0 and data.card.type ~= Card.TypeEquip and data.card.sub_type ~= Card.SubtypeDelayedTrick
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:setPlayerMark(player, "@@qiaoshui-turn", 0)
-    local targets = U.getUseExtraTargets(room, data)
-    table.insertTableIfNeed(targets, TargetGroup:getRealTargets(data.tos))
-    if #targets == 0 then return false end
-    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#qiaoshui-choose:::"..data.card:toLogString(), self.name, true)
-    if #tos > 0 then
-      local to = tos[1]
-      if TargetGroup:includeRealTargets(data.tos, to) then
-        TargetGroup:removeTarget(data.tos, to)
+    else
+      if table.contains(AimGroup:getAllTargets(data.tos), self.cost_data) then
+        TargetGroup:removeTarget(data.targetGroup, self.cost_data)
       else
-        table.insert(data.tos, {to})
+        TargetGroup:pushTargets(data.targetGroup, self.cost_data)
       end
     end
   end,
 }
-qiaoshui:addRelatedSkill(qiaoshui_delay)
 local qiaoshui_prohibit = fk.CreateProhibitSkill{
   name = "#qiaoshui_prohibit",
   prohibit_use = function(self, player, card)
-    return player:hasSkill(self.name, true) and player:getMark("@@qiaoshui_lose-turn") > 0 and card.type == Card.TypeTrick
+    return player:hasSkill(self.name, true) and player:getMark("qiaoshui-turn") > 0 and card.type == Card.TypeTrick
   end,
 }
 local zongshij = fk.CreateTriggerSkill{
@@ -454,9 +477,7 @@ Fk:loadTranslationTable{
   [":zongshij"] = "每当你拼点赢，你可以获得对方此次拼点的牌；每当你拼点没赢，你可以收回你此次拼点的牌。",
   ["#qiaoshui-invoke"] = "巧说：你可以拼点，若赢，下一张基本牌或锦囊牌可以增加/减少一个目标",
   ["#qiaoshui-choose"] = "巧说：你可以为%arg增加/减少一个目标",
-  ["@@qiaoshui-turn"] = "巧说 赢",
-  ["@@qiaoshui_lose-turn"] = "巧说 没赢",
-  ["#qiaoshui_delay"] = "巧说",
+  ["@@qiaoshui-turn"] = "巧说",
   ["#zongshij1-get"] = "纵适：你可以获得对方的拼点牌%arg",
   ["#zongshij2-get"] = "纵适：你可以收回你的拼点牌%arg",
 
@@ -524,7 +545,9 @@ local xiansi_viewas = fk.CreateViewAsSkill{
   name = "xiansi&",
   anim_type = "negative",
   pattern = "slash",
-  card_filter = Util.FalseFunc,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
   view_as = function(self, cards)
     local c = Fk:cloneCard("slash")
     c.skillName = "xiansi"
@@ -623,7 +646,7 @@ local anjian = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and
       not data.to:inMyAttackRange(player) and not data.chain
   end,
   on_use = function(self, event, target, player, data)

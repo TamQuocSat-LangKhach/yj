@@ -93,7 +93,6 @@ local jiushi = fk.CreateViewAsSkill{
 local jiushi_trigger = fk.CreateTriggerSkill{
   name = "#jiushi_trigger",
   mute = true,
-  main_skill = jiushi,
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
     return target == player and data.jiushi
@@ -142,7 +141,9 @@ local yizhong = fk.CreateTriggerSkill{
     return player:hasSkill(self.name) and data.card.trueName == "slash" and player.id == data.to and
       data.card.color == Card.Black and player:getEquipment(Card.SubtypeArmor) == nil
   end,
-  on_use = Util.TrueFunc,
+  on_use = function()
+    return true
+  end,
 }
 yujin:addSkill(yizhong)
 Fk:loadTranslationTable{
@@ -234,7 +235,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
       else
         local card = room:askForCard(data.from, 1, 1, false, self.name, true, ".|.|heart|hand|.|.", "#nos__enyuan-give:"..player.id)
         if #card > 0 then
-          room:obtainCard(player, card[1], true, fk.ReasonGive)
+          room:obtainCard(player, Fk:getCardById(card[1]), true, fk.ReasonGive)
         else
           room:loseHp(data.from, 1, self.name)
         end
@@ -524,7 +525,9 @@ local nos__wuyan = fk.CreateTriggerSkill{
       end
     end
   end,
-  on_use = Util.TrueFunc,
+  on_use = function()
+    return true
+  end,
 }
 local nos__jujian = fk.CreateActiveSkill{
   name = "nos__jujian",
@@ -586,7 +589,9 @@ local wuyan = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and data.card and data.card.type == Card.TypeTrick
   end,
-  on_use = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    return true
+  end,
 }
 local jujian = fk.CreateTriggerSkill{
   name = "jujian",
@@ -794,7 +799,9 @@ local ganlu = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = Util.FalseFunc,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
   target_filter = function(self, to_select, selected)
     if #selected == 0 then
       return true
