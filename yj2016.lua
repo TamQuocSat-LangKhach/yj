@@ -125,6 +125,12 @@ Fk:loadTranslationTable{
   ["#duliang-choice"] = "督粮：选择令 %dest 执行的一项",
   ["@duliang"] = "督粮",
   ["@@fulin-inhand"] = "腹鳞",
+
+  ["$duliang1"] = "粮草已到，请将军验看。",
+  ["$duliang2"] = "告诉丞相，山路难走！请宽限几天。",
+  ["$fulin1"] = "丞相，丞相！你们没看见我吗？",
+  ["$fulin2"] = "我乃托孤重臣，却在这儿搞什么粮草！",
+  ["~liyans"] = "孔明这一走，我算是没指望了。",
 }
 
 local sundeng = General(extension, "sundeng", "wu", 4)
@@ -184,6 +190,10 @@ Fk:loadTranslationTable{
   [":kuangbi"] = "出牌阶段限一次，你可以令一名其他角色将一至三张牌置于你的武将牌上。若如此做，你的下回合开始时，你获得武将牌上所有牌，其摸等量的牌。",
   ["#kuangbi"] = "匡弼：令一名角色将至多三张牌置为“匡弼”牌，你下回合开始时获得“匡弼”牌，其摸等量牌",
   ["#kuangbi-card"] = "匡弼：将至多三张牌置为 %src 的“匡弼”牌",
+
+  ["$kuangbi1"] = "匡人助己，辅政弼贤。",
+  ["$kuangbi2"] = "兴隆大化，佐理时务。",
+  ["~sundeng"] = "愿陛下留意听采，儿臣虽死犹生。",
 }
 
 local cenhun = General(extension, "cenhun", "wu", 3)
@@ -344,8 +354,8 @@ Fk:loadTranslationTable{
 
   ["$zhige1"] = "天下和而平乱，神器宁而止戈。",
   ["$zhige2"] = "刀兵纷争既止，国运福祚绵长。",
-  ["$zongzuo1"] = "乾坤倒，黎民苦，高祖后，岂任之？",
-  ["$zongzuo2"] = "尽死生之力，保大厦不倾。",
+  ["$zongzuo1"] = "尽死生之力，保大厦不倾。",
+  ["$zongzuo2"] = "乾坤倒，黎民苦，高祖后，岂任之？",
   ["~liuyu"] = "怀柔之计，终非良策。",
 }
 
@@ -434,8 +444,8 @@ Fk:loadTranslationTable{
   ["#taoluan-choose"] = "滔乱：令一名其他角色交给你一张非%arg，或你失去1点体力且本回合〖滔乱〗失效",
   ["#taoluan-card"] = "滔乱：你需交给 %src 一张非%arg，否则其失去1点体力且本回合〖滔乱〗失效",
 
-  ["$taoluan1"] = "睁开你的眼睛看看，现在是谁说了算？",
-  ["$taoluan2"] = "国家承平，神器稳固，陛下勿忧。",
+  ["$taoluan1"] = "国家承平，神器稳固，陛下勿忧。",
+  ["$taoluan2"] = "睁开你的眼睛看看，现在是谁说了算？",
   ["~zhangrang"] = "臣等殄灭，唯陛下自爱……（跳水声）",
 }
 

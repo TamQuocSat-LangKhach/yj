@@ -184,11 +184,11 @@ Fk:loadTranslationTable{
   [":nos__renxin"] = "当一名其他角色处于濒死状态时，你可以将武将牌翻面并将所有手牌（至少一张）交给该角色。若如此做，该角色回复1点体力。",
   ["#nos__renxin-invoke"] = "仁心：你可以将所有手牌交给 %dest，令其回复1点体力",
 
-  ["$nos__chengxiang1"] = "依我看，小事一桩。",
-  ["$nos__chengxiang2"] = "孰重孰轻，一称便知。",
-  ["$nos__renxin1"] = "仁者爱人，人恒爱之。",
-  ["$nos__renxin2"] = "有我在，别怕。",
-  ["~nos__caochong"] = "子桓哥哥……",
+  ["$nos__chengxiang1"] = "以船载象，以石易象，称石则可得象斤重。",
+  ["$nos__chengxiang2"] = "若以冲所言行事，则此象之重可称也。",
+  ["$nos__renxin1"] = "冲愿以此仁心，消弭杀机，保将军周全。",
+  ["$nos__renxin2"] = "阁下罪不至死，冲愿施以援手相救。",
+  ["~nos__caochong"] = "父亲，冲儿……再不能承欢膝下了。",
 }
 
 local guohuai = General(extension, "guohuai", "wei", 4)
@@ -767,7 +767,7 @@ Fk:loadTranslationTable{
 
   ["$nos__danshou1"] = "到此为止了！",
   ["$nos__danshou2"] = "以胆为守，扼敌咽喉！",
-  ["~nos__danshou"] = "何人竟有如此之胆！？",
+  ["~nos__zhuran"] = "何人竟有如此之胆！？",
 }
 
 local zhuran = General(extension, "zhuran", "wu", 4)
@@ -1018,11 +1018,11 @@ Fk:loadTranslationTable{
   ["#nos__qiuyuan-choose"] = "求援：令另一名其他角色交给你一张手牌",
   ["#nos__qiuyuan-give"] = "求援：你需交给 %dest 一张手牌",
 
-  ["$nos__zhuikong1"] = "诚惶诚恐，夜不能寐。",
-  ["$nos__zhuikong2"] = "嘘，隔墙有耳。",
-  ["$nos__qiuyuan1"] = "逆贼逞凶，卿可灭之。",
-  ["$nos__qiuyuan2"] = "求父亲救救大汉江山吧！",
-  ["~nos__fuhuanghou"] = "陛下为何不救臣妾……",
+  ["$nos__zhuikong1"] = "此密信，切勿落入曹贼手中。",
+  ["$nos__zhuikong2"] = "此密诏一出，安知是福是祸？",
+  ["$nos__qiuyuan1"] = "陛下，我该怎么办？",
+  ["$nos__qiuyuan2"] = "曹贼暴虐，谁可诛之！",
+  ["~nos__fuhuanghou"] = "曹贼！汝，定不得好死！",
 }
 
 local nos__liru = General(extension, "nos__liru", "qun", 3)
@@ -1163,13 +1163,13 @@ Fk:loadTranslationTable{
   ["#nos__mieji-choose"] = "灭计：你可以为%arg额外指定一个目标",
   ["#nos__fencheng-discard"] = "焚城：你需弃置%arg张牌，否则受到1点火焰伤害",
 
-  ["$nos__juece1"] = "哼！你走投无路了。",
-  ["$nos__juece2"] = "无用之人，死！",
-  ["$nos__mieji1"] = "宁错杀，无放过！",
-  ["$nos__mieji2"] = "你能逃得出我的手掌心吗？",
-  ["$nos__fencheng1"] = "我得不到的，你们也别想得到！",
-  ["$nos__fencheng2"] = "让这一切都灰飞烟灭吧！哼哼哼哼……",
-  ["~nos__liru"] = "如遇明主，大业必成……",
+  ["$nos__juece1"] = "我，最喜欢落井下石。",
+  ["$nos__juece2"] = "一无所有？那就拿命来填！",
+  ["$nos__mieji1"] = "我要的是斩草除根。",
+  ["$nos__mieji2"] = "叫天天不应，叫地地不灵~",
+  ["$nos__fencheng1"] = "我要这满城的人都来给你陪葬。",
+  ["$nos__fencheng2"] = "一把火烧他个精光吧！诶啊哈哈哈哈哈~",
+  ["~nos__liru"] = "乱世的好戏才刚刚开始……",
 }
 
 local liru = General(extension, "liru", "qun", 3)
@@ -1290,6 +1290,14 @@ Fk:loadTranslationTable{
   ["#mieji-discard1"] = "灭计：弃置一张锦囊牌或依次弃置两张非锦囊牌",
   ["#mieji-discard2"] = "灭计：再弃置一张非锦囊牌",
   ["#fencheng-discard"] = "焚城：弃置至少%arg张牌，否则受到2点火焰伤害",
+
+  ["$juece1"] = "哼！你走投无路了。",
+  ["$juece2"] = "无用之人，死！",
+  ["$mieji1"] = "宁错杀，无放过！",
+  ["$mieji2"] = "你能逃得出我的手掌心吗？",
+  ["$fencheng1"] = "我得不到的，你们也别想得到！",
+  ["$fencheng2"] = "让这一切都灰飞烟灭吧！哼哼哼哼……",
+  ["~liru"] = "如遇明主，大业必成……",
 }
 
 return extension
