@@ -177,4 +177,103 @@ Fk:loadTranslationTable{
   ["~xushi"] = "莫问前程凶吉，但求落幕无悔。",
 }
 
+local caojie = General(extension, "caojie", "qun", 3, 3, General.Female)
+local shouxi = fk.CreateTriggerSkill{
+  name = "shouxi",
+  events = {fk.TargetConfirmed},
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+  end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    local mark = type(player:getMark("@$shouxi")) == "table" and player:getMark("@$shouxi") or {}
+    local names = {}
+    for _, id in ipairs(Fk:getAllCardIds()) do
+      local card = Fk:getCardById(id)
+      if card.type ~= Card.TypeEquip and not card.is_derived and not table.contains(mark, card.trueName) then
+        table.insertIfNeed(names, card.trueName)
+      end
+    end
+    if #names > 0 then
+      if room:askForSkillInvoke(player, self.name) then
+        local choice = room:askForChoice(player, names, self.name)
+        self.cost_data = choice
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local name = self.cost_data
+    local mark = type(player:getMark("@$shouxi")) == "table" and player:getMark("@$shouxi") or {}
+    table.insert(mark, name)
+    room:setPlayerMark(player, "@$shouxi", mark)
+    local from = room:getPlayerById(data.from)
+    if #room:askForDiscard(from, 1, 1, false, self.name, true, name, "#shouxi-discard::"..player.id..":"..name) == 0 then
+      table.insertIfNeed(data.nullifiedTargets, player.id)
+    elseif not player:isNude() then
+      local card = room:askForCardChosen(from, player, "he", self.name)
+      room:obtainCard(from, card, false, fk.ReasonPrey)
+    end
+  end,
+}
+caojie:addSkill(shouxi)
+local huimin = fk.CreateTriggerSkill{
+  name = "huimin",
+  events = {fk.EventPhaseStart},
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and
+    table.find(player.room.alive_players, function(p) return p:getHandcardNum() < p.hp end)
+  end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    local n = #table.filter(room.alive_players, function(p) return p:getHandcardNum() < p.hp end)
+    return room:askForSkillInvoke(player, self.name, nil, "#huimin-invoke:::"..n)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local players = table.filter(room.alive_players, function(p) return p:getHandcardNum() < p.hp end)
+    player:drawCards(#players, self.name)
+    if player:isKongcheng() then return false end
+    local cards = room:askForCard(player, #players, #players, false, self.name, false, ".", "#huimin-show:::"..#players)
+    player:showCards(cards)
+    local tos = room:askForChoosePlayers(player, table.map(players, Util.IdMapper), 1, 1, "#huimin-choose", self.name, false)
+    local temp = room:getPlayerById(tos[1])
+    table.forEach(room.players, function(p) room:fillAG(p, cards) end)
+    while #cards > 0 and #players > 0 do
+      if table.contains(players, temp) then
+        table.removeOne(players, temp)
+        local chosen = room:askForAG(temp, cards, false, self.name)
+        room:takeAG(temp, chosen, room.players)
+        room:obtainCard(temp, chosen, true, fk.ReasonPrey)
+        table.removeOne(cards, chosen)
+        cards = table.filter(cards, function(id) return room:getCardOwner(id) == player and room:getCardArea(id) == Card.PlayerHand end)
+      end
+      temp = temp.next
+    end
+    table.forEach(room.players, function(p) room:closeAG(p) end)
+  end,
+}
+caojie:addSkill(huimin)
+Fk:loadTranslationTable{
+  ["caojie"] = "曹节",
+  ["shouxi"] = "守玺",
+  [":shouxi"] = "当你成为【杀】的目标后，你可声明一种未以此法声明过的基本牌或锦囊牌的牌名，然后使用者选择一项：弃置一张你声明的牌，然后获得你的一张牌；或令此【杀】对你无效。",
+  ["@$shouxi"] = "守玺",
+  ["#shouxi-discard"] = "守玺：1.弃置一张%arg并获得%dest一张牌2.此【杀】对%dest无效",
+
+  ["huimin"] = "惠民",
+  [":huimin"] = "结束阶段开始时，你可以摸X张牌（X为手牌数小于体力值的角色数），然后展示等量的手牌，从你指定的一名角色开始，这些角色依次获得其中一张。",
+  ["#huimin-invoke"] = "惠民：摸%arg张牌，再展示等量手牌，令手牌数小于体力值的角色获得",
+  ["#huimin-choose"] = "惠民：指定第一个选牌的角色",
+  ["#huimin-show"] = "惠民：请展示%arg张手牌，从你指定的角色开始，手牌数小于体力值的角色依次获得其中一张",
+
+  ["$shouxi1"] = "天子之位，乃归刘汉！",
+  ["$shouxi2"] = "吾父功盖寰区，然且不敢篡窃神器。",
+  ["$huimin1"] = "悬壶济世，施医救民。",
+  ["$huimin2"] = "心系百姓，惠布山阳。",
+  ["~caojie"] = "皇天必不祚尔。",
+}
 return extension
