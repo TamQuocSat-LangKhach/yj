@@ -276,4 +276,150 @@ Fk:loadTranslationTable{
   ["$huimin2"] = "心系百姓，惠布山阳。",
   ["~caojie"] = "皇天必不祚尔。",
 }
+local caiyong = General(extension, "caiyong", "qun", 3, 3)
+local pizhuan = fk.CreateTriggerSkill{
+  name = "pizhuan",
+  anim_type = "special",
+  events = {fk.CardUsing, fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and data.card.suit == Card.Spade and #player:getPile("pzbook") < 4 then
+      return event == fk.CardUsing or data.from ~= player.id
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:addToPile("pzbook", room:getNCards(1)[1], true, self.name)
+  end,
+}
+local pizhuan_maxcards = fk.CreateMaxCardsSkill{
+  name = "#pizhuan_maxcards",
+  correct_func = function(self, player)
+    if player:hasSkill(self.name) then
+      return #player:getPile("pzbook")
+    end
+  end,
+}
+pizhuan:addRelatedSkill(pizhuan_maxcards)
+caiyong:addSkill(pizhuan)
+local tongbo = fk.CreateTriggerSkill{
+  name = "tongbo",
+  anim_type = "special",
+  events = {fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and #player:getPile("pzbook") > 0 and not player:isNude()
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local piles = room:askForExchange(player, {player:getPile("pzbook"), player:getCardIds("he")}, {"pzbook", player.general}, self.name)
+    local cards1, cards2 = {}, {}
+    for _, id in ipairs(piles[1]) do
+      if room:getCardArea(id) == Player.Hand or room:getCardArea(id) == Player.Equip then
+        table.insert(cards1, id)
+      end
+    end
+    for _, id in ipairs(piles[2]) do
+      if room:getCardArea(id) == Card.PlayerSpecial then
+        table.insert(cards2, id)
+      end
+    end
+    room:moveCards(
+      {
+        ids = cards2,
+        from = player.id,
+        to = player.id,
+        fromArea = Card.PlayerSpecial,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonExchange,
+        proposer = player.id,
+        specialName = "pzbook",
+        skillName = self.name,
+      },
+      {
+        ids = cards1,
+        from = player.id,
+        to = player.id,
+        fromArea = Card.PlayerHand,
+        toArea = Card.PlayerSpecial,
+        moveReason = fk.ReasonExchange,
+        proposer = player.id,
+        specialName = "pzbook",
+        skillName = self.name,
+      }
+    )
+    local suits = {}
+    for _, id in ipairs(player:getPile("pzbook")) do
+      table.insertIfNeed(suits, Fk:getCardById(id).suit)
+    end
+    if #suits ~= 4 then return false end
+    local moveInfos = {}
+    local cards = table.simpleClone(player:getPile("pzbook"))
+    for _, id in ipairs(cards) do room:setCardMark(Fk:getCardById(id), self.name, 1) end
+    while #cards > 0 do
+      local _, ret = room:askForUseActiveSkill(player, "tongbo_active", "#tongbo-give", false, data, true)
+      local to, give_cards
+      if ret then
+        give_cards = ret.cards
+        to =  ret.targets[1]
+      else
+        give_cards = cards
+        to = table.random(table.map(room:getOtherPlayers(player), Util.IdMapper))
+      end
+      room:getCardArea(give_cards[1])
+      for _, id in ipairs(give_cards) do
+        table.removeOne(cards, id)
+        room:setCardMark(Fk:getCardById(id), self.name, 0)
+      end
+      table.insert(moveInfos, {
+        ids = give_cards,
+        from = player.id,
+        fromArea = Card.PlayerSpecial,
+        to = to,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonJustMove,
+        proposer = player.id,
+        specialName = "pzbook",
+        skillName = self.name,
+      })
+    end
+    room:moveCards(table.unpack(moveInfos))
+  end,
+}
+caiyong:addSkill(tongbo)
+local tongbo_active = fk.CreateActiveSkill{
+  name = "tongbo_active",
+  mute = true,
+  min_card_num = 1,
+  target_num = 1,
+  expand_pile = "pzbook",
+  card_filter = function(self, to_select)
+    return Self:getPileNameOfId(to_select) == "pzbook" and Fk:getCardById(to_select):getMark("tongbo") > 0
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+}
+Fk:addSkill(tongbo_active)
+Fk:loadTranslationTable{
+  ["caiyong"] = "蔡邕",
+
+  ["pizhuan"] = "辟撰",
+  [":pizhuan"] = "当你使用♠牌时，或你成为其他角色使用♠牌的目标后，你可以将牌堆顶的一张牌置于武将牌上，称为“书”；你至多拥有四张“书”，你的手牌上限+X（X为“书”的数量）。",
+  ["pzbook"] = "书",
+
+  ["tongbo"] = "通博",
+  [":tongbo"] = "摸牌阶段结束时，你可以用任意张牌替换等量的“书”，然后若你的“书”包含四种花色，你须将所有“书”分配给任意名其他角色。 ",
+  ["#tongbo-exchange"] = "通博：你可以用任意张牌替换等量的“书”",
+  ["#tongbo-give"] = "通博：你须将所有“书”分配给任意名其他角色",
+  ["tongbo_active"] = "通博",
+
+  ["$pizhuan1"] = "无墨不成书，无识不成才。",
+  ["$pizhuan2"] = "笔可抒情，亦可诛心。",
+  ["$tongbo1"] = "读万卷书，行万里路。",
+  ["$tongbo2"] = "博学而不穷，笃行而不倦。",
+  ["~caiyong"] = "感叹世事，何罪之有？",
+}
+
+
+
+
 return extension
