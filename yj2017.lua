@@ -418,6 +418,131 @@ Fk:loadTranslationTable{
   ["$tongbo2"] = "博学而不穷，笃行而不倦。",
   ["~caiyong"] = "感叹世事，何罪之有？",
 }
+local xinxianying = General(extension, "xinxianying", "wei", 3, 3, General.Female)
+local zhongjian = fk.CreateActiveSkill{
+  name = "zhongjian",
+  anim_type = "control",
+  card_num = 1,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) < (1 + player:getMark("zhongjian_times-turn"))
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
+  end,
+  target_filter = function(self, to_select, selected)
+    if #selected == 0 and Self.id ~= to_select then
+      local target = Fk:currentRoom():getPlayerById(to_select)
+      return target:getHandcardNum() > target.hp
+    end
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    player:showCards(effect.cards)
+    local x = target:getHandcardNum() - target.hp
+    if x <= 0 or player.dead then return end
+    local show = room:askForCardsChosen(player, target, x, x, "h", self.name)
+    target:showCards(show)
+    if player.dead then return end
+    local card = Fk:getCardById(effect.cards[1])
+    local hasSame
+    if table.find(show, function(id) return Fk:getCardById(id).color == card.color end) then
+      local choices = {"draw1"}
+      if not target:isNude() then table.insert(choices, "zhongjian_throw:"..target.id) end
+      if room:askForChoice(player, choices, self.name) == "draw1" then
+        player:drawCards(1, self.name)
+      else
+        local cid = room:askForCardChosen(player, target, "h", self.name)
+        room:throwCard({cid}, self.name, target, player)
+      end
+      hasSame = true
+    end
+    if table.find(show, function(id) return Fk:getCardById(id).number == card.number end) then
+      room:setPlayerMark(player, "zhongjian_times-turn", 1)
+      hasSame = true
+    end
+    if not hasSame and player:getMaxCards() > 0 then
+      room:addPlayerMark(player, "zhongjian_maxcard")
+      room:broadcastProperty(player, "MaxCards")
+    end
+  end,
+}
+local zhongjian_maxcards = fk.CreateMaxCardsSkill{
+  name = "#zhongjian_maxcards",
+  correct_func = function(self, player)
+    if player:hasSkill(self.name) then
+      return - player:getMark("zhongjian_maxcard")
+    end
+  end,
+}
+zhongjian:addRelatedSkill(zhongjian_maxcards)
+xinxianying:addSkill(zhongjian)
+local caishi = fk.CreateTriggerSkill{
+  name = "caishi",
+  anim_type = "defensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and player == target and player.phase == Player.Draw
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local choices = {"#caishi1","cancel"}
+    if player:isWounded() then table.insert(choices,2, "#caishi2") end
+    local choice = target.room:askForChoice(target, choices, self.name)
+    if choice ~= "cancel" then
+      self.cost_data = choice
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local choice = self.cost_data
+    if choice == "#caishi1" then
+      room:addPlayerMark(player, "caishi_maxcards")
+      room:addPlayerMark(player, "caishi_other-turn")
+    else
+      room:recover({ who = player,  num = 1, skillName = self.name })
+      room:addPlayerMark(player, "caishi_self-turn")
+    end
+  end,
+}
+local caishi_maxcards = fk.CreateMaxCardsSkill{
+  name = "#caishi_maxcards",
+  correct_func = function(self, player)
+    if player:hasSkill(self.name) then
+      return player:getMark("caishi_maxcards")
+    end
+  end,
+}
+caishi:addRelatedSkill(caishi_maxcards)
+local caishi_prohibit = fk.CreateProhibitSkill{
+  name = "#caishi_prohibit",
+  is_prohibited = function(self, from, to)
+    return (from:getMark("caishi_other-turn") > 0 and from ~= to) or (from:getMark("caishi_self-turn") > 0 and from == to)
+  end,
+}
+caishi:addRelatedSkill(caishi_prohibit)
+xinxianying:addSkill(caishi)
+Fk:loadTranslationTable{
+  ["xinxianying"] = "辛宪英",
+  
+  ["zhongjian"] = "忠鉴",
+  [":zhongjian"] = "出牌阶段限一次，你可以展示一张手牌，然后展示手牌数大于体力值的一名其他角色X张手牌（X为其手牌数和体力值之差）。若其以此法展示的牌与你展示的牌：有颜色相同的，你摸一张牌或弃置其一张牌；有点数相同的，本回合此技能改为“出牌阶段限两次”；均不同且你手牌上限大于0，你的手牌上限-1。",
+  ["zhongjian_throw"] = "弃置%src一张牌",
+
+  ["caishi"] = "才识",
+  [":caishi"] = "摸牌阶段开始时，你可以选择一项：1.手牌上限+1，然后本回合你的牌不能对其他角色使用；2.回复1点体力，然后本回合你的牌不能对自己使用。",
+  ["#caishi1"] = "手牌上限+1，本回合不能对其他角色用牌",
+  ["#caishi2"] = "回复1点体力，本回合不能对自己用牌",
+  ["#caishi_prohibit"] = "才识",
+  
+  ["$zhongjian1"] = "浊世风云变幻，当以明眸洞察。",
+  ["$zhongjian2"] = "心中自有明镜，可鉴奸佞忠良。",
+  ["$caishi1"] = "清识难尚，至德可师。",
+  ["$caishi2"] = "知书达礼，博古通今。",
+  ["~xinxianying"] = "吾一生明鉴，竟错看于你。",
+}
 
 
 
