@@ -265,7 +265,7 @@ local nos__xuanhuo = fk.CreateActiveSkill{
     local id = room:askForCardChosen(player, target, "he", self.name)
     room:obtainCard(player.id, id, false, fk.ReasonPrey)
     if player.dead then return end
-    local targets = table.map(room:getOtherPlayers(target), function(p) return p.id end)
+    local targets = table.map(room:getOtherPlayers(target), Util.IdMapper)
     if #targets == 0 or room:getCardOwner(id) ~= player or room:getCardArea(id) ~= Card.PlayerHand then return end
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__xuanhuo-choose:::"..Fk:getCardById(id):toLogString(), self.name, false)
     if #to > 0 then
@@ -375,8 +375,7 @@ local xuanhuo = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), function(p)
-      return p.id end), 1, 1, "#xuanhuo-target", self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#xuanhuo-target", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -388,7 +387,7 @@ local xuanhuo = fk.CreateTriggerSkill{
     to:drawCards(2, self.name)
     if player.dead or to.dead then return end
     local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
-      return target:inMyAttackRange(p) end), function(p) return p.id end)
+      return target:inMyAttackRange(p) end), Util.IdMapper)
     if #targets == 0 then
       if to:isNude() then return end
       local cards = room:askForCardsChosen(player, to, math.min(2, #to:getCardIds("he")), 2, "he", self.name)
@@ -596,8 +595,7 @@ local jujian = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function(p)
-      return p.id end), 1, 1, ".|.|.|.|.|^basic", "#jujian-choose", self.name, true)
+    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|.|.|.|^basic", "#jujian-choose", self.name, true)
     if #tos > 0 then
       self.cost_data = {tos[1], id}
       return true
@@ -673,7 +671,7 @@ local nos__xuanfeng = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return (not player:isProhibited(p, Fk:cloneCard("slash") or player:distanceTo(p) == 1)) end), function (p) return p.id end)
+      return (not player:isProhibited(p, Fk:cloneCard("slash") or player:distanceTo(p) == 1)) end), Util.IdMapper)
     if #targets == 0 then return end
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__xuanfeng-choose", self.name, true)
     if #to > 0 then
@@ -758,7 +756,7 @@ local xuanfeng = fk.CreateTriggerSkill{
     local room = player.room
     for i = 1, 2, 1 do
       local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-        return not p:isNude() end), function (p) return p.id end)
+        return not p:isNude() end), Util.IdMapper)
       if #targets == 0 then return end
       local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanfeng-choose", self.name, false)
       if #tos == 0 then
@@ -954,9 +952,7 @@ local xianzhen_trigger = fk.CreateTriggerSkill{
     return target == player and player:usedSkillTimes("xianzhen", Player.HistoryTurn) > 0 and data.card and data.card.trueName == "slash" and
       player.room:getPlayerById(data.to):getMark("xianzhen_win-turn") > 0
   end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:addPlayerMark(room:getPlayerById(data.to), fk.MarkArmorNullified)
@@ -1048,7 +1044,7 @@ local mingce = fk.CreateActiveSkill{
     room:obtainCard(target.id, Fk:getCardById(effect.cards[1]), false, fk.ReasonGive)
     if player.dead or target.dead then return end
     local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
-      return target:inMyAttackRange(p) end), function(p) return p.id end)
+      return target:inMyAttackRange(p) end), Util.IdMapper)
     if #targets == 0 then
       target:drawCards(1, self.name)
     else

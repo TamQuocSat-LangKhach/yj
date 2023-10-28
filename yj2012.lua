@@ -183,17 +183,10 @@ local nos__miji = fk.CreateTriggerSkill{
     if judge.card.color == Card.Black then
       local cards = room:getNCards(player.maxHp - player.hp)
       room:fillAG(player, cards)
-      local tos = room:askForChoosePlayers(player, table.map(room.alive_players, function(p)
-        return p.id end), 1, 1, "#nos__miji-choose", self.name, false)
-      local to
-      if #tos > 0 then
-        to = tos[1]
-      else
-        to = player.id
-      end
+      local tos = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, 1, "#nos__miji-choose", self.name, false)
       room:moveCards({
         ids = cards,
-        to = to,
+        to = tos[1],
         toArea = Card.PlayerHand,
         moveReason = fk.ReasonJustMove,
       })
@@ -556,7 +549,7 @@ local lihuo = fk.CreateTriggerSkill{
       local targets = table.map(table.filter(player.room:getOtherPlayers(player), function(p)
         return not table.contains(TargetGroup:getRealTargets(data.tos), p.id) and
         data.card.skill:getDistanceLimit(p, data.card) + player:getAttackRange() >= player:distanceTo(p) and
-        not player:isProhibited(p, data.card) end), function(p) return p.id end)
+        not player:isProhibited(p, data.card) end), Util.IdMapper)
       if #targets == 0 then return false end
       local tos = player.room:askForChoosePlayers(player, targets, 1, 1, "#lihuo-choose:::"..data.card:toLogString(), self.name, true)
       if #tos > 0 then
@@ -864,7 +857,7 @@ local gongqi = fk.CreateActiveSkill{
     room:addPlayerMark(player, "gongqi-turn", 999)
     if Fk:getCardById(effect.cards[1]).type == Card.TypeEquip then
       local to = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
-        return not p:isNude() end), function(p) return p.id end), 1, 1, "#gongqi-choose", self.name, true)
+        return not p:isNude() end), Util.IdMapper), 1, 1, "#gongqi-choose", self.name, true)
       if #to > 0 then
         local target = room:getPlayerById(to[1])
         local id = room:askForCardChosen(player, target, "he", self.name)

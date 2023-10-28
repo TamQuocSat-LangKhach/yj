@@ -60,9 +60,7 @@ local duliang_trigger = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and player:getMark("@duliang") > 0
   end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     data.n = data.n + player:getMark("@duliang")
     player.room:setPlayerMark(player, "@duliang", 0)
@@ -166,9 +164,7 @@ local kuangbi_trigger = fk.CreateTriggerSkill {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:getMark("kuangbi") ~= 0 and #player:getPile("kuangbi") ~= 0
   end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(player:getMark("kuangbi"))
@@ -230,7 +226,7 @@ local jishe_trigger = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getAlivePlayers(), function(p)
-      return not p.chained end), function(p)  return p.id end)
+      return not p.chained end), Util.IdMapper)
     if #targets == 0 then return end
     local n = player.hp
     local tos = room:askForChoosePlayers(player, targets, 1, n, "#jishe-choose:::"..tostring(n), self.name, true)
@@ -411,12 +407,10 @@ local taoluan_trigger = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and table.contains(data.card.skillNames, "taoluan")
   end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.map(room:getOtherPlayers(player), function(p) return p.id end)
+    local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
     local type = data.card:getTypeString()
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#taoluan-choose:::"..type, "taoluan", false)
     if #to > 0 then
