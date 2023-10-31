@@ -544,7 +544,215 @@ Fk:loadTranslationTable{
   ["~xinxianying"] = "吾一生明鉴，竟错看于你。",
 }
 
+local jikang = General(extension, "jikang", "wei", 3)
+local doQingxian = function (room, to, from, choice, skillName)
+  if to.dead then return nil end
+  local returnCard
+  if choice == "qingxian_losehp" then
+    room:loseHp(to, 1, skillName)
+    if to.dead then return end
+    local cards = {}
+    for _, cid in ipairs(room.draw_pile) do
+      local card = Fk:getCardById(cid)
+      if card.type == Card.TypeEquip and to:canUse(card) then
+        table.insert(cards, card)
+      end
+    end
+    if #cards > 0 then
+      returnCard = table.random(cards)
+      room:useCard({ from = to.id, tos = {{to.id}}, card = returnCard })
+    end
+  else
+    if to:isWounded() then
+      room:recover({ who = to, num = 1, recoverBy = from, skillName = skillName })
+    end
+    if not to.dead and not to:isNude() then
+      local throw = room:askForDiscard(to, 1, 1, true, skillName, false, ".|.|.|.|.|equip")
+      if #throw > 0 then
+        returnCard = Fk:getCardById(throw[1])
+      end
+    end
+  end
+  return returnCard
+end
+local qingxian = fk.CreateTriggerSkill{
+  name = "qingxian",
+  events = { fk.Damaged , fk.HpRecover },
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and target == player then
+      if event == fk.Damaged then
+        return data.from and not data.from.dead
+      else
+        return true
+      end
+    end
+  end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    if event == fk.Damaged then
+      return room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
+    else
+      local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#skillchooseother:::"..self.name, self.name, true)
+      if #tos > 0 then
+        self.cost_data = tos[1]
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = (event == fk.Damaged) and data.from or room:getPlayerById(self.cost_data)
+    local choice = room:askForChoice(player, {"qingxian_losehp","qingxian_recover"}, self.name)
+    local card = doQingxian(room, to, player, choice, self.name)
+    if card and card.suit == Card.Club and player:isWounded() and not player.dead then
+      room:recover({ who = player, num = 1, recoverBy = player, skillName = self.name })
+    end
+  end,
+}
+jikang:addSkill(qingxian)
+local juexiang = fk.CreateTriggerSkill{
+  name = "juexiang",
+  anim_type = "support",
+  events = {fk.Death},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name,false,true) and target == player
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#skillchooseother:::"..self.name, self.name, true)
+    if #tos > 0 then
+      self.cost_data = tos[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(self.cost_data)
+    local skills = table.filter({"jixiann","liexian","rouxian","hexian"}, function (s) return not to:hasSkill(s,true) end)
+    if #skills > 0 then
+      room:handleAddLoseSkills(to, table.random(skills), nil)
+    end
+    room:setPlayerMark(to, "@@juexiang", 1)
+  end,
+  refresh_events = {fk.TurnStart},
+  can_refresh = function (self, event, target, player, data)
+    return target == player and player:getMark("@@juexiang") > 0
+  end,
+  on_refresh = function (self, event, target, player, data)
+    player.room:setPlayerMark(player, "@@juexiang", 0)
+  end,
+}
+local juexiang_prohibit = fk.CreateProhibitSkill{
+  name = "#juexiang_prohibit",
+  is_prohibited = function(self, from, to, card)
+    if card and card.suit == Card.Club then
+      return to:getMark("@@juexiang") > 0 and from ~= to
+    end
+  end,
+}
+juexiang:addRelatedSkill(juexiang_prohibit)
+jikang:addSkill(juexiang)
+local jixiann = fk.CreateTriggerSkill{
+  name = "jixiann",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target == player and data.from and not data.from.dead
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    doQingxian(room, data.from, player, "qingxian_losehp", self.name)
+  end,
+}
+jikang:addRelatedSkill(jixiann)
+local liexian = fk.CreateTriggerSkill{
+  name = "liexian",
+  events = {fk.HpRecover},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target == player
+  end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#skillchooseother:::"..self.name, self.name, true)
+    if #tos > 0 then
+      self.cost_data = tos[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    doQingxian(room, room:getPlayerById(self.cost_data), player, "qingxian_losehp", self.name)
+  end,
+}
+jikang:addRelatedSkill(liexian)
+local rouxian = fk.CreateTriggerSkill{
+  name = "rouxian",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target == player and data.from and not data.from.dead
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    doQingxian(room, data.from, player, "qingxian_recover", self.name)
+  end,
+}
+jikang:addRelatedSkill(rouxian)
+local hexian = fk.CreateTriggerSkill{
+  name = "hexian",
+  events = {fk.HpRecover},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target == player
+  end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#skillchooseother:::"..self.name, self.name, true)
+    if #tos > 0 then
+      self.cost_data = tos[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    doQingxian(room, room:getPlayerById(self.cost_data), player, "qingxian_recover", self.name)
+  end,
+}
+jikang:addRelatedSkill(hexian)
+Fk:loadTranslationTable{
+  ["jikang"] = "嵇康",
+  ["qingxian"] = "清弦",
+  [":qingxian"] = "当你〔受到伤害/回复体力〕后，你可以选一项令〔伤害来源/一名其他角色〕执行：1.失去1点体力并随机使用牌堆一张装备牌；2.回复1点体力并弃置一张装备牌。若其使用或弃置的牌的花色为♣️，你回复1点体力。",
+  ["qingxian_losehp"] = "失去1点体力并随机使用牌堆一张装备牌",
+  ["qingxian_recover"] = "回复1点体力并弃置一张装备牌",
+  ["juexiang"] = "绝响",
+  [":juexiang"] = "当你死亡时，你可以令一名其他角色随机获得“激弦”、“烈弦”、“柔弦”、“和弦”中的一个技能，然后直到其下回合开始前，该角色不能成为除其以外的角色使用♣️牌的目标。",
+  ["@@juexiang"] = "绝响",
+  ["#juexiang_prohibit"] = "绝响",
+  ["jixiann"] = "激弦",
+  [":jixiann"] = "当你受到伤害后，你可以令伤害来源失去1点体力并随机使用牌堆一张装备牌。",
+  ["liexian"] = "烈弦",
+  [":liexian"] = "当你回复体力后，你可以令一名其他角色失去1点体力并随机使用牌堆一张装备牌。",
+  ["rouxian"] = "柔弦",
+  [":rouxian"] = "当你受到伤害后，你可以令伤害来源回复1点体力并弃置一张装备牌。",
+  ["hexian"] = "和弦",
+  [":hexian"] = "当你回复体力后，你可以令一名其他角色回复1点体力并弃置一张装备牌。",
+  ["#skilltosb"] = "你可以对 %dest 发动“%arg”",
+  ["#skillchooseother"] = "你可以对一名其他角色发动“%arg”",
 
+  ["$qingxian1"] = "抚琴拨弦，悠然自得。",
+  ["$qingxian2"] = "寄情于琴，合于天地。",
+  ["$juexiang1"] = "此曲不能绝矣！",
+  ["$juexiang2"] = "一曲琴音，为我送别。",
+  ["$jixiann"] = "一弹一拨，铿锵有力！",
+  ["$liexian"] = "一壶烈云烧，一曲人皆醉。",
+  ["$rouxian"] = "君子以琴会友，以瑟辅人。",
+  ["$hexian"] = "悠悠琴音，人人自醉。",
+  ["~jikang"] = "多少遗恨，俱随琴音去。",
+}
 
 
 return extension
