@@ -443,4 +443,97 @@ Fk:loadTranslationTable{
   ["~zhangrang"] = "臣等殄灭，唯陛下自爱……（跳水声）",
 }
 
+local huanghao = General(extension, "huanghao", "shu", 3)
+local qinqing = fk.CreateTriggerSkill{
+  name = "qinqing",
+  events = {fk.EventPhaseStart},
+  anim_type = "control",
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player.phase == Player.Finish and player:hasSkill(self.name) then
+      local lord = table.find(player.room.alive_players, function(p) return p.role == "lord" end)
+      if lord then
+        return table.find(player.room.alive_players, function(p) return p:inMyAttackRange(lord) end)
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local lord = table.find(player.room.alive_players, function(p) return p.role == "lord" end)
+    local targets = table.filter(player.room.alive_players, function(p) return p:inMyAttackRange(lord) end)
+    local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 999, "#qinqing-choose", self.name, true)
+    if #tos > 0 then
+      self.cost_data = tos
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local tos = table.map(self.cost_data, Util.Id2PlayerMapper)
+    for _, p in ipairs(tos) do
+      if not p:isNude() then
+        local cid = room:askForCardChosen(player, p, "he", self.name)
+        room:throwCard({cid}, self.name, p, player)
+      end
+      if not p.dead then
+        p:drawCards(1, self.name)
+      end
+    end
+    local lord = table.find(room.alive_players, function(p) return p.role == "lord" end)
+    if not lord then return end
+    local n = #table.filter(tos, function(p) return p:getHandcardNum() > lord:getHandcardNum() end)
+    if not player.dead and n > 0 then
+      player:drawCards(n, self.name)
+    end
+  end,
+}
+huanghao:addSkill(qinqing)
+local huisheng = fk.CreateTriggerSkill{
+  name = "huisheng",
+  events = {fk.DamageInflicted},
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and not player:isNude() and data.from and data.from ~= player and not data.from.dead and data.from:getMark("huisheng_removed") == 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local cards = room:askForCard(player, 1, 999, true, self.name, true, ".", "#huisheng-invoke:"..data.from.id)
+    if #cards > 0 then
+      self.cost_data = cards
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = self.cost_data
+    local n = #cards
+    local get = room:askForCardChosen(data.from, player, {card_data = {{player.general, cards}}}, self.name)
+    if #room:askForDiscard(data.from, n, n, true, self.name, true, ".", "#huisheng-discard::"..player.id..":"..n..":"..Fk:getCardById(get,true):toLogString()) ~= n then
+      room:addPlayerMark(data.from, "huisheng_removed")
+      room:obtainCard(data.from, get, false, fk.ReasonPrey)
+      return true
+    end
+  end,
+}
+huanghao:addSkill(huisheng)
+Fk:loadTranslationTable{
+  ["huanghao"] = "黄皓",
+  ["qinqing"] = "寝情",
+  [":qinqing"] = "结束阶段，你可以选择任意名攻击范围内含有主公的角色，然后你弃置这些角色的一张牌（无牌则不弃），并令这些角色依次摸一张牌。若如此做，你摸X张牌（X为这些角色中手牌数大于主公的角色数）。",
+  ["#qinqing-choose"] = "寝情：选择任意名攻击范围内含有主公的角色",
+  ["huisheng"] = "贿生",
+  [":huisheng"] = "当你受到其他角色造成的伤害时，你可以选择至少一张牌，令其观看之并选择一项：1.获得其中一张，防止此伤害，然后你不能再对其发动此技能；2.弃置等量的牌。",
+  ["#huisheng-invoke"] = "贿生：你可选择至少一张牌令 %src 观看之",
+  ["#huisheng-discard"] = "贿生：弃置%arg张牌，否则你获得%arg2并防止对%dest造成的伤害",
+
+  ["$qinqing1"] = "陛下勿忧，大将军危言耸听。",
+  ["$qinqing2"] = "陛下，莫让他人知晓此事！",
+  ["$huisheng1"] = "大人，这些钱够吗？",
+  ["$huisheng2"] = "劳烦大人美言几句~",
+  ["~huanghao"] = "魏军竟然真杀来了！",
+}
+
+
+
+
+
 return extension
