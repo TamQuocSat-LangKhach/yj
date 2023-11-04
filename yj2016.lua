@@ -70,7 +70,7 @@ local fulin = fk.CreateMaxCardsSkill{
   name = "fulin",
   frequency = Skill.Compulsory,
   exclude_from = function(self, player, card)
-    return player:hasSkill(self.name) and card:getMark("@@fulin-inhand") > 0
+    return player:hasSkill(self) and card:getMark("@@fulin-inhand") > 0
   end,
 }
 local fulin_record = fk.CreateTriggerSkill{
@@ -249,7 +249,7 @@ local lianhuo = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.damageType == fk.FireDamage and player.chained and not data.chain
+    return target == player and player:hasSkill(self) and data.damageType == fk.FireDamage and player.chained and not data.chain
   end,
   on_use = function(self, event, target, player, data)
     player.room:setEmotion(player, "./packages/maneuvering/image/anim/vineburn")
@@ -312,7 +312,7 @@ local zongzuo = fk.CreateTriggerSkill{
   events = {fk.GameStart, fk.Deathed},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and (event == fk.GameStart or
+    return player:hasSkill(self) and (event == fk.GameStart or
       (event == fk.Deathed and table.every(player.room:getAlivePlayers(), function(p) return p.kingdom ~= target.kingdom end)))
   end,
   on_use = function(self, event, target, player, data)
@@ -449,7 +449,7 @@ local qinqing = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    if target == player and player.phase == Player.Finish and player:hasSkill(self.name) then
+    if target == player and player.phase == Player.Finish and player:hasSkill(self) then
       local lord = table.find(player.room.alive_players, function(p) return p.role == "lord" end)
       if lord then
         return table.find(player.room.alive_players, function(p) return p:inMyAttackRange(lord) end)
@@ -492,7 +492,7 @@ local huisheng = fk.CreateTriggerSkill{
   events = {fk.DamageInflicted},
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and not player:isNude() and data.from and data.from ~= player and not data.from.dead and data.from:getMark("huisheng_removed") == 0
+    return target == player and player:hasSkill(self) and not player:isNude() and data.from and data.from ~= player and not data.from.dead and data.from:getMark("huisheng_removed") == 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

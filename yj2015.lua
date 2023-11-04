@@ -11,7 +11,7 @@ local huituo = fk.CreateTriggerSkill{
   anim_type = "masochism",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name)
+    return target == player and player:hasSkill(self)
   end,
   on_cost = function(self, event, target, player, data)
     local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper), 1, 1, "#huituo-choose", self.name, true)
@@ -94,7 +94,7 @@ local xingshuai = fk.CreateTriggerSkill{
   frequency = Skill.Limited,
   events = {fk.EnterDying},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and
+    return target == player and player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and
       not table.every(player.room:getOtherPlayers(player), function(p) return p.kingdom ~= "wei" end)
   end,
   on_use = function(self, event, target, player, data)
@@ -167,7 +167,7 @@ local caoxiu = General(extension, "caoxiu", "wei", 4)
 local qianju = fk.CreateDistanceSkill{
   name = "qianju",
   correct_func = function(self, from, to)
-    if from:hasSkill(self.name) then
+    if from:hasSkill(self) then
       return -from:getLostHp()
     end
   end,
@@ -177,7 +177,7 @@ local qingxi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.to and player:getEquipment(Card.SubtypeWeapon)
+    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and data.to and player:getEquipment(Card.SubtypeWeapon)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -274,7 +274,7 @@ local zuoding = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target ~= player and target.phase == Player.Play and data.firstTarget and
+    return player:hasSkill(self) and target ~= player and target.phase == Player.Play and data.firstTarget and
       data.card.suit == Card.Spade and #AimGroup:getAllTargets(data.tos) > 0 and player:getMark("zuoding-phase") == 0
   end,
   on_cost = function(self, event, target, player, data)
@@ -438,7 +438,7 @@ local qiaoshi = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self.name) and target.phase == Player.Finish and
+    return target ~= player and player:hasSkill(self) and target.phase == Player.Finish and
       player:getHandcardNum() == target:getHandcardNum()
   end,
   on_cost = function(self, event, target, player, data)
@@ -554,7 +554,7 @@ local shizhi = fk.CreateFilterSkill{
   name = "shizhi",
   card_filter = function(self, to_select, player)
     --FIXME: filter skill isn't status skill, can't filter card which exists before hp change
-    return player:hasSkill(self.name) and player.hp == 1 and to_select.name == "jink"
+    return player:hasSkill(self) and player.hp == 1 and to_select.name == "jink"
   end,
   view_as = function(self, to_select)
     return Fk:cloneCard("slash", to_select.suit, to_select.number)
@@ -708,7 +708,7 @@ local xingxue = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish
+    return target == player and player:hasSkill(self) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
     local n = player.hp
@@ -741,7 +741,7 @@ local zhaofu = fk.CreateAttackRangeSkill{
   name = "zhaofu$",
   within_func = function (self, from, to)
     for _, p in ipairs(Fk:currentRoom().alive_players) do
-      if p:hasSkill(self.name) and p:distanceTo(to) == 1 and from.kingdom == "wu" and from ~= p then
+      if p:hasSkill(self) and p:distanceTo(to) == 1 and from.kingdom == "wu" and from ~= p then
         return true
       end
     end
@@ -954,7 +954,7 @@ local jigong = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play
+    return target == player and player:hasSkill(self) and player.phase == Player.Play
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(2, self.name)
@@ -980,7 +980,7 @@ local shifei = fk.CreateTriggerSkill{
   name = "shifei",
   events = {fk.AskForCardUse, fk.AskForCardResponse},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and
+    return target == player and player:hasSkill(self) and
       (data.cardName == "jink" or (data.pattern and Exppattern:Parse(data.pattern):matchExp("jink|0|nosuit|none"))) and
       player.room.current and not player.room.current.dead
   end,

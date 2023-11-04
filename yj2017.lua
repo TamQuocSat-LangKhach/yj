@@ -125,7 +125,7 @@ local fuzhu = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target ~= player and target.phase == Player.Finish and
+    return player:hasSkill(self) and target ~= player and target.phase == Player.Finish and
       target.gender == General.Male and #player.room.draw_pile <= 10 * player.hp
   end,
   on_cost = function(self, event, target, player, data)
@@ -183,7 +183,7 @@ local shouxi = fk.CreateTriggerSkill{
   events = {fk.TargetConfirmed},
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash"
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
@@ -224,7 +224,7 @@ local huimin = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and
+    return target == player and player:hasSkill(self) and player.phase == Player.Finish and
     table.find(player.room.alive_players, function(p) return p:getHandcardNum() < p.hp end)
   end,
   on_cost = function (self, event, target, player, data)
@@ -282,7 +282,7 @@ local pizhuan = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.CardUsing, fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) and data.card.suit == Card.Spade and #player:getPile("pzbook") < 4 then
+    if target == player and player:hasSkill(self) and data.card.suit == Card.Spade and #player:getPile("pzbook") < 4 then
       return event == fk.CardUsing or data.from ~= player.id
     end
   end,
@@ -294,7 +294,7 @@ local pizhuan = fk.CreateTriggerSkill{
 local pizhuan_maxcards = fk.CreateMaxCardsSkill{
   name = "#pizhuan_maxcards",
   correct_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(self) then
       return #player:getPile("pzbook")
     end
   end,
@@ -306,7 +306,7 @@ local tongbo = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and #player:getPile("pzbook") > 0 and not player:isNude()
+    return target == player and player:hasSkill(self) and player.phase == Player.Draw and #player:getPile("pzbook") > 0 and not player:isNude()
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -471,7 +471,7 @@ local zhongjian = fk.CreateActiveSkill{
 local zhongjian_maxcards = fk.CreateMaxCardsSkill{
   name = "#zhongjian_maxcards",
   correct_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(self) then
       return - player:getMark("zhongjian_maxcard")
     end
   end,
@@ -483,7 +483,7 @@ local caishi = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and player == target and player.phase == Player.Draw
+    return player:hasSkill(self) and player == target and player.phase == Player.Draw
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -510,7 +510,7 @@ local caishi = fk.CreateTriggerSkill{
 local caishi_maxcards = fk.CreateMaxCardsSkill{
   name = "#caishi_maxcards",
   correct_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(self) then
       return player:getMark("caishi_maxcards")
     end
   end,
@@ -579,7 +579,7 @@ local qingxian = fk.CreateTriggerSkill{
   name = "qingxian",
   events = { fk.Damaged , fk.HpRecover },
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and target == player then
+    if player:hasSkill(self) and target == player then
       if event == fk.Damaged then
         return data.from and not data.from.dead
       else
@@ -656,7 +656,7 @@ local jixiann = fk.CreateTriggerSkill{
   name = "jixiann",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player and data.from and not data.from.dead
+    return player:hasSkill(self) and target == player and data.from and not data.from.dead
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
@@ -671,7 +671,7 @@ local liexian = fk.CreateTriggerSkill{
   name = "liexian",
   events = {fk.HpRecover},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player
+    return player:hasSkill(self) and target == player
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
@@ -691,7 +691,7 @@ local rouxian = fk.CreateTriggerSkill{
   name = "rouxian",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player and data.from and not data.from.dead
+    return player:hasSkill(self) and target == player and data.from and not data.from.dead
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
@@ -706,7 +706,7 @@ local hexian = fk.CreateTriggerSkill{
   name = "hexian",
   events = {fk.HpRecover},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player
+    return player:hasSkill(self) and target == player
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
