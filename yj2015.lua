@@ -1,6 +1,8 @@
 local extension = Package("yjcm2015")
 extension.extensionName = "yj"
 
+local U = require "packages/utility/utility"
+
 Fk:loadTranslationTable{
   ["yjcm2015"] = "一将成名2015",
 }
@@ -14,7 +16,8 @@ local huituo = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self)
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper), 1, 1, "#huituo-choose", self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper),
+      1, 1, "#huituo-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -138,7 +141,8 @@ Fk:loadTranslationTable{
   ["mingjian"] = "明鉴",
   [":mingjian"] = "出牌阶段限一次，你可以将所有手牌交给一名其他角色，然后该角色下回合的手牌上限+1，且出牌阶段内可以多使用一张【杀】。",
   ["xingshuai"] = "兴衰",
-  [":xingshuai"] = "主公技，限定技，当你进入濒死状态时，你可令其他魏势力角色依次选择是否令你回复1点体力。选择是的角色在此次濒死结算结束后受到1点无来源的伤害。",
+  [":xingshuai"] = "主公技，限定技，当你进入濒死状态时，你可令其他魏势力角色依次选择是否令你回复1点体力。选择是的角色在此次濒死结算结束后"..
+  "受到1点无来源的伤害。",
   ["#huituo-choose"] = "恢拓：你可以令一名角色判定，若为红色，其回复1点体力；黑色，其摸X张牌",
   ["@@mingjian"] = "明鉴",
   ["@@mingjian-turn"] = "明鉴",
@@ -153,10 +157,90 @@ Fk:loadTranslationTable{
   ["~caorui"] = "悔不该耽于逸乐，至有今日……",
 }
 
+local nos__caoxiu = General(extension, "nos__caoxiu", "wei", 4)
+local nos__taoxi = fk.CreateTriggerSkill{
+  name = "nos__taoxi",
+  mute = true,
+  events = {fk.TargetSpecified, fk.TurnEnd},
+  can_trigger = function(self, event, target, player, data)
+    if target == player then
+      if event == fk.TargetSpecified then
+        return player:hasSkill(self) and player.phase == Player.Play and data.to ~= player.id and
+          U.isOnlyTarget(player.room:getPlayerById(data.to), data, fk.TargetSpecified) and
+          not player.room:getPlayerById(data.to):isKongcheng() and
+          player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+      else
+        return #player:getPile("nos__taoxi&") > 0
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      return player.room:askForSkillInvoke(player, self.name, nil, "#nos__taoxi-invoke::"..data.to)
+    else
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name)
+    if event == fk.TargetSpecified then
+      room:notifySkillInvoked(player, self.name, "offensive")
+      room:doIndicate(player.id, {data.to})
+      local to = room:getPlayerById(data.to)
+      local card = room:askForCardChosen(player, to, "h", self.name, "#nos__taoxi-choose::"..data.to)
+      to:showCards(card)
+      if room:getCardOwner(card) ~= to or room:getCardArea(card) ~= Card.PlayerHand then return end
+      player.special_cards["nos__taoxi&"] = {card}
+    else
+      room:notifySkillInvoked(player, self.name, "negative")
+      room:loseHp(player, 1, self.name)
+      player.special_cards["nos__taoxi&"] = {}
+    end
+    player:doNotify("ChangeSelf", json.encode {
+      id = player.id,
+      handcards = player:getCardIds("h"),
+      special_cards = player.special_cards,
+    })
+  end,
+
+  refresh_events = {fk.BeforeCardsMove},
+  can_refresh = function(self, event, target, player, data)
+    if #player:getPile("nos__taoxi&") > 0 then
+      for _, move in ipairs(data) do
+        for _, info in ipairs(move.moveInfo) do
+          if info.cardId == player:getPile("nos__taoxi&")[1] then
+            return true
+          end
+        end
+      end
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.special_cards["nos__taoxi&"] = {}
+    player:doNotify("ChangeSelf", json.encode {
+      id = player.id,
+      handcards = player:getCardIds("h"),
+      special_cards = player.special_cards,
+    })
+  end,
+}
+local nos__taoxi_prohibit = fk.CreateProhibitSkill{
+  name = "#nos__taoxi_prohibit",
+  prohibit_response = function(self, player, card)
+    return #player:getPile("nos__taoxi&") > 0 and table.contains(player:getPile("nos__taoxi&"), card:getEffectiveId())
+  end,
+}
+nos__taoxi:addRelatedSkill(nos__taoxi_prohibit)
+nos__caoxiu:addSkill(nos__taoxi)
 Fk:loadTranslationTable{
   ["nos__caoxiu"] = "曹休",
   ["nos__taoxi"] = "讨袭",
-  [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。回合结束时，若该角色未失去此手牌，则你失去1点体力。",
+  [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。"..
+  "回合结束时，若该角色未失去此手牌，则你失去1点体力。",
+  ["#nos__taoxi-invoke"] = "讨袭：你可以亮出 %dest 一张手牌，直到回合结束你可以使用此牌",
+  ["#nos__taoxi-choose"] = "讨袭：展示%dest一张手牌",
+  ["nos__taoxi&"] = "讨袭",
 
   ["$nos__taoxi1"] = "策马疾如电，溃敌一瞬间。",
   ["$nos__taoxi2"] = "虎豹骑岂能徒有虚名？杀！",
@@ -177,7 +261,8 @@ local qingxi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and data.to and player:getEquipment(Card.SubtypeWeapon)
+    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash"
+      and data.to and player:getEquipment(Card.SubtypeWeapon)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -200,7 +285,8 @@ Fk:loadTranslationTable{
   ["qianju"] = "千驹",
   [":qianju"] = "锁定技，你计算与其他角色的距离-X。（X为你已损失的体力值）",
   ["qingxi"] = "倾袭",
-  [":qingxi"] = "当你使用【杀】造成伤害时，若你装备区内有武器牌，你可以令该角色选择一项：1.弃置X张手牌，然后弃置你的武器牌；2.令此【杀】伤害+1（X为该武器的攻击范围）。",
+  [":qingxi"] = "当你使用【杀】造成伤害时，若你装备区内有武器牌，你可以令该角色选择一项：1.弃置X张手牌，然后弃置你的武器牌；2.令此【杀】伤害+1"..
+  "（X为该武器的攻击范围）。",
   ["#qingxi-discard"] = "倾袭：你需弃置%arg张手牌，否则伤害+1",
 
   ["$qingxi1"] = "策马疾如电，溃敌一瞬间。",
@@ -715,7 +801,8 @@ local xingxue = fk.CreateTriggerSkill{
     if player:getMark("yanzhu") > 0 then
       n = player.maxHp
     end
-    local tos = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper), 1, n, "#xingxue-choose:::"..n, self.name, true)
+    local tos = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper),
+      1, n, "#xingxue-choose:::"..n, self.name, true)
     if #tos > 0 then
       self.cost_data = tos
       return true

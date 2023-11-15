@@ -1,6 +1,8 @@
 local extension = Package("yczh2017")
 extension.extensionName = "yj"
 
+local U = require "packages/utility/utility"
+
 Fk:loadTranslationTable{
   ["yczh2017"] = "原创之魂2017",
 }
@@ -328,14 +330,153 @@ Fk:loadTranslationTable{
   ["~jikang"] = "多少遗恨，俱随琴音去。",
 }
 
---local wuxian = General(extension, "wuxian", "shu", 3, 3, General.Female)
+local wuxian = General(extension, "wuxian", "shu", 3, 3, General.Female)
+local fumian = fk.CreateTriggerSkill{
+  name = "fumian",
+  anim_type = "support",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self) and player.phase == Player.Start
+  end,
+  on_trigger = function(self, event, target, player, data)
+    local room = player.room
+    if player:getMark("fumian1_record") > 0 or player:getMark("fumian2_record") > 0 then
+      for i = 1, 2, 1 do
+        if player:getMark("fumian"..i.."_record") > 0 then
+          room:setPlayerMark(player, "fumian"..i.."_record", 0)
+          room:setPlayerMark(player, "fumian"..i.."-tmp", 1)
+        end
+      end
+    end
+    self:doCost(event, target, player, data)
+    room:setPlayerMark(player, "fumian1-tmp", 0)
+    room:setPlayerMark(player, "fumian2-tmp", 0)
+  end,
+  on_cost = function(self, event, target, player, data)
+    local choices = {"fumian1:::"..(player:getMark("fumian2-tmp") + 1), "fumian2:::"..(player:getMark("fumian1-tmp") + 1), "Cancel"}
+    local choice = player.room:askForChoice(player, choices, self.name)
+    if choice ~= "Cancel" then
+      self.cost_data = choice
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local n = self.cost_data[7]
+    if n == "1" then
+      room:setPlayerMark(player, "@fumian1-turn", player:getMark("fumian2-tmp") + 1)
+    else
+      room:setPlayerMark(player, "@fumian2-turn", player:getMark("fumian1-tmp") + 1)
+    end
+    room:setPlayerMark(player, "fumian"..n.."_record", 1)
+  end,
+}
+local fumian_trigger = fk.CreateTriggerSkill{
+  name = "#fumian_trigger",
+  mute = true,
+  events = {fk.DrawNCards, fk.AfterCardTargetDeclared},
+  can_trigger = function(self, event, target, player, data)
+    if target == player then
+      if event == fk.DrawNCards then
+        return player:getMark("@fumian1-turn") > 0
+      else
+        return player:getMark("@fumian2-turn") > 0 and data.card.color == Card.Red and data.tos and
+          #U.getUseExtraTargets(player.room, data, false) > 0
+      end
+    end
+  end,
+  on_cost = function (self, event, target, player, data)
+    if event == fk.DrawNCards then
+      return true
+    else
+      local tos = player.room:askForChoosePlayers(player, U.getUseExtraTargets(player.room, data, false), 1, player:getMark("@fumian2-turn"),
+        "#fumian-choose:::"..data.card:toLogString()..":"..player:getMark("@fumian2-turn"), "fumian", true)
+      if #tos > 0 then
+        self.cost_data = tos
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.DrawNCards then
+      data.n = data.n + player:getMark("@fumian1-turn")
+      room:setPlayerMark(player, "@fumian1-turn", 0)
+    else
+      room:setPlayerMark(player, "@fumian2-turn", 0)
+      for _, id in ipairs(self.cost_data) do
+        TargetGroup:pushTargets(data.tos, id)
+      end
+    end
+  end,
+}
+local daiyan = fk.CreateTriggerSkill{
+  name = "daiyan",
+  anim_type = "support",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self) and player.phase == Player.Finish
+  end,
+  on_trigger = function(self, event, target, player, data)
+    local room = player.room
+    if player:getMark("daiyan_record") ~= 0 then
+      local to = room:getPlayerById(player:getMark("daiyan_record"))
+      room:setPlayerMark(player, "daiyan_record", 0)
+      if not to.dead then
+        room:setPlayerMark(to, "@@daiyan-tmp", 1)
+      end
+    end
+    self:doCost(event, target, player, data)
+    for _, p in ipairs(room.players) do
+      room:setPlayerMark(p, "@@daiyan-tmp", 0)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper),
+      1, 1, "#daiyan-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:setPlayerMark(player, "daiyan_record", self.cost_data)
+    local to = room:getPlayerById(self.cost_data)
+    local card = room:getCardsFromPileByRule(".|.|heart|.|.|basic")
+    if #card > 0 then
+      room:moveCards({
+        ids = card,
+        to = to.id,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonJustMove,
+        proposer = player.id,
+        skillName = self.name,
+        moveVisible = true,
+      })
+    end
+    if not to.dead and to:getMark("@@daiyan-tmp") > 0 then
+      room:loseHp(to, 1, self.name)
+    end
+  end,
+}
+fumian:addRelatedSkill(fumian_trigger)
+wuxian:addSkill(fumian)
+wuxian:addSkill(daiyan)
 Fk:loadTranslationTable{
   ["wuxian"] = "吴苋",
   ["fumian"] = "福绵",
-  [":fumian"] = "准备阶段，你可以选择一项：1.本回合下个摸牌阶段额定摸牌数+1；2.本回合限一次，当你使用红色牌时，可以令此牌目标数+1。"..
-  "若你选择的选项与你上回合选择的选项不同，则该选项数值+1并复原此技能。",
+  [":fumian"] = "准备阶段，你可以选择一项：1.本回合下个摸牌阶段摸牌数+1；2.本回合限一次，当你使用红色牌时，可以令此牌目标数+1。若你选择的选项"..
+  "与你上回合选择的选项不同，则本回合该选项数值+1。",
   ["daiyan"] = "怠宴",
   [":daiyan"] = "结束阶段，你可以令一名其他角色从牌堆中获得一张<font color='red'>♥</font>基本牌，然后若其是上回合此技能选择的角色，其失去1点体力。",
+  ["fumian1"] = "摸牌阶段摸牌数+%arg",
+  ["fumian2"] = "使用红色牌目标数+%arg",
+  ["@fumian1-turn"] = "福绵 摸牌数+",
+  ["@fumian2-turn"] = "福绵 目标数+",
+  ["#fumian-choose"] = "福绵：你可以为%arg额外指定%arg2个目标",
+  ["#daiyan-choose"] = "怠宴：你可以令一名其他角色摸一张<font color='red'>♥</font>基本牌，若为上回合选择的角色，其失去1点体力",
+  ["@@daiyan-tmp"] = "上次怠宴目标",
 
   ["$fumian1"] = "人言吾吉人天相，福寿绵绵。",
   ["$fumian2"] = "永理二子，当保大汉血脉长存。",
