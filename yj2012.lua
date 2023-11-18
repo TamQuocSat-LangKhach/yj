@@ -4,7 +4,7 @@ extension.extensionName = "yj"
 Fk:loadTranslationTable{
   ["yjcm2012"] = "一将成名2012",
 }
-
+local U = require "packages/utility/utility"
 local xunyou = General(extension, "xunyou", "wei", 3)
 local qice = fk.CreateViewAsSkill{
   name = "qice",
@@ -181,8 +181,8 @@ local nos__miji = fk.CreateTriggerSkill{
     }
     room:judge(judge)
     if judge.card.color == Card.Black then
-      local cards = room:getNCards(player.maxHp - player.hp)
-      room:fillAG(player, cards)
+      local cards = room:getNCards(player:getLostHp())
+      U.viewCards(player, cards, self.name)
       local tos = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, 1, "#nos__miji-choose", self.name, false)
       room:moveCards({
         ids = cards,
@@ -190,7 +190,6 @@ local nos__miji = fk.CreateTriggerSkill{
         toArea = Card.PlayerHand,
         moveReason = fk.ReasonJustMove,
       })
-      room:closeAG(player)
     end
   end,
 }

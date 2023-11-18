@@ -70,9 +70,14 @@ local renxin = fk.CreateTriggerSkill{
     return player:hasSkill(self) and target ~= player and target.hp == 1 and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    return #player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#renxin-invoke::"..target.id) > 0
+    local card = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#renxin-invoke::"..target.id, true)
+    if #card > 0 then
+      self.cost_data = card
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
+    player.room:throwCard(self.cost_data, self.name, player, player)
     player:turnOver()
     return true
   end,
@@ -84,7 +89,7 @@ Fk:loadTranslationTable{
   ["chengxiang"] = "称象",
   [":chengxiang"] = "每当你受到一次伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于或等于13的牌，将其余的牌置入弃牌堆。",
   ["renxin"] = "仁心",
-  [":renxin"] = "每当体力值为1的一名其他角色受到伤害时，你可以将武将牌翻面并弃置一张装备牌，然后防止此伤害。",
+  [":renxin"] = "每当体力值为1的一名其他角色受到伤害时，你可以弃置一张装备牌，将武将牌翻面并防止此伤害。",
   ["#renxin-invoke"] = "仁心：你可以弃置一张装备牌，防止 %dest 受到的致命伤害",
 
   ["$chengxiang1"] = "依我看，小事一桩。",
@@ -326,7 +331,10 @@ local longyin = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     player.room:throwCard(self.cost_data, self.name, player, player)
-    target:addCardUseHistory(data.card.trueName, -1)
+    if not data.extraUse then
+      target:addCardUseHistory(data.card.trueName, -1)
+      data.extraUse = true
+    end
     if data.card.color == Card.Red and not player.dead then
       player:drawCards(1)
     end
@@ -1124,6 +1132,7 @@ local nos__fencheng = fk.CreateActiveSkill{
   anim_type = "offensive",
   card_num = 0,
   target_num = 0,
+  card_filter = Util.FalseFunc,
   frequency = Skill.Limited,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
@@ -1236,6 +1245,7 @@ local fencheng = fk.CreateActiveSkill{
   anim_type = "offensive",
   card_num = 0,
   target_num = 0,
+  card_filter = Util.FalseFunc,
   frequency = Skill.Limited,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
