@@ -5,7 +5,7 @@ Fk:loadTranslationTable{
   ["yjcm2011"] = "一将成名2011",
   ["nos"] = "旧",
 }
-
+local U = require "packages/utility/utility"
 local caozhi = General(extension, "caozhi", "wei", 3)
 local luoying = fk.CreateTriggerSkill{
   name = "luoying",
@@ -444,6 +444,7 @@ local xinzhan = fk.CreateActiveSkill{
   name = "xinzhan",
   anim_type = "drawcard",
   card_num = 0,
+  card_filter = Util.FalseFunc,
   target_num = 0,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and player:getHandcardNum() > player.maxHp
@@ -452,27 +453,15 @@ local xinzhan = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local cards = room:getNCards(3)
     local hearts = table.filter(cards, function (id) return Fk:getCardById(id).suit == Card.Heart end)
-    if #hearts > 0 then
-      local get = {}
-      room:fillAG(player, cards)
-      for i = #cards, 1, -1 do
-        if Fk:getCardById(cards[i]).suit ~= Card.Heart then
-          room:takeAG(player, cards[i], room.players)
-        end
-      end
-      repeat
-        local id = room:askForAG(player, hearts, true, self.name)
-        if id == nil then break end
-        room:takeAG(player, id, room.players)
-        table.insert(get, id)
+    local get, _ = U.askforChooseCardsAndChoice(player, hearts,  {"OK"}, self.name, "#xinzhan_choose", {"Cancel"}, 1, 3, cards)
+    if #get > 0 then
+      player:showCards(get)
+      local dummy = Fk:cloneCard("dilu")
+      for _, id in ipairs(get) do
         table.removeOne(cards, id)
-      until #cards == 0 or table.every(cards, function (c) return Fk:getCardById(c).suit ~= Card.Heart end)
-      room:closeAG(player)
-      if #get > 0 then
-        local dummy = Fk:cloneCard("dilu")
-        dummy:addSubcards(get)
-        room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
+        dummy:addSubcard(id)
       end
+      room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
     end
     if #cards > 0 then
       room:askForGuanxing(player, cards, nil, {0, 0})
@@ -485,7 +474,7 @@ local huilei = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Death},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, false, true) and data.damage and data.damage.from
+    return target == player and player:hasSkill(self, false, true) and data.damage and data.damage.from
   end,
   on_use = function(self, event, target, player, data)
     data.damage.from:throwAllCards("he")
@@ -496,8 +485,8 @@ masu:addSkill(huilei)
 Fk:loadTranslationTable{
   ["masu"] = "马谡",
   ["xinzhan"] = "心战",
-  [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示并获得其中任意张<font color='red'>♥</font>牌，"..
-  "其余以任意顺序置于牌堆顶。",
+  [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示并获得其中任意张<font color='red'>♥</font>牌，其余以任意顺序置于牌堆顶。",
+  ["#xinzhan_choose"] = "心战：获得任意张♥牌",
   ["huilei"] = "挥泪",
   [":huilei"] = "锁定技，杀死你的角色立即弃置所有牌。",
 

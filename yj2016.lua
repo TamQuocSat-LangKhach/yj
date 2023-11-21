@@ -417,21 +417,23 @@ local duliang = fk.CreateActiveSkill{
     local choice = room:askForChoice(player, {"duliang_view", "duliang_draw"}, self.name, "#duliang-choice::"..target.id)
     if choice == "duliang_view" then
       local cards = room:getNCards(2)
-      room:askForCardsChosen(target, target, 0, 0, {card_data = {{"Top", cards}}}, self.name)
+      U.viewCards(target, cards, self.name)
       local dummy = Fk:cloneCard("dilu")
-      for _, id in ipairs(cards) do
+      for i = #cards, 1, -1 do
+        local id = cards[i]
         if Fk:getCardById(id).type == Card.TypeBasic then
+          table.remove(cards, i)
           dummy:addSubcard(id)
-          table.removeOne(cards, id)
         end
       end
       if #dummy.subcards > 0 then
         room:obtainCard(target.id, dummy, false, fk.ReasonJustMove)
       end
-      if #dummy.subcards < 2 then
+      if #cards > 0 then
         for i = #cards, 1, -1 do
           table.insert(room.draw_pile, 1, cards[i])
         end
+        room:doBroadcastNotify("UpdateDrawPile", #room.draw_pile)
       end
     else
       room:addPlayerMark(target, "@duliang", 1)
@@ -460,7 +462,6 @@ local fulin = fk.CreateMaxCardsSkill{
 }
 local fulin_record = fk.CreateTriggerSkill{
   name = "#fulin_record",
-
   refresh_events = {fk.AfterCardsMove, fk.TurnEnd},
   can_refresh = function(self, event, target, player, data)
     if player:hasSkill("fulin") then
@@ -503,8 +504,8 @@ Fk:loadTranslationTable{
   ["fulin"] = "腹鳞",
   [":fulin"] = "锁定技，你于回合内获得的牌不计入手牌上限。",
   ["#duliang"] = "督粮：获得一名其他角色一张牌，然后令其获得基本牌或其下个摸牌阶段多摸一张牌",
-  ["duliang_view"] = "观看牌堆顶的两张牌，获得其中的基本牌",
-  ["duliang_draw"] = "下个摸牌阶段额外摸一张牌",
+  ["duliang_view"] = "其观看牌堆顶的两张牌，获得其中的基本牌",
+  ["duliang_draw"] = "其下个摸牌阶段额外摸一张牌",
   ["#duliang-choice"] = "督粮：选择令 %dest 执行的一项",
   ["@duliang"] = "督粮",
   ["@@fulin-inhand"] = "腹鳞",
