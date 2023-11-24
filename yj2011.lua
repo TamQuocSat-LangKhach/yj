@@ -660,7 +660,7 @@ local nos__xuanfeng = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return (not player:isProhibited(p, Fk:cloneCard("slash") or player:distanceTo(p) == 1)) end), Util.IdMapper)
+      return (not player:isProhibited(p, Fk:cloneCard("slash")) or player:distanceTo(p) == 1) end), Util.IdMapper)
     if #targets == 0 then return end
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__xuanfeng-choose", self.name, true)
     if #to > 0 then
@@ -695,7 +695,7 @@ nos__lingtong:addSkill(nos__xuanfeng)
 Fk:loadTranslationTable{
   ["nos__lingtong"] = "凌统",
   ["nos__xuanfeng"] = "旋风",
-  [":nos__xuanfeng"] = "当你失去装备区内的牌后，你可以选择一项：1.视为对使用一张【杀】（无距离次数限制）；2.对距离1的一名其他角色造成1点伤害。",
+  [":nos__xuanfeng"] = "当你失去装备区内的牌后，你可以选择一项：1.视为使用一张【杀】（无距离次数限制）；2.对距离1的一名其他角色造成1点伤害。",
   ["#nos__xuanfeng-choose"] = "旋风：你可以视为使用一张【杀】，或对距离1的一名其他角色造成1点伤害",
   ["nos__xuanfeng_slash"] = "视为对其使用【杀】",
   ["nos__xuanfeng_damage"] = "对其造成1点伤害",
