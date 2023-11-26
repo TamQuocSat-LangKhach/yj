@@ -242,36 +242,11 @@ local miji = fk.CreateTriggerSkill{
     local room = player.room
     local n = player:getLostHp()
     player:drawCards(n, self.name)
-    room:setPlayerMark(player, self.name, n)
-    room:askForUseActiveSkill(player, "miji_active", "#miji-invoke", true)
-    room:setPlayerMark(player, self.name, 0)
+    if player:getHandcardNum() >= n and room:askForSkillInvoke(player, self.name, nil, "#miji-invoke:::"..n) then
+      U.askForDistribution(player, player:getCardIds("h"), room:getOtherPlayers(player), self.name, n, n)
+    end
   end,
 }
-local miji_active = fk.CreateActiveSkill{
-  name = "miji_active",
-  anim_type = "support",
-  max_card_num = function ()
-    return Self:getMark("miji")
-  end,
-  min_card_num = 1,
-  target_num = 1,
-  can_use = function(self, player)
-    return not player:isKongcheng()
-  end,
-  card_filter = function(self, to_select, selected, targets)
-    return Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
-  end,
-  target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0
-  end,
-  on_use = function(self, room, effect)
-    local target = room:getPlayerById(effect.tos[1])
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(effect.cards)
-    room:obtainCard(target, dummy, false, fk.ReasonGive)
-  end,
-}
-Fk:addSkill(miji_active)
 wangyi:addSkill(zhenlie)
 wangyi:addSkill(miji)
 Fk:loadTranslationTable{
@@ -279,9 +254,9 @@ Fk:loadTranslationTable{
   ["zhenlie"] = "贞烈",
   [":zhenlie"] = "当你成为其他角色使用【杀】或普通锦囊牌的目标后，你可以失去1点体力使此牌对你无效，然后你弃置其一张牌。",
   ["miji"] = "秘计",
-  [":miji"] = "结束阶段，你可以摸至多X张牌（X为你已损失的体力值），然后你可以将等量的手牌交给其他角色。",
+  [":miji"] = "结束阶段，你可以摸至多X张牌（X为你已损失的体力值），然后你可以将等量的手牌分配给其他角色。",
   ["miji_active"] = "秘计",
-  ["#miji-invoke"] = "秘计：你可以将牌交给一名其他角色",
+  ["#miji-invoke"] = "秘计：是否将 %arg 张手牌分配给其他角色",
 
   ["$zhenlie1"] = "虽是妇人，亦当奋身一搏！",
   ["$zhenlie2"] = "为雪前耻，不惜吾身！",
@@ -296,7 +271,7 @@ local nos__qianxi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card.trueName == "slash" and player:distanceTo(data.to) == 1
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash" and player:distanceTo(data.to) == 1 and not data.chain
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -438,29 +413,32 @@ local nos__fuhun = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local move = {
-      ids = room:getNCards(2),
+    local ids = room:getNCards(2)
+    room:moveCards({
+      ids = ids,
       toArea = Card.Processing,
       moveReason = fk.ReasonJustMove,
       skillName = self.name,
-    }
-    room:moveCards(move)
-    room:delay(2000)
+    })
+    room:delay(1000)
     local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(move.ids)
+    dummy:addSubcards(ids)
     room:obtainCard(player.id, dummy, true, fk.ReasonJustMove)
-    if Fk:getCardById(move.ids[1]).color ~= Fk:getCardById(move.ids[2]).color then
-      room:handleAddLoseSkills(player, "wusheng|paoxiao", nil, true, false)
+    if Fk:getCardById(ids[1]).color ~= Fk:getCardById(ids[2]).color then
+      local skills = {}
+      for _, skill in ipairs({"wusheng", "paoxiao"}) do
+        if not player:hasSkill(skill, true) then
+          table.insert(skills, skill)
+        end
+      end
+      if #skills > 0 then
+        room:handleAddLoseSkills(player, table.concat(skills, "|"))
+        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addCleaner(function()
+          room:handleAddLoseSkills(player, "-"..table.concat(skills, "|-"))
+        end)
+      end
     end
     return true
-  end,
-
-  refresh_events = {fk.TurnEnd},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes(self.name, Player.HistoryTurn) > 0
-  end,
-  on_refresh = function(self, event, target, player, data)
-    player.room:handleAddLoseSkills(player, "-wusheng|-paoxiao", nil, true, false)
   end,
 }
 nos__guanxingzhangbao:addSkill(nos__fuhun)
@@ -493,29 +471,32 @@ local fuhun = fk.CreateViewAsSkill{
     return c
   end,
 }
-local fuhun_record = fk.CreateTriggerSkill{
-  name = "#fuhun_record",
-
-  refresh_events = {fk.Damage, fk.TurnEnd},
-  can_refresh = function(self, event, target, player, data)
-    if target == player then
-      if event == fk.Damage then
-        return player:hasSkill(self) and data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play and
-          not (player:hasSkill("wusheng", true) and player:hasSkill("paoxiao", true))
-      else
-        return player:hasSkill(self.name, true)
+local fuhun_delay = fk.CreateTriggerSkill{
+  name = "#fuhun_delay",
+  mute = true,
+  events = {fk.Damage},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and target == player and data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play
+  end,
+  on_cost = Util.TrueFunc,
+  on_trigger = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(fuhun.name)
+    local skills = {}
+    for _, skill in ipairs({"wusheng", "paoxiao"}) do
+      if not player:hasSkill(skill, true) then
+        table.insert(skills, skill)
       end
     end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    if event == fk.Damage then
-      player.room:handleAddLoseSkills(player, "wusheng|paoxiao", nil, true, false)
-    else
-      player.room:handleAddLoseSkills(player, "-wusheng|-paoxiao", nil, true, false)
+    if #skills > 0 then
+      room:handleAddLoseSkills(player, table.concat(skills, "|"))
+      room.logic:getCurrentEvent():findParent(GameEvent.Turn):addCleaner(function()
+        room:handleAddLoseSkills(player, "-"..table.concat(skills, "|-"))
+      end)
     end
   end,
 }
-fuhun:addRelatedSkill(fuhun_record)
+fuhun:addRelatedSkill(fuhun_delay)
 guanxingzhangbao:addSkill(fuhun)
 guanxingzhangbao:addRelatedSkill("wusheng")
 guanxingzhangbao:addRelatedSkill("paoxiao")
@@ -534,21 +515,29 @@ Fk:loadTranslationTable{
 local chengpu = General(extension, "chengpu", "wu", 4)
 local lihuo = fk.CreateTriggerSkill{
   name = "lihuo",
-  events = {fk.AfterCardUseDeclared, fk.TargetSpecifying},
+  events = {fk.AfterCardUseDeclared, fk.AfterCardTargetDeclared},
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
     if not (target == player and player:hasSkill(self)) then return false end
-    if event == fk.AfterCardUseDeclared then return data.card.name == "slash"
-    else return data.card.name == "fire__slash" end
+    if event == fk.AfterCardUseDeclared then
+      return data.card.name == "slash"
+    else
+      return data.card.name == "fire__slash"
+    end
   end,
   on_cost = function(self, event, target, player, data)
+    local room = player.room
     if event == fk.AfterCardUseDeclared then
-      return player.room:askForSkillInvoke(player, self.name)
+      return room:askForSkillInvoke(player, self.name, nil, "#lihuo-trans:::"..data.card:toLogString())
     else
-      local targets = table.map(table.filter(player.room:getOtherPlayers(player), function(p)
-        return not table.contains(TargetGroup:getRealTargets(data.tos), p.id) and
-        data.card.skill:getDistanceLimit(p, data.card) + player:getAttackRange() >= player:distanceTo(p) and
-        not player:isProhibited(p, data.card) end), Util.IdMapper)
+      local current_targets = TargetGroup:getRealTargets(data.tos)
+      local targets = {}
+      for _, p in ipairs(room.alive_players) do
+        if not table.contains(current_targets, p.id) and not player:isProhibited(p, data.card) and
+            data.card.skill:modTargetFilter(p.id, current_targets, data.from, data.card, true) then
+          table.insert(targets, p.id)
+        end
+      end
       if #targets == 0 then return false end
       local tos = player.room:askForChoosePlayers(player, targets, 1, 1, "#lihuo-choose:::"..data.card:toLogString(), self.name, true)
       if #tos > 0 then
@@ -556,27 +545,34 @@ local lihuo = fk.CreateTriggerSkill{
         return true
       end
     end
-    return false
   end,
   on_use = function(self, event, target, player, data)
-    if event == fk.AfterCardUseDeclared then  
+    if event == fk.AfterCardUseDeclared then
       local fireSlash = Fk:cloneCard("fire__slash")
       fireSlash.skillName = self.name
       fireSlash:addSubcard(data.card)
       data.card = fireSlash
     else
-      table.insert(data.tos, self.cost_data)
+      local tos = self.cost_data
+      player.room:sendLog{
+        type = "#AddTargetsBySkill",
+        from = player.id,
+        to = tos,
+        arg = self.name,
+        arg2 = data.card:toLogString()
+      }
+      table.insert(data.tos, tos)
     end
   end,
 }
 local lihuo_record = fk.CreateTriggerSkill{
   name = "#lihuo_record",
   events = {fk.CardUseFinished},
-  frequency = Skill.Compulsory,
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and table.contains(data.card.skillNames, "lihuo") and data.damageDealt 
+    return target == player and table.contains(data.card.skillNames, "lihuo") and data.damageDealt and not player.dead
   end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     player.room:loseHp(player, 1, self.name)
   end,
@@ -593,7 +589,7 @@ local chunlao = fk.CreateTriggerSkill{
       if event == fk.EventPhaseStart then
         return target == player and player.phase == Player.Finish and #player:getPile("chengpu_chun") == 0 and not player:isKongcheng()
       else
-        return target.dying and #player:getPile("chengpu_chun") > 0
+        return target.dying and #player:getPile("chengpu_chun") > 0 and not target:isProhibited(target, Fk:cloneCard("analeptic")) and not target:prohibitUse(Fk:cloneCard("analeptic"))
       end
     end
   end,
@@ -639,15 +635,16 @@ chengpu:addSkill(chunlao)
 Fk:loadTranslationTable{
   ["chengpu"] = "程普",
   ["lihuo"] = "疬火",
-  [":lihuo"] = "你可以将一张普通【杀】当火【杀】使用，若此法使用的【杀】造成了伤害，在此【杀】结算后你失去1点体力；你使用火【杀】时，"..
-  "可以令一名角色也成为此【杀】的目标。",
+  [":lihuo"] = "当你使用普通【杀】时，你可以将此【杀】改为火【杀】，然后此【杀】结算结束后，若此【杀】造成过伤害，你失去1点体力；你使用火【杀】可以多选择一个目标。",
   ["chunlao"] = "醇醪",
-  [":chunlao"] = "回合结束阶段开始时，若你的武将牌上没有牌，你可以将任意数量的【杀】置于你的武将牌上，称为“醇”；"..
-  "当一名角色处于濒死状态时，你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】。",
+  [":chunlao"] = "结束阶段开始时，若你的武将牌上没有牌，你可以将任意数量的【杀】置于你的武将牌上，称为“醇”；"..
+  "当一名角色处于濒死状态时，若其为【酒】的合法目标，你可以将一张“醇”置入弃牌堆，视为该角色使用一张【酒】。",
   ["#lihuo-choose"] = "疬火：你可以为此%arg增加一个目标",
+  ["#lihuo-trans"] = "疬火：可以将%arg改为火【杀】，若造成伤害，结算后你失去1点体力",
   ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
   ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为 %dest 使用一张【酒】",
+  ["#AddTargetsBySkill"] = "用于 %arg 的效果，%from 使用的 %arg2 增加了目标 %to",
 
   ["$lihuo1"] = "将士们，引火对敌！",
   ["$lihuo2"] = "和我同归于尽吧！",
