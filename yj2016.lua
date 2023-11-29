@@ -109,15 +109,15 @@ local jiaozhao_change = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.GameStart then
       room:setPlayerMark(player, "jiaozhao_status", 1)
-    elseif event == fk.EventAcquireSkill then
+    else
       if player:getMark("jiaozhao_status") == 0 then
         room:setPlayerMark(player, "jiaozhao_status", 1)
       end
-      room:handleAddLoseSkills(player, jiaozhaoSkills[player:getMark("jiaozhao_status")].."|-jiaozhaoVS", nil, false, true)
-    elseif event == fk.TurnStart or event == fk.TurnEnd then
-      for _, id in ipairs(player:getCardIds("h")) do
-        room:setCardMark(Fk:getCardById(id), "jiaozhao-inhand", 0)
-        room:setCardMark(Fk:getCardById(id), "@jiaozhao-inhand", 0)
+      if event == fk.TurnStart or event == fk.TurnEnd then
+        for _, id in ipairs(player:getCardIds("h")) do
+          room:setCardMark(Fk:getCardById(id), "jiaozhao-inhand", 0)
+          room:setCardMark(Fk:getCardById(id), "@jiaozhao-inhand", 0)
+        end
       end
       room:handleAddLoseSkills(player, jiaozhaoSkills[player:getMark("jiaozhao_status")].."|-jiaozhaoVS", nil, false, true)
     end
