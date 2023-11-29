@@ -5,7 +5,7 @@ return {
 
   ["caozhi"] = "Cao Zhi",
   ["luoying"] = "Falling Bloom",
-  [":luoying"] = "After other hero’s discarded or ♣ judgement result card r placed in the discard pile, you can get it.",
+  [":luoying"] = "After other hero’s ♣ discarded or judgement result cards r placed in the discard pile, you can get it.",
   ["jiushi"] = "Drunken Quatrain",
   [":jiushi"] = "When your hero is facing up, can flip → view it as using Alcohol. After you suffer DMG, if your hero is facing down, you can flip.",
 
@@ -21,7 +21,7 @@ return {
 
   ["nos__fazheng"] = "Fa Zheng",
   ["nos__enyuan"] = "Gratitude & grudges",
-  [":nos__enyuan"] = "(forced) When you recover 1 HP from other hero, he draw 1. After each unit of DMG you suffer from other hero, you can make the source to choose: a) give you 1 <font color='red'>♥</font> hand card, or b) he loses 1HP.",
+  [":nos__enyuan"] = "(forced) When you recover 1 HP from other hero, he draws 1. After you suffer DMG from other hero, you can make the source to choose: a) give you 1 <font color='red'>♥</font> hand card, or b) he loses 1HP.",
   ["nos__xuanhuo"] = "Artifice of the Masses",
   [":nos__xuanhuo"] = "Once per action phase, you can give a <font color='red'>♥</font> hand card to another hero. Then you get a card from him and you give it to a third hero.",
   ["#nos__enyuan-give"] = "Gratitude & grudges: give %src 1 <font color='red'>♥</font> hand card, or you lose 1HP",
@@ -30,9 +30,9 @@ return {
 
   ["fazheng"] = "Fa Zheng",
   ["enyuan"] = "Gratitude & grudges",
-  [":enyuan"] = "When you obtain ≥ 2 cards from other hero, you can make him to draw 1. After each unit of DMG you suffer, you can make the source to choose: a) give you 1 hand card, or b) he loses 1HP.",
+  [":enyuan"] = "When you obtain ≥ 2 cards from other hero, you can make him to draw 1. After each 1 of DMG you suffer, you can make the source to choose: a) give you 1 hand card, or b) he loses 1HP.",
   ["xuanhuo"] = "Artifice of the Masses",
-  [":xuanhuo"] = "At Draw Phase can instead make another hero to draw 2 cards, then let that hero use a Slash on other hero of your choice that is in his range. If he doesn’t use Slash, you can take 2 of his cards.",
+  [":xuanhuo"] = "At Draw Phase can instead make another hero to draw 2 cards, then let that hero use a Slash on other hero of your choice that is in his range. If he doesn’t use Slash, you take 2 of his cards.",
   ["#enyuan1-invoke"] = "Gratitude & grudges: you can make %dest to draw 1 card",
   ["#enyuan2-invoke"] = "Gratitude & grudges: you can meke %dest to choose: a) give you 1 hand card, or b) he loses 1HP",
   ["#enyuan-give"] = "Gratitude & grudges: give %src 1 hand card, or you loses 1HP",
@@ -42,8 +42,8 @@ return {
 
   ["masu"] = "Ma Su",
   ["xinzhan"] = "Psychological warfare",
-  [":xinzhan"] = "Once per action phase, if your #hand cards > maximum HP, you can examine 3 cards from the deck, then show and take any amount of <font color='red'>♥</font> card inside, "..
-  "and place the rest at the buttom in any order.", 
+  [":xinzhan"] = "Once per action phase, if your #hand cards > max HP, you can examine 3 cards from the deck, then show and take any amount of <font color='red'>♥</font> card inside, "..
+  "and place the rest at the top in any order.", 
   ["huilei"] = "Tearful executed",
   [":huilei"] = "(forced) The hero who killed you discard all his cards.",
 
@@ -51,8 +51,8 @@ return {
   ["nos__wuyan"] = "Remain Silent",
   [":nos__wuyan"] = "(forced) Non-delay trick card used to or by you has no effect.",
   ["nos__jujian"] = "Dragon’s Advocate",
-  [":nos__jujian"] = "Once per action phase, you can discard up to 3 cards, make a other hero draw the same amount cards, if your discard 3 same-type cards, you heals 1.",
-  ["#nos__jujian"] = "Dragon’s Advocate: you can discard up to 3 cards, make a other hero draw the same amount cards, if your discard 3 same-type cards, you heals 1.",
+  [":nos__jujian"] = "Once per action phase, you can discard up to 3 cards, make an other hero draw the same amount cards, if your discard 3 same-type cards, you heal 1.",
+  ["#nos__jujian"] = "Dragon’s Advocate: you can discard up to 3 cards, make an other hero draw the same amount cards",
 
   ["xushu"] = "Xu Shu",
   ["wuyan"] = "Remain Silent",
@@ -76,7 +76,7 @@ return {
 
   ["wuguotai"] = "Wu Guo Tai",
   ["ganlu"] = "Heavenly Essence",
-  [":ganlu"] = "Once per action phase, you can choose 2 heroes to exchange all their equipped cards if the difference in the # of equipped cards ≤ #wounds",
+  [":ganlu"] = "Once per action phase, you can choose 2 heroes to exchange all their equipped cards if the difference in the # of equipped cards ≤ your #wounds",
   ["buyi"] = "Ameliorate",
   [":buyi"] = "When a hero is enters the brink-of-death, you can show one of his hand cards. If it isn’t a basic card, he discards it and heals 1.",
   ["#ganlu"] = "Heavenly Essence: choose 2 heroes to exchange all their equipped cards if the difference in the # of equipped cards ≤ %arg",
@@ -96,7 +96,7 @@ return {
 
   ["chengong"] = "Chen Gong",
   ["mingce"] = "Brilliant Scheme",
-  [":mingce"] = "Once per action phase, you can give a Slash or equipment to another hero → he must choose: a) View it as using Slash on a different hero in range. b) He draws 1.",
+  [":mingce"] = "Once per action phase, you can give a Slash or equipment to another hero → he must choose: a) View it as using Slash on a hero of your choice in range. b) He draws 1.",
   ["zhichi"] = "Cerebral Delay",
   [":zhichi"] = "(forced) Outside your turn, after you suffer DMG, Slash & non-delay tricks are ineffective on you until that turn ends.",
   ["#mingce"] = "Brilliant Scheme: give a Slash or equipment to another hero → he must choose: a) View it as using Slash on a different hero in range. b) He draws 1.",
@@ -151,11 +151,11 @@ return {
 
   ["nos__guanxingzhangbao"] = "Guan X. & Zhang B.",
   ["nos__fuhun"] = "Paternal Souls",
-  [":nos__fuhun"] = "At Draw Phase, you can change to show 2 cards from the top of draw pile and take them, if those cards are in different color, you gain Warrior Saint and Roar until the End of Turn.",
+  [":nos__fuhun"] = "At Draw Phase, you can change to show 2 cards from the top of draw pile and take them, if those cards are in different color, you gain Warrior Saint and Roar until the end of turn.",
 
   ["guanxingzhangbao"] = "Guan X. & Zhang B.",
   ["fuhun"] = "Paternal Souls",
-  [":fuhun"] = "You can use/play 2 hand cards as Slash. If you DMG another hero with this Slash, you gain Warrior Saint and Roar until the End of Turn.",
+  [":fuhun"] = "You can use/play 2 hand cards as Slash. If you DMG another hero with this Slash, you gain Warrior Saint and Roar until the end of turn.",
 
   ["chengpu"] = "Cheng Pu",
   ["lihuo"] = "Toxic Pyre",
@@ -169,7 +169,7 @@ return {
 
   ["bulianshi"] = "Bu Lian Shi",
   ["anxu"] = "Pacify",
-  [":anxu"] = "Once per action phaseAction Phase, can choose other 2 heroes with different #hand cards. The hero with less hand cards will show and take 1 hand card from the other. Then, if it was not ♠, you can draw 1 card. ",
+  [":anxu"] = "Once per action phase, can choose other 2 heroes with different #hand cards. The hero with less hand cards will show and take 1 hand card from the other. Then, if it was not ♠, you draw 1 card. ",
   ["zhuiyi"] = "Recall",
   [":zhuiyi"] = "When you die, can choose another hero (not who killed you) to draw 3 cards and heal 1.",
   ["#zhuiyi-choose"] = "Recall: you can choose a hero to draw 3 cards and heal 1.",
@@ -201,9 +201,9 @@ return {
 
   ["zhonghui"] = "Zhong Hui",
   ["quanji"] = "Amassing Power",
-  [":quanji"] = "After each unit of DMG you suffer, you can draw 1, then place 1 hand card atop your hero (\"Power\"). You have +X hand limit (X = #Powers).",
+  [":quanji"] = "After each 1 of DMG you suffer, you can draw 1, then place 1 hand card atop your hero (\"Power\"). You have +X hand limit (X = #Powers).",
   ["zili"] = "Uprising",
-  [":zili"] = "(awaken) At Beginning Phase, if Power > 2, then -1 maxHP, either heal 1 or draw 2, and gain Eradicate.",
+  [":zili"] = "(awaken) At Beginning Phase, if Power >= 3, then -1 maxHP, either heal 1 or draw 2, and gain Eradicate.",
   ["paiyi"] = "Eradicate",
   [":paiyi"] = "Once per action phase, you can remove 1 Power and allow a hero to draw 2. As a result, if his hand cards > your hand cards, you deal him 1 DMG.",
   ["zhonghui_quan"] = "Power",
@@ -227,7 +227,7 @@ return {
 
   ["guohuai"] = "Guo Huai",
   ["jingce"] = "Refined Strategy",
-  [":jingce"] = "At End Phase, if # of cards you have used this turn ≥ your HP, you can draw 2.",
+  [":jingce"] = "At the end of Action Phase, if # of cards you have used this turn ≥ your HP, you can draw 2.",
 
   ["manchong"] = "Man Chong",
   ["junxing"] = "Corporal Punishment",
@@ -241,7 +241,7 @@ return {
 
   ["guanping"] = "Guan Ping",
   ["longyin"] = "Dragon Roar",
-  [":longyin"] = "When a hero uses Slash in his Action Phase, you can discard a card to let this Slash doesn’t count. If you activate this ability in response to a red Slash, you draw 1.",
+  [":longyin"] = "When a hero uses Slash in his Action Phase, you can discard a card to let this Slash doesn’t count. If you activate this skill in response to a red Slash, you draw 1.",
   ["#longyin-invoke"] = "Dragon Roar: you can discard a card to let %dest’s Slash doesn’t count",
 
   ["jianyong"] = "Jian Yong",
@@ -299,16 +299,16 @@ return {
   ["zhuikong"] = "Anxious Fear",
   [":zhuikong"] = "At other hero’s Start of Turn, if you are wounded, you can Point Fight him. During this turn: If you win, he cannot use cards to target anyone other than himself. If you don’t win, the distance from him to you becomes 1.",
   ["qiuyuan"] = "Plead",
-  [":qiuyuan"] = "When you r target of Slash, you can target a 3rd hero (with cards) who must give you a Jink or become an additional target to this Slash.",
+  [":qiuyuan"] = "When you're target of Slash, you can target a 3rd hero (with cards) who must give you a Dodge or become an additional target to this Slash.",
   ["#zhuikong-invoke"] = "Anxious Fear: you can Point Fight %dest, if you win, he cannot use cards to target anyone other than himself",
-  ["#qiuyuan-choose"] = "Plead: select a 3rd hero (with cards) who must give you a Jink or become an additional target to this Slash",
-  ["#qiuyuan-give"] = "Plead: you must give %dest a Jink or become an additional target to this Slash",
+  ["#qiuyuan-choose"] = "Plead: select a 3rd hero (with cards) who must give you a Dodge or become an additional target to this Slash",
+  ["#qiuyuan-give"] = "Plead: you must give %dest a Dodge or become an additional target to this Slash",
 
   ["nos__fuhuanghou"] = "Empress Fu",
   ["nos__zhuikong"] = "Anxious Fear",
   [":nos__zhuikong"] = "At other hero’s Start of Turn, if you are wounded, you can Point Fight him. During this turn: If you win, skip his Play Phase. If you don’t win, the distance from him to you becomes 1.",
   ["nos__qiuyuan"] = "Plead",
-  [":nos__qiuyuan"] = "When you r target of Slash, you can target a 3rd hero (with cards) who must give you a hand card, if that is not Jink, he become an additional target to Slash.",
+  [":nos__qiuyuan"] = "When you r target of Slash, you can target a 3rd hero (with cards) who must give you a hand card, if that is not Dodge, he become an additional target to Slash.",
   ["#nos__zhuikong-invoke"] = "Anxious Fear: you can Point Fight %dest, if you win, skip his Play Phase",
   ["#nos__qiuyuan-choose"] = "Plead: select a 3rd hero (with cards) who must give you a hand card",
   ["#nos__qiuyuan-give"] = "Plead: you must give %dest a hand card",
@@ -319,7 +319,7 @@ return {
   ["nos__mieji"] = "Extermination",
   [":nos__mieji"] = "When your black non-delay trick targeting only 1 target, you can have +1 target.",
   ["nos__fencheng"] = "Burn the City",
-  [":nos__fencheng"] = "(limited) At your Play Phase, you can make all other heroes discard at least X cards or suffer 2 Fire DMG from you. X = max(# of his equipped cards, 1)",
+  [":nos__fencheng"] = "(limited) At your Play Phase, you can make all other heroes discard at least X cards or suffer 1 Fire DMG from you. X = max(# of his equipped cards, 1)",
   ["#nos__juece-invoke"] = "Vanishing Act: you can deal 1 DMG to %dest",
   ["#nos__juece-choose"] = "Vanishing Act: you can deal 1 DMG to them",
   ["#nos__mieji-choose"] = "Extermination: you can have +1 target for %arg",
@@ -329,9 +329,9 @@ return {
   ["juece"] = "Vanishing Act",
   [":juece"] = "At End Phase, you can deal 1 DMG to a hero who has no hand cards.",
   ["mieji"] = "Extermination",
-  [":mieji"] = "Once per action phase, you can put a black tactic atop the deck and choose another hero with hand cards. He must discard 1 trick card or 2 non-trick cards.",
+  [":mieji"] = "Once per action phase, you can put a black trick atop the deck and choose another hero with hand cards. He must discard 1 trick card or 2 non-trick cards.",
   ["fencheng"] = "Burn the City",
-  [":fencheng"] = "(limited) At your Play Phase, you can make all other heroes discard at least X cards or suffer 2 Fire DMG from you. X = # of cards the previous hero discarded + 1.",
+  [":fencheng"] = "(limited) At your Action Phase, you can make all other heroes discard at least X cards or suffer 2 Fire DMG from you. X = # of cards the previous hero discarded + 1.",
   ["#juece-choose"] = "Vanishing Act: you can deal 1 DMG to a hero who has no hand cards",
   ["#mieji-discard1"] = "Extermination: discard 1 trick card or 2 non-trick cards",
   ["#mieji-discard2"] = "Extermination: discard 1 non-trick cards",
@@ -341,28 +341,28 @@ return {
 
   ["caozhen"] = "Cao Zhen",
   ["sidi"] = "Enemy Foresight",
-  [":sidi"] = "When you or other hero(in your turn) use Jink, you can put 1 card from deck to your hero(“EForesight”). At other hero’s start of Play Phase, "..
+  [":sidi"] = "When you or other hero(in your turn) use Dodge, you can put 1 card from deck to your hero(“EForesight”). At other hero’s start of Play Phase, "..
   "you can put 1 EForesight to Discard pile, and that hero can use -1 Slash this phase.",
   ["#sidi-invoke"] = "Enemy Foresight: you can put 1 EForesight to Discard pile, and that hero can use -1 Slash this phase",
 
   ["chenqun"] = "Chen Qun",
   ["dingpin"] = "Ranking",
   [":dingpin"] = "In Action Phase, can discard a card (of a different type that the ones you discarded this turn) and choose a wounded hero. He is judged: if black,"..
-  "he draw #wounds cards, and you cannot activate Ranking again on him this turn if red, you flip.",
+  "he draw #wounds cards, and you cannot activate Ranking again on him this turn; if red, you flip.",
   ["faen"] = "Justice's mercy",
   [":faen"] = "After a hero flips or goes into chains, you can let him draw 1.",
   ["#faen-invoke"] = "Justice's mercy: you can let %dest draw 1",
 
   ["hanhaoshihuan"] = "Han H. & Shi H.",
   ["shenduan"] = "Reckless Abandon",
-  [":shenduan"] = "When one of your black basic cards is discarded, after it is placed into the discard pile, you can place it to other hero’s judgement area as Starvation.",
+  [":shenduan"] = "When one of your black basic cards is discarded, after it is placed into the discard pile, you can place it to other hero’s judgement area as Supply Shortage.",
   ["yonglve"] = "Bold Strategy",
   [":yonglve"] = "At Beginning of other hero’s Judgement Phase, if he’s in your range, you can discard a card in his judgement area. It’s viewed as you using Slash on him. If it dealt no DMG, you draw 1.",
 
   ["zhoucang"] = "Zhou Cang",
   ["zhongyong"] = "Loyalty and Bravery",
-  [":zhongyong"] = "When you use Slash, after it is resolved by Jink, you can give this Jink used by your target to another hero. if not you, you may use Slash on your target.",
-  ["#zhongyong-choose"] = "Loyalty and Bravery: give this Jink used by %dest to another hero, if not you, you may use Slash on your target",
+  [":zhongyong"] = "When you use Slash (in your action phase), after it is resolved by Dodge, you can give this Dodge used by your target to another hero. if not you, you may use Slash on your target.",
+  ["#zhongyong-choose"] = "Loyalty and Bravery: give this Dodge used by %dest to another hero, if not you, you may use Slash on your target",
   ["#zhongyong-slash"] = "Loyalty and Bravery: you may use Slash on %dest",
 
   ["wuyi"] = "Wu Yi",
@@ -425,7 +425,7 @@ return {
 
   ["jvshou"] = "Ju Shou",
   ["jianying"] = "Progressive Strategy",
-  [":jianying"] = " In Action Phase, when you use a card with the same suit or value as the previous card you used during the same turn, you can draw 1.",
+  [":jianying"] = " In Action Phase, when you use a card with the same suit or number as the previous card you used during the same phase, you can draw 1.",
   ["shibei"] = "Devotion to the north",
   [":shibei"] = "(forced) After you suffer DMG, if it is the first time during the current turn, you heal 1. Otherwise you lose 1 HP.",
   ["@jianying-phase"] = "Prog. S.",
@@ -434,7 +434,7 @@ return {
 
   ["caorui"] = "Cao Rui",
   ["huituo"] = "Recover and Expand",
-  [":huituo"] = "After you suffer DMG, can make a hero to be judged, if it’s: ▪ red, he heals 1; ▪ black, he draws X (X = DMG suffered).",
+  [":huituo"] = "After you suffer DMG, can make a hero to be judged, if it’s: ▪ red, he heals 1; ▪ black, he draws X (X = number of this DMG).",
   ["mingjian"] = "Brilliant Idea",
   [":mingjian"] = "Once per action phase, can give all hand to other hero → his next turn he will have +1 hand limit & can use +1 Slash.",
   ["xingshuai"] = "The Rise & Fall",
@@ -446,7 +446,7 @@ return {
 
   ["nos__caoxiu"] = "Cao Xiu",
   ["nos__taoxi"] = "Crusade",
-  [":nos__taoxi"] = "Once per action phase, 当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。回合结束时，若该角色未失去此手牌，则你失去1点体力。",
+  [":nos__taoxi"] = "Once per action phase, when you single-targeted another player, you can reveal him 1 hand card until the end of turn; you can use this card in this turn. When this turn ends, if he didn't lose that card, you lose 1 HP.",
 
   ["caoxiu"] = "Cao Xiu",
   ["qianju"] = "Thousand Colts",
@@ -459,13 +459,13 @@ return {
   ["huomo"] = "Living Ink",
   [":huomo"] = "When you want to use a basic card that you haven't used in this turn, you can place a black non-basic card atop the deck, this is viewed as using the basic card.",
   ["zuoding"] = "Auxiliary and Stable",
-  [":zuoding"] = "During other hero’s turn, after he targets a hero using ♠, if no one has suffered DMG this turn, can make 1 of the targets to draw 1.",
+  [":zuoding"] = "During other hero’s action phase, after he targets a hero using ♠, if no one has suffered DMG this turn, can make 1 of the targets to draw 1.",
   ["#huomo-card"] = "Living Ink: place a black non-basic card atop the deck",
   ["#zuoding-choose"] = "Auxiliary and Stable: you can make 1 of the targets to draw 1",
 
   ["liuchen"] = "Liu Chen",
   ["zhanjue"] = "Desperate Fight",
-  [":zhanjue"] = "In Action Phase, can use all hand cards as 1 Duel. After it’s resolved, you and the hero who suffers DMG draw 1. If this turn you have drawn 2+ cards this way, you cannot activate this ability until the end of turn.",
+  [":zhanjue"] = "In Action Phase, can use all hand cards as 1 Duel. After it’s resolved, you and the hero who suffers DMG draw 1. If this turn you have drawn 2+ cards this way, you cannot activate this skill until the end of turn.",
   ["qinwang"] = "Send Troops to Rescue the King",
   [":qinwang"] = "(lord) You can discard 1 to trigger Rouse. If there is a response, that hero draws 1.",
 
@@ -473,22 +473,22 @@ return {
   ["qiaoshi"] = "Gather Firewood",
   [":qiaoshi"] = "At other hero's End Phase, if his hand cards = yours, you can let you and him draw 1 card each.",
   ["yanyu"] = "Swallow Words",
-  [":yanyu"] = "In Action Phase, you can reforge Slash. At end of Action Phase, if this turn you used this skill 2+ times, you can choose 1 other male hero to draw 2.",
+  [":yanyu"] = "In Action Phase, you can recast Slash. At end of Action Phase, if this turn you used this skill 2 or 2+ times, you can choose 1 other male hero to draw 2.",
   ["#qiaoshi-invoke"] = "Gather Firewood: you can let you and %dest draw 1 card each",
   ["#yanyu_record"] = "Swallow Words",
   ["#yanyu-draw"] = "Swallow Words: you can choose 1 other male hero to draw 2",
 
   ["zhangyi"] = "Zhang Ni",
   ["wurong"] = "Undeceived Army",
-  [":wurong"] = "Once per action phasee, can choose another hero, then both of you show simultaneously one card from your hand. If your card is Slash & his is not Jink, you discard your Slash and deal him 1 DMG. If your card is not Slash & his is a Jink, you discard your card and take 1 of his cards.",
+  [":wurong"] = "Once per action phasee, can choose another hero, then both of you show simultaneously one card from your hand. If your card is Slash & his is not Dodge, you discard your Slash and deal him 1 DMG. If your card is not Slash & his is a Dodge, you discard your card and take 1 of his cards.",
   ["shizhi"] = "Oath",
-  [":shizhi"] = "(forced) When your HP is 1, your Jink are always Slash.",
+  [":shizhi"] = "(forced) When your HP is 1, your Dodge are always Slash.",
   ["#wurong-show"] = "Undeceived Army: show a hand card",
 
   ["quancong"] = "Quan Cong",
   ["zhenshan"] = "Intercept People",
   [":zhenshan"] = "Once per turn, when you need to use/play a basic card, you can exchange your hand cards with another player who has fewer hand cards than yours, then you are regarded as use/play that card.",
-  ["#zhenshan-choose"] = "Intercept People: 与一名手牌数少于你的角色交换手牌",
+  ["#zhenshan-choose"] = "Intercept People: exchange hand cards with whom fewer than yours",
 
   ["sunxiu"] = "Sun Xiu",
   ["yanzhu"] = "Punish on Festival",
@@ -511,14 +511,14 @@ return {
 
   ["gongsunyuan"] = "Gongsun Yuan",
   ["huaiyi"] = "Unusual Mind",
-  [":huaiyi"] = "Once per action phase, can show all your hand cards. If they have different colors, you can choose one of the colors and discard all of this color from your hand. Then, you get 1 card from X heroes (X = #cards you discarded). If you get 2+ cards, then lose 1 HP.",
+  [":huaiyi"] = "Once per action phase, can show all your hand cards. If they have different colors, you can choose one of the colors and discard all of this color from your hand. Then, you get 1 card from X heroes (X = #cards you discarded). If you get 2 or 2+ cards, then lose 1 HP.",
   ["#huaiyi-choose"] = "Unusual Mind: you can get 1 card from %arg heroes",
 
-  ["guotupangji"] = "Guo T. & Pang J.",
+  ["guotupangji"] = "Guo Tu & Pang Ji",
   ["jigong"] = "Impatient Attack",
   [":jigong"] = "At Beginning of Action Phase you can draw 2 cards. Then, your hand limit is changed to X (X = DMG you dealt this turn).",
   ["shifei"] = "Cover up Wrongdoings",
-  [":shifei"] = "When you want to use/play Jink, you can let the current turn’s hero to draw 1 → if each hero's hand cards ≤ his hand cards, you can discard 1 card from a hero who has the most hand cards → view it as using Jink.",
+  [":shifei"] = "When you want to use/play Dodge, you can let the current turn’s hero to draw 1 → if he isn't the only one who has the most hand cards, you can discard 1 card from a hero who has the most hand cards → view it as using Dodge.",
   ["@jigong-turn"] = "Impatient Atk.",
   ["#shifei-choose"] = "Cover up Wrongdoings: discard 1 card from a hero who has the most hand cards",
 
@@ -627,10 +627,10 @@ return {
   [":zhuandui"] = "After you target a hero with Slash / you become the target of Slash, you can Point Fight him. If you win, he cannot respond this Slash / this Slash becomes ineffective on you.",
   ["tianbian"] = "Debate of Heaven",
   [":tianbian"] = "When you Point Fight, can use the card atop the deck instead. When you use a ♥ card in a Point Fight, it’s always viewed as a K.",
-  ["#jianzhengq-invoke"] = "Admonished Drafts：%dest uses %arg, you can show & put a hand card atop the deck→ cancel all targets",
-  ["zhuandui1-invoke"] = "Specially Answer：you can Point Fight %dest, If you win, he cannot respond %arg",
-  ["zhuandui2-invoke"] = "Specially Answer：you can Point Fight %dest, If you win, %arg becomes ineffective on you",
-  ["#tianbian-invoke"] = "Debate of Heaven：use the card atop the deck instead?",
+  ["#jianzhengq-invoke"] = "Admonished Drafts: %dest uses %arg, you can show & put a hand card atop the deck→ cancel all targets",
+  ["zhuandui1-invoke"] = "Specially Answer: you can Point Fight %dest, If you win, he cannot respond %arg",
+  ["zhuandui2-invoke"] = "Specially Answer: you can Point Fight %dest, If you win, %arg becomes ineffective on you",
+  ["#tianbian-invoke"] = "Debate of Heaven: use the card atop the deck instead?",
 
   ["xushi"] = "Lady Xu",
   ["wengua"] = "Fortune telling",
