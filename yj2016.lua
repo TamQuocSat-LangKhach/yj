@@ -697,6 +697,7 @@ local jishe = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     player:drawCards(1, self.name)
     room:addPlayerMark(player, "@jishe-turn", 1)
+    room:broadcastProperty(player, "MaxCards")
   end,
 }
 local jishe_maxcards = fk.CreateMaxCardsSkill{
@@ -850,13 +851,13 @@ local taoluan = fk.CreateViewAsSkill{
   pattern = ".",
   interaction = function()
     local names = {}
-    local mark = Self:getMark("@$taoluan")
+    local mark = U.getMark(Self, "@$taoluan")
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
       if (card.type == Card.TypeBasic or card:isCommonTrick()) and not card.is_derived and
         ((Fk.currentResponsePattern == nil and Self:canUse(card)) or
         (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(card))) then
-        if mark == 0 or (not table.contains(mark, card.trueName)) then
+        if not table.contains(mark, card.trueName) then
           table.insertIfNeed(names, card.name)
         end
       end
@@ -881,12 +882,23 @@ local taoluan = fk.CreateViewAsSkill{
     player.room:setPlayerMark(player, "@$taoluan", mark)
   end,
   enabled_at_play = function(self, player)
-    return not player:isNude() and player:getMark("taoluan-turn") == 0 and
+    return not player:isNude() and player:getMark("@@taoluan-turn") == 0 and
       table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end)
   end,
   enabled_at_response = function(self, player, response)
-    return not response and not player:isNude() and player:getMark("taoluan-turn") == 0 and
-      table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end)
+    if not response and not player:isNude() and player:getMark("@@taoluan-turn") == 0 and Fk.currentResponsePattern
+    and table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end) then
+      local mark = U.getMark(Self, "@$taoluan")
+      for _, id in ipairs(Fk:getAllCardIds()) do
+        local card = Fk:getCardById(id)
+        if (card.type == Card.TypeBasic or card:isCommonTrick()) and not card.is_derived and
+          Exppattern:Parse(Fk.currentResponsePattern):match(card) then
+          if not table.contains(mark, card.trueName) then
+            return true
+          end
+        end
+      end
+    end
   end,
 }
 local taoluan_trigger = fk.CreateTriggerSkill{
@@ -901,18 +913,14 @@ local taoluan_trigger = fk.CreateTriggerSkill{
     local room = player.room
     local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
     local type = data.card:getTypeString()
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#taoluan-choose:::"..type, "taoluan", false)
-    if #to > 0 then
-      to = room:getPlayerById(to[1])
-    else
-      to = room:getPlayerById(table.random(targets))
-    end
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#taoluan-choose:::"..type, "taoluan", false)
+    local to = room:getPlayerById(tos[1])
     local card = room:askForCard(to, 1, 1, true, "taoluan", true, ".|.|.|.|.|^"..type, "#taoluan-card:"..player.id.."::"..type)
     if #card > 0 then
       room:obtainCard(player, card[1], false, fk.ReasonGive)
     else
+      room:setPlayerMark(player, "@@taoluan-turn", 1)
       room:loseHp(player, 1, "taoluan")
-      room:setPlayerMark(player, "taoluan-turn", 1)
     end
   end,
 }
@@ -926,6 +934,7 @@ Fk:loadTranslationTable{
   ["@$taoluan"] = "滔乱",
   ["#taoluan-choose"] = "滔乱：令一名其他角色交给你一张非%arg，或你失去1点体力且本回合〖滔乱〗失效",
   ["#taoluan-card"] = "滔乱：你需交给 %src 一张非%arg，否则其失去1点体力且本回合〖滔乱〗失效",
+  ["@@taoluan-turn"] = "滔乱失效",
 
   ["$taoluan1"] = "国家承平，神器稳固，陛下勿忧。",
   ["$taoluan2"] = "睁开你的眼睛看看，现在是谁说了算？",

@@ -646,6 +646,20 @@ local shizhi = fk.CreateFilterSkill{
     return Fk:cloneCard("slash", to_select.suit, to_select.number)
   end,
 }
+local shizhi_trigger = fk.CreateTriggerSkill{
+  name = "#shizhi_trigger",
+  refresh_events = {fk.HpChanged},
+  can_refresh = function(self, event, target, player, data)
+    return player == target and player:hasSkill(self)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    for _, id in ipairs(player:getCardIds("h")) do
+      Fk:filterCard(id, player)
+    end
+  end,
+}
+shizhi:addRelatedSkill(shizhi_trigger)
 zhangyi:addSkill(wurong)
 zhangyi:addSkill(shizhi)
 Fk:loadTranslationTable{
@@ -665,7 +679,7 @@ Fk:loadTranslationTable{
 local quancong = General(extension, "quancong", "wu", 4)
 local zhenshan = fk.CreateViewAsSkill{
   name = "zhenshan",
-  pattern = "^nullification|.|.|.|.|basic",
+  pattern = ".|.|.|.|.|basic",
   interaction = function()
     local names = {}
     for _, id in ipairs(Fk:getAllCardIds()) do
@@ -676,9 +690,7 @@ local zhenshan = fk.CreateViewAsSkill{
     end
     return UI.ComboBox {choices = names}
   end,
-  card_filter = function()
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   view_as = function(self, cards)
     local card = Fk:cloneCard(self.interaction.data)
     card.skillName = self.name
@@ -688,54 +700,9 @@ local zhenshan = fk.CreateViewAsSkill{
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p)
       return (#p.player_cards[Player.Hand] < player:getHandcardNum()) end), Util.IdMapper)
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#zhenshan-choose", self.name, true)
-    if #to > 0 then
-      to = to[1]
-    else
-      to =table.random(targets)
-    end
-    local cards1 = table.clone(player.player_cards[Player.Hand])
-    local cards2 = table.clone(room:getPlayerById(to).player_cards[Player.Hand])
-    local move1 = {
-      from = player.id,
-      ids = cards1,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonExchange,
-      proposer = player.id,
-      skillName = self.name,
-      moveVisible = false,  --FIXME: this is still visible! same problem with dimeng!
-    }
-    local move2 = {
-      from = to,
-      ids = cards2,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonExchange,
-      proposer = player.id,
-      skillName = self.name,
-      moveVisible = false,
-    }
-    room:moveCards(move1, move2)
-    local move3 = {
-      ids = table.filter(cards1, function(id) return room:getCardArea(id) == Card.Processing end),
-      fromArea = Card.Processing,
-      to = to,
-      toArea = Card.PlayerHand,
-      moveReason = fk.ReasonExchange,
-      proposer = player.id,
-      skillName = self.name,
-      moveVisible = false,
-    }
-    local move4 = {
-      ids = table.filter(cards2, function(id) return room:getCardArea(id) == Card.Processing end),
-      fromArea = Card.Processing,
-      to = player.id,
-      toArea = Card.PlayerHand,
-      moveReason = fk.ReasonExchange,
-      proposer = player.id,
-      skillName = self.name,
-      moveVisible = false,
-    }
-    room:moveCards(move3, move4)
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#zhenshan-choose", self.name, true)
+    local to = room:getPlayerById(tos[1])
+    U.swapHandCards(room, player, player, to, self.name)
   end,
   enabled_at_play = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and
@@ -912,23 +879,21 @@ local function doAnguo(player, type, source)
       return true
     end
   elseif type == "equip" then
-    if #player.player_cards[Player.Equip] < 4 and table.every(room.alive_players, function (p)
+    if table.every(room.alive_players, function (p)
       return #p.player_cards[Player.Equip] >= #player.player_cards[Player.Equip] end) then
       local types = {Card.SubtypeWeapon, Card.SubtypeArmor, Card.SubtypeDefensiveRide, Card.SubtypeOffensiveRide, Card.SubtypeTreasure}
       local cards = {}
-      for i = 1, #room.draw_pile, 1 do
-        local card = Fk:getCardById(room.draw_pile[i])
-        for _, t in ipairs(types) do
-          if card.sub_type == t and player:getEquipment(t) == nil then
-            table.insertIfNeed(cards, room.draw_pile[i])
-          end
+      for _, id in ipairs(room.draw_pile) do
+        local card = Fk:getCardById(id)
+        if card.type == Card.TypeEquip and player:hasEmptyEquipSlot(card.sub_type) and not player:prohibitUse(card) then
+          table.insert(cards, card)
         end
       end
       if #cards > 0 then
         room:useCard({
           from = player.id,
           tos = {{player.id}},
-          card = Fk:getCardById(table.random(cards)),
+          card = table.random(cards),
         })
         return true
       end
@@ -944,9 +909,7 @@ local anguo = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function()
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id
   end,
@@ -969,7 +932,7 @@ Fk:loadTranslationTable{
   ["zhuzhi"] = "朱治",
   ["anguo"] = "安国",
   [":anguo"] = "出牌阶段限一次，你可以选择一名其他角色，若其手牌数为全场最少，其摸一张牌；体力值为全场最低，回复1点体力；"..
-  "装备区内牌数为全场最少，随机使用一张装备牌。然后若该角色有未执行的效果且你满足条件，你执行之。",
+  "装备区内牌数为全场最少，随机使用牌堆中一张装备牌。然后若该角色有未执行的效果且你满足条件，你执行之。",
 
   ["~zhuzhi"] = "集毕生之力，保国泰民安。",
   ["$anguo1"] = "止干戈，休战事。",
