@@ -666,8 +666,10 @@ local zongxuan = fk.CreateTriggerSkill{
       for _, move in ipairs(data) do
         if move.from == player.id and move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
           for _, info in ipairs(move.moveInfo) do
-            if player.room:getCardArea(info.cardId) == Card.DiscardPile then
-              return true
+            if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+              if player.room:getCardArea(info.cardId) == Card.DiscardPile then
+                return true
+              end
             end
           end
         end
@@ -680,16 +682,24 @@ local zongxuan = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.from == player.id and move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
         for _, info in ipairs(move.moveInfo) do
-          if room:getCardArea(info.cardId) == Card.DiscardPile then
-            table.insertIfNeed(cards, info.cardId)
+          if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+            if room:getCardArea(info.cardId) == Card.DiscardPile then
+              table.insertIfNeed(cards, info.cardId)
+            end
           end
         end
       end
     end
     if #cards > 0 then
-      local top = room:askForGuanxing(player, cards, nil, nil, "zongxuan", true, {nil, "zongxuanNoput"}).top
-      for i = #top, 1, -1 do
-        table.insert(room.draw_pile, 1, top[i])
+      local top = room:askForGuanxing(player, cards, {1, #cards}, nil, self.name, true, {nil, "zongxuanNoput"}).top
+      if #top > 0 then
+        room:moveCards({
+          ids = table.reverse(top),
+          toArea = Card.DrawPile,
+          moveReason = fk.ReasonPut,
+          skillName = self.name,
+          proposer = player.id,
+        })
       end
     end
   end,
@@ -716,8 +726,8 @@ local zhiyan = fk.CreateTriggerSkill{
     local card = Fk:getCardById(id)
     to:showCards(card)
     if to.dead then return end
-    room:delay(2000)  --防止天机图卡手牌
-    if card.type == Card.TypeEquip and not to:isProhibited(to, card) then
+    room:delay(1000)  --防止天机图卡手牌
+    if card.type == Card.TypeEquip and not to:prohibitUse(card) and not to:isProhibited(to, card) then
       room:useCard({
         from = to.id,
         tos = {{to.id}},
