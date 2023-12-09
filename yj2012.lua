@@ -271,7 +271,7 @@ local nos__qianxi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card.trueName == "slash" and player:distanceTo(data.to) == 1 and not data.chain
+    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and player:distanceTo(data.to) == 1 and not data.chain
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room

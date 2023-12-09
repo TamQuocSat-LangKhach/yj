@@ -72,9 +72,9 @@ local mingjian = fk.CreateActiveSkill{
 local mingjian_record = fk.CreateTriggerSkill{
   name = "#mingjian_record",
 
-  refresh_events = {fk.EventPhaseChanging},
+  refresh_events = {fk.TurnStart},
   can_refresh = function(self, event, target, player, data)
-    return player:getMark("@@mingjian") > 0 and data.to == Player.Start and target == player
+    return player:getMark("@@mingjian") > 0 and target == player
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
