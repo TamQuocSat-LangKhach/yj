@@ -1,6 +1,8 @@
 local extension = Package("yjcm2014")
 extension.extensionName = "yj"
 
+local U = require "packages/utility/utility"
+
 Fk:loadTranslationTable{
   ["yjcm2014"] = "一将成名2014",
 }
