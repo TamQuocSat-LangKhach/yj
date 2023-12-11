@@ -983,8 +983,9 @@ local xianzhen_prohibit = fk.CreateProhibitSkill{
 }
 local jinjiu = fk.CreateFilterSkill{
   name = "jinjiu",
-  card_filter = function(self, card, player)
-    return player:hasSkill(self) and card.name == "analeptic"
+  card_filter = function(self, card, player, isJudgeEvent)
+    return player:hasSkill(self) and card.name == "analeptic" and
+    (table.contains(player.player_cards[Player.Hand], card.id) or isJudgeEvent)
   end,
   view_as = function(self, card)
     return Fk:cloneCard("slash", card.suit, card.number)

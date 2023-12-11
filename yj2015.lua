@@ -640,7 +640,8 @@ local shizhi = fk.CreateFilterSkill{
   name = "shizhi",
   card_filter = function(self, to_select, player)
     --FIXME: filter skill isn't status skill, can't filter card which exists before hp change
-    return player:hasSkill(self) and player.hp == 1 and to_select.name == "jink"
+    return player:hasSkill(self) and player.hp == 1 and to_select.name == "jink" and
+    table.contains(player.player_cards[Player.Hand], to_select.id)
   end,
   view_as = function(self, to_select)
     return Fk:cloneCard("slash", to_select.suit, to_select.number)
