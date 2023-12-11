@@ -547,14 +547,7 @@ local yanyu = fk.CreateActiveSkill{
     return #selected == 0 and Fk:getCardById(to_select).trueName == "slash"
   end,
   on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    room:moveCards({
-      ids = effect.cards,
-      from = effect.from,
-      toArea = Card.DiscardPile,
-      moveReason = fk.ReasonPutIntoDiscardPile,  --TODO: reason recast
-    })
-    player:drawCards(1, self.name)
+    room:recastCard(effect.cards, room:getPlayerById(effect.from), self.name)
   end,
 }
 local yanyu_record = fk.CreateTriggerSkill{
@@ -1027,56 +1020,63 @@ local jigong_maxcards = fk.CreateMaxCardsSkill{
     end
   end,
 }
-local shifei = fk.CreateTriggerSkill{
+local shifei = fk.CreateViewAsSkill{
   name = "shifei",
-  events = {fk.AskForCardUse, fk.AskForCardResponse},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and
-      (data.cardName == "jink" or (data.pattern and Exppattern:Parse(data.pattern):matchExp("jink|0|nosuit|none"))) and
-      player.room.current and not player.room.current.dead
+  anim_type = "defensive",
+  prompt = function ()
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      if p.phase ~= Player.NotActive then
+        return "#shifei-viewas::" .. p.id
+      end
+    end
   end,
-  on_use = function(self, event, target, player, data)
+  pattern = "jink",
+  card_num = 0,
+  card_filter = Util.FalseFunc,
+  before_use = function(self, player)
     local room = player.room
-    room.current:drawCards(1, self.name)
-    local n = #room.current.player_cards[Player.Hand]
-    for _, p in ipairs(room:getOtherPlayers(room.current)) do
-      if #p.player_cards[Player.Hand] > n then
-        n = #p.player_cards[Player.Hand]
+    local current = room.current
+    if current:isAlive() then
+      room:drawCards(current, 1, self.name)
+      if current:isAlive() and player:isAlive() then
+        local targets = {current.id}
+        local x = current:getHandcardNum()
+        local y = 0
+        for _, p in ipairs(room:getOtherPlayers(current, false)) do
+          y = p:getHandcardNum()
+          if y > x then
+            x = y
+            targets = {}
+          end
+          if x == y then
+            table.insert(targets, p.id)
+          end
+        end
+        if x > 0 and (#targets > 1 or targets[1] ~= current.id) then
+          local tos = room:askForChoosePlayers(player, targets, 1, 1, "#shifei-choose", self.name, false)
+          local to = room:getPlayerById(tos[1])
+          local id = room:askForCardChosen(player, to, "he", self.name)
+          room:throwCard({id}, self.name, to, player)
+          return
+        end
       end
     end
-    local targets = {}
-    for _, p in ipairs(room:getAlivePlayers()) do
-      if #p.player_cards[Player.Hand] == n then
-        table.insert(targets, p.id)
+    return self.name
+  end,
+  view_as = function(self, cards)
+    local c = Fk:cloneCard("jink")
+    c.skillName = self.name
+    return c
+  end,
+  enabled_at_response = function (self, player)
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      if p.phase ~= Player.NotActive then
+        return true
       end
     end
-    if #targets == 1 and targets[1] == room.current.id then return end
-    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#shifei-choose", self.name, false)
-    local to
-    if #tos > 0 then
-      to = tos[1]
-    else
-      to = table.random(targets)
-    end
-    local id = room:askForCardChosen(player, room:getPlayerById(to), "he", self.name)
-    room:throwCard({id}, self.name, room:getPlayerById(to), player)
-    if event == fk.AskForCardUse then
-      data.result = {
-        from = player.id,
-        card = Fk:cloneCard("jink"),
-      }
-      data.result.card.skillName = self.name
-      if data.eventData then
-        data.result.toCard = data.eventData.toCard
-        data.result.responseToEvent = data.eventData.responseToEvent
-      end
-    else
-      data.result = Fk:cloneCard("jink")
-      data.result.skillName = self.name
-    end
-    return true
-  end
+  end,
 }
+
 jigong:addRelatedSkill(jigong_maxcards)
 guotupangji:addSkill(jigong)
 guotupangji:addSkill(shifei)
@@ -1088,6 +1088,7 @@ Fk:loadTranslationTable{
   [":shifei"] = "当你需要使用或打出【闪】时，你可以令当前回合角色摸一张牌，然后若其手牌数不是全场唯一最多的，你弃置一名手牌全场最多的角色一张牌，"..
   "视为你使用或打出一张【闪】。",
   ["@jigong-turn"] = "急攻",
+  ["#shifei-viewas"] = "是否使用 饰非，令%dest摸一张牌",
   ["#shifei-choose"] = "饰非：弃置全场手牌最多的一名角色的一张牌",
 
   ["$jigong1"] = "不惜一切代价，拿下此人！",
