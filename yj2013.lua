@@ -8,54 +8,46 @@ Fk:loadTranslationTable{
 }
 
 local caochong = General(extension, "caochong", "wei", 3)
+Fk:addPoxiMethod{
+  name = "chengxiang_count",
+  card_filter = function(to_select, selected)
+    local n = Fk:getCardById(to_select).number
+    for _, id in ipairs(selected) do
+      n = n + Fk:getCardById(id).number
+    end
+    return n <= 13
+  end,
+  feasible = function(selected)
+    return #selected > 0
+  end,
+  prompt = function ()
+    return Fk:translate("#chengxiang-choose")
+  end
+}
 local chengxiang = fk.CreateTriggerSkill{
   name = "chengxiang",
   anim_type = "masochism",
   events = {fk.Damaged},
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local card_ids = room:getNCards(4)
-    local get, throw = {}, {}
+    local cards = room:getNCards(4)
     room:moveCards({
-      ids = card_ids,
+      ids = cards,
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
     })
-    table.forEach(room.players, function(p)
-      room:fillAG(p, card_ids)
-    end)
-    while true do
-      local sum = 0
-      table.forEach(get, function(id)
-        sum = sum + Fk:getCardById(id).number
-      end)
-      for i = #card_ids, 1, -1 do
-        local id = card_ids[i]
-        if sum + Fk:getCardById(id).number > 13 then
-          room:takeAG(player, id, room.players)
-          table.insert(throw, id)
-          table.removeOne(card_ids, id)
-        end
-      end
-      if #card_ids == 0 then break end
-      local card_id = room:askForAG(player, card_ids, false, self.name)
-      --if card_id == nil then break end
-      room:takeAG(player, card_id, room.players)
-      table.insert(get, card_id)
-      table.removeOne(card_ids, card_id)
-      if #card_ids == 0 then break end
-    end
-    table.forEach(room.players, function(p)
-      room:closeAG(p)
-    end)
+    local get = room:askForPoxi(player, "chengxiang_count", {
+      { self.name, cards },
+    }, nil, true)
     if #get > 0 then
       local dummy = Fk:cloneCard("dilu")
       dummy:addSubcards(get)
       room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
     end
-    if #throw > 0 then
+    cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
+    if #cards > 0 then
       room:moveCards({
-        ids = throw,
+        ids = cards,
         toArea = Card.DiscardPile,
         moveReason = fk.ReasonPutIntoDiscardPile,
       })
@@ -91,6 +83,8 @@ Fk:loadTranslationTable{
   ["renxin"] = "仁心",
   [":renxin"] = "每当体力值为1的一名其他角色受到伤害时，你可以弃置一张装备牌，将武将牌翻面并防止此伤害。",
   ["#renxin-invoke"] = "仁心：你可以弃置一张装备牌，防止 %dest 受到的致命伤害",
+  ["#chengxiang-choose"] = "获得任意点数之和小于或等于13的牌",
+  ["chengxiang_count"] = "称象",
 
   ["$chengxiang1"] = "依我看，小事一桩。",
   ["$chengxiang2"] = "孰重孰轻，一称便知。",
@@ -100,54 +94,46 @@ Fk:loadTranslationTable{
 }
 
 local nos__caochong = General(extension, "nos__caochong", "wei", 3)
+Fk:addPoxiMethod{
+  name = "nos_chengxiang_count",
+  card_filter = function(to_select, selected)
+    local n = Fk:getCardById(to_select).number
+    for _, id in ipairs(selected) do
+      n = n + Fk:getCardById(id).number
+    end
+    return n < 13
+  end,
+  feasible = function(selected)
+    return #selected > 0
+  end,
+  prompt = function ()
+    return Fk:translate("#nos_chengxiang-choose")
+  end
+}
 local nos__chengxiang = fk.CreateTriggerSkill{
   name = "nos__chengxiang",
   anim_type = "masochism",
   events = {fk.Damaged},
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local card_ids = room:getNCards(4)
-    local get, throw = {}, {}
+    local cards = room:getNCards(4)
     room:moveCards({
-      ids = card_ids,
+      ids = cards,
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
     })
-    table.forEach(room.players, function(p)
-      room:fillAG(p, card_ids)
-    end)
-    while true do
-      local sum = 0
-      table.forEach(get, function(id)
-        sum = sum + Fk:getCardById(id).number
-      end)
-      for i = #card_ids, 1, -1 do
-        local id = card_ids[i]
-        if sum + Fk:getCardById(id).number >= 13 then
-          room:takeAG(player, id, room.players)
-          table.insert(throw, id)
-          table.removeOne(card_ids, id)
-        end
-      end
-      if #card_ids == 0 then break end
-      local card_id = room:askForAG(player, card_ids, false, self.name)
-      --if card_id == nil then break end
-      room:takeAG(player, card_id, room.players)
-      table.insert(get, card_id)
-      table.removeOne(card_ids, card_id)
-      if #card_ids == 0 then break end
-    end
-    table.forEach(room.players, function(p)
-      room:closeAG(p)
-    end)
+    local get = room:askForPoxi(player, "nos_chengxiang_count", {
+      { self.name, cards },
+    }, nil, true)
     if #get > 0 then
       local dummy = Fk:cloneCard("dilu")
       dummy:addSubcards(get)
       room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
     end
-    if #throw > 0 then
+    cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
+    if #cards > 0 then
       room:moveCards({
-        ids = throw,
+        ids = cards,
         toArea = Card.DiscardPile,
         moveReason = fk.ReasonPutIntoDiscardPile,
       })
@@ -170,12 +156,14 @@ local nos__renxin = fk.CreateTriggerSkill{
     dummy:addSubcards(player.player_cards[Player.Hand])
     room:obtainCard(target.id, dummy, false, fk.ReasonGive)
     player:turnOver()
-    room:recover({
-      who = target,
-      num = 1,
-      recoverBy = player,
-      skillName = self.name
-    })
+    if not target.dead and target:isWounded() then
+      room:recover({
+        who = target,
+        num = 1,
+        recoverBy = player,
+        skillName = self.name
+      })
+    end
     return true
   end,
 }
@@ -188,6 +176,8 @@ Fk:loadTranslationTable{
   ["nos__renxin"] = "仁心",
   [":nos__renxin"] = "当一名其他角色处于濒死状态时，你可以将武将牌翻面并将所有手牌（至少一张）交给该角色。若如此做，该角色回复1点体力。",
   ["#nos__renxin-invoke"] = "仁心：你可以将所有手牌交给 %dest，令其回复1点体力",
+  ["#nos_chengxiang-choose"] = "获得任意点数之和小于13的牌",
+  ["nos_chengxiang_count"] = "称象",
 
   ["$nos__chengxiang1"] = "以船载象，以石易象，称石则可得象斤重。",
   ["$nos__chengxiang2"] = "若以冲所言行事，则此象之重可称也。",
@@ -202,7 +192,7 @@ local jingce = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Play and #player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e) 
+    return target == player and player:hasSkill(self) and player.phase == Player.Play and #player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e)
       local use = e.data[1]
       return use.from == player.id
     end, Player.HistoryTurn) >= player.hp
@@ -249,7 +239,9 @@ local junxing = fk.CreateActiveSkill{
     end
     if #room:askForDiscard(target, 1, 1, false, self.name, true, ".|.|.|hand|.|"..table.concat(types, ","), "#junxing-discard") == 0 then
       target:turnOver()
-      target:drawCards(#effect.cards)
+      if not target.dead then
+        target:drawCards(#effect.cards)
+      end
     end
   end
 }
