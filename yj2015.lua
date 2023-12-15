@@ -297,24 +297,47 @@ Fk:loadTranslationTable{
 local zhongyao = General(extension, "zhongyao", "wei", 3)
 local huomo = fk.CreateViewAsSkill{
   name = "huomo",
-  pattern = "^nullification|.|.|.|.|basic",
+  pattern = ".|.|.|.|.|basic",
+  prompt = function ()
+    return "#huomo-card"
+  end,
   interaction = function()
     local names = {}
+    local mark = U.getMark(Self, "huomo-turn")
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
-      if card.type == Card.TypeBasic and Self:usedCardTimes(card.trueName, Player.HistoryTurn) == 0 then
-        table.insertIfNeed(names, card.name)
+      if ((Fk.currentResponsePattern == nil and Self:canUse(card)) or
+      (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(card))) then
+        if card.type == Card.TypeBasic and not table.contains(mark, card.trueName) then
+          table.insertIfNeed(names, card.name)
+        end
       end
     end
     if #names == 0 then return false end
     return UI.ComboBox {choices = names}
   end,
-  card_filter = function()
-    return false
+  card_filter = function (self, to_select, selected)
+    local card = Fk:getCardById(to_select)
+    return #selected == 0 and card.type ~= Card.TypeBasic and card.color == Card.Black
+  end,
+  before_use = function (self, player, use)
+    local room = player.room
+    local put = use.card:getMark(self.name)
+    if put ~= 0 and table.contains(player:getCardIds("he"), put) then
+      room:moveCards({
+        ids = {put},
+        from = player.id,
+        toArea = Card.DrawPile,
+        moveReason = fk.ReasonPut,
+        skillName = self.name,
+        proposer = player.id,
+      })
+    end
   end,
   view_as = function(self, cards)
-    if not self.interaction.data then return end
+    if not self.interaction.data or #cards ~= 1 then return end
     local card = Fk:cloneCard(self.interaction.data)
+    card:setMark(self.name, cards[1])
     card.skillName = self.name
     return card
   end,
@@ -325,46 +348,53 @@ local huomo = fk.CreateViewAsSkill{
     return not response and not player:isNude()
   end,
 }
-local huomo_trigger = fk.CreateTriggerSkill{  --FIXME: 体验不佳！
+local huomo_trigger = fk.CreateTriggerSkill{
   name = "#huomo_trigger",
-  events = {fk.PreCardUse, fk.PreCardRespond},
-  mute = true,
-  priority = 10,
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and table.contains(data.card.skillNames, "huomo")
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    room:doIndicate(player.id, TargetGroup:getRealTargets(data.tos))
-    return true
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local card = room:askForCard(player, 1, 1, true, "huomo", true, ".|.|spade,club|.|.|^basic", "#huomo-card")
-    if #card > 0 then
-      room:moveCards({
-        ids = card,
-        from = player.id,
-        toArea = Card.DrawPile,
-        moveReason = fk.ReasonJustMove,
-        skillName = "huomo",
-      })
-      return false
+  refresh_events = {fk.AfterCardUseDeclared, fk.EventAcquireSkill},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.AfterCardUseDeclared then
+      return target == player and player:hasSkill("huomo", true)
     else
-      return true
+      return target == player and data == huomo
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.AfterCardUseDeclared then
+      local mark = U.getMark(player, "huomo-turn")
+      table.insert(mark, data.card.trueName)
+      room:setPlayerMark(player, "huomo-turn", mark)
+    else
+      if room.logic:getCurrentEvent() then
+        local names = {}
+        room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
+          local use = e.data[1]
+          if use.from == player.id then
+            table.insertIfNeed(names, use.card.trueName)
+          end
+          return false
+        end, Player.HistoryTurn)
+        room:setPlayerMark(player, "huomo-turn", names)
+      end
     end
   end,
 }
+huomo:addRelatedSkill(huomo_trigger)
+zhongyao:addSkill(huomo)
 local zuoding = fk.CreateTriggerSkill{
   name = "zuoding",
   anim_type = "drawcard",
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target ~= player and target.phase == Player.Play and data.firstTarget and
-      data.card.suit == Card.Spade and #AimGroup:getAllTargets(data.tos) > 0 and player:getMark("zuoding-phase") == 0
+    if player:hasSkill(self) and target ~= player and target.phase == Player.Play and data.firstTarget
+    and data.card.suit == Card.Spade
+    and table.find(AimGroup:getAllTargets(data.tos), function(pid) return not player.room:getPlayerById(pid).dead end) then
+      return #U.getActualDamageEvents(player.room, 1, nil, Player.HistoryPhase) == 0
+    end
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, AimGroup:getAllTargets(data.tos), 1, 1, "#zuoding-choose", self.name, true)
+    local targets = table.filter(AimGroup:getAllTargets(data.tos), function(pid) return not player.room:getPlayerById(pid).dead end)
+    local to = player.room:askForChoosePlayers(player, targets, 1, 1, "#zuoding-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -373,17 +403,7 @@ local zuoding = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     player.room:getPlayerById(self.cost_data):drawCards(1, self.name)
   end,
-
-  refresh_events = {fk.Damaged},
-  can_refresh = function(self, event, target, player, data)
-    return player:hasSkill(self.name, true) and player.room.current.phase == Player.Play
-  end,
-  on_refresh = function(self, event, target, player, data)
-    player.room:setPlayerMark(player, "zuoding-phase", 1)
-  end,
 }
-huomo:addRelatedSkill(huomo_trigger)
-zhongyao:addSkill(huomo)
 zhongyao:addSkill(zuoding)
 Fk:loadTranslationTable{
   ["zhongyao"] = "钟繇",
