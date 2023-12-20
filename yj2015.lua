@@ -422,41 +422,46 @@ Fk:loadTranslationTable{
 }
 
 local liuchen = General(extension, "liuchen", "shu", 4)
-local zhanjue = fk.CreateViewAsSkill{
+local zhanjue = fk.CreateActiveSkill{
   name = "zhanjue",
   anim_type = "offensive",
-  card_filter = function()
+  card_num = 0,
+  min_target_num = 1,
+  prompt = "#zhanjue",
+  can_use = function(self, player)
+    return player:getMark("zhanjue-phase") < 2 and not player:isKongcheng()
+  end,
+  card_filter = function(self, to_select, selected, selected_targets)
     return false
   end,
-  view_as = function(self, cards)
+  target_filter = function(self, to_select, selected, selected_cards)
     local card = Fk:cloneCard("duel")
     card:addSubcards(Self:getCardIds(Player.Hand))
-    card.skillName = self.name
-    return card
+    return Self:canUse(card) and card.skill:targetFilter(to_select, selected, selected_cards, card) and
+      not Self:isProhibited(Fk:currentRoom():getPlayerById(to_select), card)
   end,
-  enabled_at_play = function(self, player)
-    return player:getMark("zhanjue-turn") < 2 and not player:isKongcheng()
-  end,
-}
-local zhanjue_trigger = fk.CreateTriggerSkill{
-  name = "#zhanjue_trigger",
-  mute = true,
-  events = {fk.CardUseFinished},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and table.contains(data.card.skillNames, "zhanjue") and data.damageDealt
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local card = Fk:cloneCard("duel")
+    card:addSubcards(player:getCardIds(Player.Hand))
+    -- use
+    local use = {} ---@type CardUseStruct
+    use.from = effect.from
+    use.tos = table.map(effect.tos, function(pid) return { pid } end)
+    use.card = card
+
+    room:useCard(use)
     if not player.dead then
       player:drawCards(1, "zhanjue")
-      room:addPlayerMark(player, "zhanjue-turn", 1)
+      room:addPlayerMark(player, "zhanjue-phase", 1)
     end
-    for _, p in ipairs(room.alive_players) do
-      if data.damageDealt[p.id] then
-        p:drawCards(1, "zhanjue")
-        if p == player then
-          room:addPlayerMark(player, "zhanjue-turn", 1)
+    if use.damageDealt then
+      for _, p in ipairs(room.alive_players) do
+        if use.damageDealt[p.id] then
+          p:drawCards(1, "zhanjue")
+          if p == player then
+            room:addPlayerMark(player, "zhanjue-phase", 1)
+          end
         end
       end
     end
@@ -464,13 +469,42 @@ local zhanjue_trigger = fk.CreateTriggerSkill{
 }
 local qinwang = fk.CreateViewAsSkill{
   name = "qinwang$",
+  prompt = "#qinwang",
+  mute = true,
   anim_type = "defensive",
   pattern = "slash",
   card_filter = function(self, to_select, selected)
-    return #selected == 0
+    return false
   end,
-  before_use = function(self, player)
-    player.room:askForDiscard(player, 1, 1, true, self.name, false, ".")
+  before_use = function(self, player, use)
+    local room = player.room
+    if #room:askForDiscard(player, 1, 1, true, self.name, false, ".") > 0 then
+      room:notifySkillInvoked(player, self.name)
+      player:broadcastSkillInvoke(self.name)
+      if use.tos then
+        room:doIndicate(player.id, TargetGroup:getRealTargets(use.tos))
+      end
+  
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        if p.kingdom == "shu" then
+          local cardResponded = room:askForResponse(p, "slash", "slash", "#qinwang-ask:" .. player.id, true)
+          if cardResponded then
+            room:responseCard({
+              from = p.id,
+              card = cardResponded,
+              skipDrop = true,
+            })
+  
+            use.card = cardResponded
+            p:drawCards(1, self.name)
+            return
+          end
+        end
+      end
+  
+      room:setPlayerMark(player, "qinwang-failed-phase", 1)
+    end
+    return self.name
   end,
   view_as = function(self, cards)
     local c = Fk:cloneCard("slash")
@@ -478,49 +512,14 @@ local qinwang = fk.CreateViewAsSkill{
     return c
   end,
   enabled_at_play = function(self, player)
-    return not player:isNude() and
+    return player:getMark("qinwang-failed-phase") == 0 and not player:isNude() and
       table.find(Fk:currentRoom().alive_players, function(p) return p ~= player and p.kingdom == "shu" end)
   end,
   enabled_at_response = function(self, player)
-    return not player:isNude() and
+    return player:getMark("qinwang-failed-phase") == 0 and not player:isNude() and
       table.find(Fk:currentRoom().alive_players, function(p) return p ~= player and p.kingdom == "shu" end)
   end,
 }
-local qinwang_response = fk.CreateTriggerSkill{
-  name = "#qinwang_response",
-  events = {fk.PreCardUse, fk.PreCardRespond},
-  mute = true,
-  priority = 10,
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and table.contains(data.card.skillNames, "qinwang")
-  end,
-  on_cost = function(self, event, target, player, data)
-    player.room:doIndicate(player.id, TargetGroup:getRealTargets(data.tos))
-    return true
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    for _, p in ipairs(room:getOtherPlayers(player)) do
-      if p.kingdom == "shu" then
-        local cardResponded = room:askForResponse(p, "slash", "slash", "#qinwang-ask:%s", player.id)
-        if cardResponded then
-          room:responseCard({
-            from = p.id,
-            card = cardResponded,
-            skipDrop = true,
-          })
-
-          data.card = cardResponded
-          p:drawCards(1, "qinwang")
-          return false
-        end
-      end
-    end
-    return true
-  end,
-}
-zhanjue:addRelatedSkill(zhanjue_trigger)
-qinwang:addRelatedSkill(qinwang_response)
 liuchen:addSkill(zhanjue)
 liuchen:addSkill(qinwang)
 Fk:loadTranslationTable{
@@ -530,6 +529,9 @@ Fk:loadTranslationTable{
   ["qinwang"] = "勤王",
   [":qinwang"] = "主公技，当你需要使用或打出【杀】时，你可以弃置一张牌，然后令其他蜀势力角色选择是否打出一张【杀】（视为由你使用或打出）。"..
   "若有角色响应，该角色摸一张牌。",
+  ["#qinwang-ask"] = "勤王: 你可打出一张【杀】，视为 %src 使用或打出，若如此做，你摸一张牌",
+  ["#zhanjue"] = "战绝：你可以将所有手牌当【决斗】使用，然后你和受伤的角色各摸一张牌",
+  ["#qinwang"] = "勤王：你可以弃置一张牌，然后令其他蜀势力角色选择是否打出一张【杀】（视为由你使用或打出）",
 
   ["$zhanjue1"] = "成败在此一举，杀！",
   ["$zhanjue2"] = "此刻，唯有死战，安能言降！",

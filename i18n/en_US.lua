@@ -465,9 +465,12 @@ return {
 
   ["liuchen"] = "Liu Chen",
   ["zhanjue"] = "Desperate Fight",
-  [":zhanjue"] = "In Action Phase, can use all hand cards as 1 Duel. After it’s resolved, you and the hero who suffers DMG draw 1. If this turn you have drawn 2+ cards this way, you cannot activate this skill until the end of turn.",
+  [":zhanjue"] = "In Action Phase, can use all hand cards as 1 Duel. After it’s resolved, you and the hero who suffers DMG draw 1. If this turn you have drawn 2+ cards this way, you cannot activate this skill until the end of phase.",
   ["qinwang"] = "Send Troops to Rescue the King",
   [":qinwang"] = "(lord) You can discard 1 to trigger Rouse. If there is a response, that hero draws 1.",
+  ["#qinwang-ask"] = "Send Troops to Rescue the King: you can play a Slash, which is regarded as %src uses/plays, if you do so, you draw 1",
+  ["#zhanjue"] = "Desperate Fight：you can use all hand cards as 1 Duel. After it’s resolved, you and the hero who suffers DMG draw 1",
+  ["#qinwang"] = "Send Troops to Rescue the King：You can discard 1 to ask other Shu characters to play Slash, which is regard as you use/play that",
 
   ["xiahoushi"] = "Lady Xiahou",
   ["qiaoshi"] = "Gather Firewood",
@@ -645,16 +648,16 @@ return {
   ["#fuzhu-invoke"] = "Execution: you can use EVERY Slash in pile on %dest!",
 
   ["xuezong"] = "Xue Zong",
-  ["funan"] = "复难",
-  [":funan"] = "其他角色使用或打出牌响应你使用的牌时，你可以令其获得你使用的牌（其本回合不能使用或打出这张牌），然后你获得其使用或打出的牌。",
-  ["jiexun"] = "诫训",
-  [":jiexun"] = "结束阶段，你可令一名其他角色摸等同于场上<font color='red'>♦</font>牌数的牌，然后弃置X张牌（X为本技能发动过的次数），"..
-  "若其因此法弃置了所有牌，则你失去〖诫训〗，然后修改〖复难〗。",
-  ["funanEx"] = "复难",
-  [":funanEx"] = "其他角色使用或打出牌响应你使用的牌时，你可以获得其使用或打出的牌。",
-  ["#funan-invoke"] = "复难：你可以令 %dest 获得你使用的%arg，你获得其使用的%arg2",
-  ["#funanEx-invoke"] = "复难：你可以获得 %dest 使用的%arg",
-  ["#jiexun-choose"] = "诫训：你可以令一名其他角色摸场上<font color='red'>♦</font>牌数的牌，然后弃置你发动“诫训”次数的牌",
+  ["funan"] = "Double Difficulty",
+  [":funan"] = "When other heroes use/play cards to respond you, you can allow him to receive your card (he cannot use/play it this turn), then, you receive the card he used/played.",
+  ["jiexun"] = "Commandment Training",
+  [":jiexun"] = "At End Phase can choose another hero to draw X cards, then discards Y cards. If he discards all his cards, you lose this skill and rewrite Double Difficulty."..
+  "<br>X= # ♦ on the field. Y= #times u activated this skill before.",
+  ["funanEx"] = "Double Difficulty",
+  [":funanEx"] = "When other heroes use/play cards to respond you, you can receive the card he used/played.",
+  ["#funan-invoke"] = "Double Difficulty：you can allow %dest to receive your %arg, then, you receive his %arg2",
+  ["#funanEx-invoke"] = "Double Difficulty：you can receive %dest's %arg",
+  ["#jiexun-choose"] = "Double Difficulty：you can choose another hero to draw X cards, then discards Y cards.<br>X= # ♦ on the field. Y= #times u activated this skill before.",
 
   ["caojie"] = "Cao Jie",
   ["shouxi"] = "Guard the Imperial Seal",
