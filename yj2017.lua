@@ -947,7 +947,7 @@ local shouxi = fk.CreateTriggerSkill{
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
-    local mark = type(player:getMark("@$shouxi")) == "table" and player:getMark("@$shouxi") or {}
+    local mark = U.getMark(player, "@$shouxi")
     local names = {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
@@ -966,13 +966,13 @@ local shouxi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local name = self.cost_data
-    local mark = type(player:getMark("@$shouxi")) == "table" and player:getMark("@$shouxi") or {}
+    local mark = U.getMark(player, "@$shouxi")
     table.insert(mark, name)
     room:setPlayerMark(player, "@$shouxi", mark)
     local from = room:getPlayerById(data.from)
     if #room:askForDiscard(from, 1, 1, false, self.name, true, name, "#shouxi-discard::"..player.id..":"..name) == 0 then
       table.insertIfNeed(data.nullifiedTargets, player.id)
-    elseif not player:isNude() then
+    elseif not player:isNude() and not from.dead then
       local card = room:askForCardChosen(from, player, "he", self.name)
       room:obtainCard(from, card, false, fk.ReasonPrey)
     end
@@ -997,23 +997,21 @@ local huimin = fk.CreateTriggerSkill{
     local players = table.filter(room.alive_players, function(p) return p:getHandcardNum() < p.hp end)
     player:drawCards(#players, self.name)
     if player:isKongcheng() then return false end
-    local cards = room:askForCard(player, #players, #players, false, self.name, false, ".", "#huimin-show:::"..#players)
+    local num = math.min(player:getHandcardNum(), #players)
+    local cards = room:askForCard(player, num, num, false, self.name, false, ".", "#huimin-show:::"..num)
     player:showCards(cards)
     local tos = room:askForChoosePlayers(player, table.map(players, Util.IdMapper), 1, 1, "#huimin-choose", self.name, false)
     local temp = room:getPlayerById(tos[1])
-    table.forEach(room.players, function(p) room:fillAG(p, cards) end)
     while #cards > 0 and #players > 0 do
       if table.contains(players, temp) then
         table.removeOne(players, temp)
-        local chosen = room:askForAG(temp, cards, false, self.name)
-        room:takeAG(temp, chosen, room.players)
-        room:obtainCard(temp, chosen, true, fk.ReasonPrey)
+        local chosen = room:askForCardChosen(temp, player, { card_data = { { "huimin", cards } } }, self.name, "#huimin-card:"..player.id)
         table.removeOne(cards, chosen)
+        room:obtainCard(temp, chosen, true, fk.ReasonPrey)
         cards = table.filter(cards, function(id) return room:getCardOwner(id) == player and room:getCardArea(id) == Card.PlayerHand end)
       end
       temp = temp.next
     end
-    table.forEach(room.players, function(p) room:closeAG(p) end)
   end,
 }
 caojie:addSkill(huimin)
@@ -1023,13 +1021,14 @@ Fk:loadTranslationTable{
   [":shouxi"] = "当你成为【杀】的目标后，你可声明一种未以此法声明过的基本牌或锦囊牌的牌名，然后使用者选择一项：弃置一张你声明的牌，然后"..
   "获得你的一张牌；或令此【杀】对你无效。",
   ["@$shouxi"] = "守玺",
-  ["#shouxi-discard"] = "守玺：1.弃置一张%arg并获得%dest一张牌2.此【杀】对%dest无效",
+  ["#shouxi-discard"] = "守玺：1.弃置一张%arg并获得%dest一张牌 2.此【杀】对%dest无效",
 
   ["huimin"] = "惠民",
   [":huimin"] = "结束阶段开始时，你可以摸X张牌（X为手牌数小于体力值的角色数），然后展示等量的手牌，从你指定的一名角色开始，这些角色依次获得其中一张。",
   ["#huimin-invoke"] = "惠民：摸%arg张牌，再展示等量手牌，令手牌数小于体力值的角色获得",
   ["#huimin-choose"] = "惠民：指定第一个选牌的角色",
   ["#huimin-show"] = "惠民：请展示%arg张手牌，从你指定的角色开始，手牌数小于体力值的角色依次获得其中一张",
+  ["#huimin-card"] = "惠民：选择一张 %src 展示的牌获得",
 
   ["$shouxi1"] = "天子之位，乃归刘汉！",
   ["$shouxi2"] = "吾父功盖寰区，然且不敢篡窃神器。",
