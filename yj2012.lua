@@ -1058,13 +1058,14 @@ local zili = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:changeMaxHp(player, -1)
+    if player.dead then return end
     local choices = {"draw2"}
     if player:isWounded() then
       table.insert(choices, "recover")
     end
     local choice = room:askForChoice(player, choices, self.name)
     if choice == "draw2" then
-      player:drawCards(2)
+      player:drawCards(2, self.name)
     else
       room:recover({
         who = player,

@@ -99,7 +99,7 @@ local dingpin = fk.CreateActiveSkill{
     }
     room:judge(judge)
     if judge.card.color == Card.Black then
-      target:drawCards(target:getLostHp())
+      target:drawCards(target:getLostHp(), self.name)
       room:setPlayerMark(target, "dingpin_target-turn", 1)
     elseif judge.card.color == Card.Red then
       player:turnOver()
@@ -943,7 +943,7 @@ local jianying = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Play and self.cost_data
   end,
   on_use = function(self, event, target, player, data)
-    player:drawCards(1)
+    player:drawCards(1, self.name)
   end,
 
   refresh_events = {fk.AfterCardUseDeclared},

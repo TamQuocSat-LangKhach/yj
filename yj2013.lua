@@ -240,7 +240,7 @@ local junxing = fk.CreateActiveSkill{
     if #room:askForDiscard(target, 1, 1, false, self.name, true, ".|.|.|hand|.|"..table.concat(types, ","), "#junxing-discard") == 0 then
       target:turnOver()
       if not target.dead then
-        target:drawCards(#effect.cards)
+        target:drawCards(#effect.cards, self.name)
       end
     end
   end
@@ -328,7 +328,7 @@ local longyin = fk.CreateTriggerSkill{
       data.extraUse = true
     end
     if data.card.color == Card.Red and not player.dead then
-      player:drawCards(1)
+      player:drawCards(1, self.name)
     end
   end,
 }
@@ -713,7 +713,7 @@ local zhiyan = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
-    local id = to:drawCards(1)[1]
+    local id = to:drawCards(1, self.name)[1]
     if room:getCardOwner(id) ~= to or room:getCardArea(id) ~= Card.PlayerHand then return end
     local card = Fk:getCardById(id)
     to:showCards(card)

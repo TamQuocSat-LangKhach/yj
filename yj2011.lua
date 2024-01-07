@@ -225,7 +225,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
     if event ==  fk.HpRecover then
       player:broadcastSkillInvoke(self.name, math.random(1,2))
       room:notifySkillInvoked(player, self.name, "support")
-      data.recoverBy:drawCards(data.num)
+      data.recoverBy:drawCards(data.num, self.name)
     else
       player:broadcastSkillInvoke(self.name, math.random(3,4))
       room:notifySkillInvoked(player, self.name)
