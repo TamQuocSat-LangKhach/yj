@@ -1027,7 +1027,7 @@ local quanji = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    player:drawCards(1)
+    player:drawCards(1, self.name)
     if player:isKongcheng() then return end
     local card = room:askForCard(player, 1, 1, false, self.name, false, ".", "#quanji-card")
     player:addToPile("zhonghui_quan", card, true, self.name)
