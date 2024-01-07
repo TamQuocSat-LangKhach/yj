@@ -153,9 +153,9 @@ local nos__renxin = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local dummy = Fk:cloneCard("dilu")
+    player:turnOver()
     dummy:addSubcards(player.player_cards[Player.Hand])
     room:obtainCard(target.id, dummy, false, fk.ReasonGive)
-    player:turnOver()
     if not target.dead and target:isWounded() then
       room:recover({
         who = target,
@@ -164,7 +164,6 @@ local nos__renxin = fk.CreateTriggerSkill{
         skillName = self.name
       })
     end
-    return true
   end,
 }
 nos__caochong:addSkill(nos__chengxiang)
