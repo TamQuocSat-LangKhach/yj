@@ -355,7 +355,7 @@ local huomo_trigger = fk.CreateTriggerSkill{
     if event == fk.AfterCardUseDeclared then
       return target == player and player:hasSkill("huomo", true)
     else
-      return target == player and data == huomo
+      return target == player and data == huomo and player.room:getTag("RoundCount")
     end
   end,
   on_refresh = function(self, event, target, player, data)
