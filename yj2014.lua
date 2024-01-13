@@ -75,7 +75,7 @@ local dingpin = fk.CreateActiveSkill{
     return not player:isKongcheng()
   end,
   card_filter = function(self, to_select, selected)
-    if #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip then
+    if #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip and not Self:prohibitDiscard(Fk:getCardById(to_select)) then
       local types = Self:getMark("dingpin-turn")
       if type(types) == "table" then
         return not table.contains(types, Fk:getCardById(to_select):getTypeString())
@@ -984,11 +984,13 @@ local shibei = fk.CreateTriggerSkill{
     if U.getActualDamageEvents(room, 1, function(e) return e.data[1].to == player end)[1].data[1] == data then
       player:broadcastSkillInvoke(self.name, 1)
       room:notifySkillInvoked(player, self.name)
-      room:recover{
-        who = player,
-        num = 1,
-        skillName = self.name
-      }
+      if player:isWounded() then
+        room:recover{
+          who = player,
+          num = 1,
+          skillName = self.name
+        }
+      end
     else
       player:broadcastSkillInvoke(self.name, 2)
       room:notifySkillInvoked(player, self.name, "negative")

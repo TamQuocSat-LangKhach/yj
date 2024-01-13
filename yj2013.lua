@@ -236,7 +236,7 @@ local junxing = fk.CreateActiveSkill{
     for _, id in ipairs(effect.cards) do
       table.removeOne(types, Fk:getCardById(id):getTypeString())
     end
-    if #room:askForDiscard(target, 1, 1, false, self.name, true, ".|.|.|hand|.|"..table.concat(types, ","), "#junxing-discard") == 0 then
+    if #types == 0 or #room:askForDiscard(target, 1, 1, false, self.name, true, ".|.|.|hand|.|"..table.concat(types, ","), "#junxing-discard") == 0 then
       target:turnOver()
       if not target.dead then
         target:drawCards(#effect.cards, self.name)
