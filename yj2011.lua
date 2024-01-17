@@ -601,7 +601,7 @@ local jujian = fk.CreateTriggerSkill{
     if not to.faceup or to.chained then
       table.insert(choices, "jujian_reset")
     end
-    local choice = room:askForChoice(to, choices, self.name)
+    local choice = room:askForChoice(to, choices, self.name, nil, false, {"draw2", "recover", "jujian_reset"})
     if choice == "draw2" then
       to:drawCards(2, self.name)
     elseif choice == "recover" then
@@ -612,12 +612,7 @@ local jujian = fk.CreateTriggerSkill{
         skillName = self.name
       })
     else
-      if not to.faceup then
-        to:turnOver()
-      end
-      if to.chained then
-        to:setChainState(false)
-      end
+      to:reset()
     end
   end,
 }
@@ -628,9 +623,9 @@ Fk:loadTranslationTable{
   ["wuyan"] = "无言",
   [":wuyan"] = "锁定技，你防止你造成或受到的任何锦囊牌的伤害。",
   ["jujian"] = "举荐",
-  [":jujian"] = "结束阶段，你可以弃置一张非基本牌，令一名其他角色选择一项：摸两张牌；回复1点体力；重置武将牌。",
-  ["#jujian-choose"] = "举荐：你可以弃置一张非基本牌，令一名其他角色摸牌/回复体力/重置武将牌",
-  ["jujian_reset"] = "重置武将牌",
+  [":jujian"] = "结束阶段，你可以弃置一张非基本牌，令一名其他角色选择一项：摸两张牌；回复1点体力；复原武将牌。",
+  ["#jujian-choose"] = "举荐：你可以弃置一张非基本牌，令一名其他角色摸牌/回复体力/复原武将牌",
+  ["jujian_reset"] = "复原武将牌",
 
   ["$wuyan1"] = "吾，誓不为汉贼献一策！",
   ["$wuyan2"] = "汝有良策，何必问我！",
