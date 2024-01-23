@@ -145,20 +145,22 @@ local nos__renxin = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.AskForPeaches},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target ~= player and target.dying and not player:isKongcheng()
+    return player:hasSkill(self) and target == player and not player:isKongcheng() and
+    player.room:getPlayerById(data.who) and data.who ~= player.id
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#nos__renxin-invoke::"..target.id)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#nos__renxin-invoke::"..data.who)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    local dying = player.room:getPlayerById(data.who)
     local dummy = Fk:cloneCard("dilu")
     player:turnOver()
     dummy:addSubcards(player.player_cards[Player.Hand])
-    room:obtainCard(target.id, dummy, false, fk.ReasonGive)
-    if not target.dead and target:isWounded() then
+    room:obtainCard(dying.id, dummy, false, fk.ReasonGive)
+    if not dying.dead and dying:isWounded() then
       room:recover({
-        who = target,
+        who = dying,
         num = 1,
         recoverBy = player,
         skillName = self.name
