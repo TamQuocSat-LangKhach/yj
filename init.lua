@@ -6,6 +6,7 @@ local yj2015 = require "packages/yj/yj2015"
 local yj2016 = require "packages/yj/yj2016"
 local yj2017 = require "packages/yj/yj2017"
 
+Fk:loadTranslationTable{ ["yj"] = "一将成名" }
 Fk:loadTranslationTable(require 'packages/yj/i18n/en_US', 'en_US')
 
 return {
