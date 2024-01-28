@@ -611,6 +611,9 @@ qinmi:addSkill(zhuandui)
 qinmi:addSkill(tianbian)
 Fk:loadTranslationTable{
   ["qinmi"] = "秦宓",
+  ["#qinmi"] = "彻天之舌",
+  ["cv:qinmi"] = "曹真",
+	["illustrator:qinmi"] = "Thinking",
   ["jianzhengq"] = "谏征",
   [":jianzhengq"] = "其他角色使用【杀】指定其他角色为目标时，若你在其攻击范围内，你可以将一张手牌置于牌堆顶，取消所有目标，然后若此【杀】"..
   "不为黑色，你成为目标。",
@@ -1019,6 +1022,9 @@ local huimin = fk.CreateTriggerSkill{
 caojie:addSkill(huimin)
 Fk:loadTranslationTable{
   ["caojie"] = "曹节",
+  ["#caojie"] = "献穆皇后",
+  ["cv:caojie"] = "醋醋", -- 文晓依
+	["illustrator:caojie"] = "小小鸡仔",
   ["shouxi"] = "守玺",
   [":shouxi"] = "当你成为【杀】的目标后，你可声明一种未以此法声明过的基本牌或锦囊牌的牌名，然后使用者选择一项：弃置一张你声明的牌，然后"..
   "获得你的一张牌；或令此【杀】对你无效。",

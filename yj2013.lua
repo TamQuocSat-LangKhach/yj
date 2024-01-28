@@ -78,6 +78,9 @@ caochong:addSkill(chengxiang)
 caochong:addSkill(renxin)
 Fk:loadTranslationTable{
   ["caochong"] = "曹冲",
+  ["#caochong"] = "仁爱的神童",
+  ["cv:caochong"] = "水原",
+	["illustrator:caochong"] = "amo",
   ["chengxiang"] = "称象",
   [":chengxiang"] = "每当你受到一次伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于或等于13的牌，将其余的牌置入弃牌堆。",
   ["renxin"] = "仁心",
