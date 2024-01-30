@@ -97,6 +97,11 @@ caishi:addRelatedSkill(caishi_prohibit)
 xinxianying:addSkill(caishi)
 Fk:loadTranslationTable{
   ["xinxianying"] = "辛宪英",
+  ["#xinxianying"] = "名门智女",
+  ["designer:xinxianying"] = "如释帆飞",
+	["cv:xinxianying"] = "小N",
+  ["illustrator:xinxianying"] = "玫芍之言",
+
   ["zhongjian"] = "忠鉴",
   [":zhongjian"] = "出牌阶段限一次，你可以展示一张手牌，然后展示手牌数大于体力值的一名其他角色X张手牌（X为其手牌数和体力值之差）。若其以此法"..
   "展示的牌与你展示的牌：有颜色相同的，你摸一张牌或弃置其一张牌；有点数相同的，本回合此技能改为“出牌阶段限两次”；均不同且你手牌上限大于0，你的手牌上限-1。",
@@ -298,6 +303,10 @@ local hexian = fk.CreateTriggerSkill{
 jikang:addRelatedSkill(hexian)
 Fk:loadTranslationTable{
   ["jikang"] = "嵇康",
+  ["#jikang"] = "峻峰孤松",
+  ["cv:jikang"] = "曹毅",
+  ["illustrator:jikang"] = "眉毛子",
+
   ["qingxian"] = "清弦",
   [":qingxian"] = "当你受到伤害/回复体力后，你可以选一项令伤害来源/一名其他角色执行：1.失去1点体力并随机使用牌堆一张装备牌；"..
   "2.回复1点体力并弃置一张装备牌。若其使用或弃置的牌的花色为♣，你回复1点体力。",
@@ -465,6 +474,11 @@ wuxian:addSkill(fumian)
 wuxian:addSkill(daiyan)
 Fk:loadTranslationTable{
   ["wuxian"] = "吴苋",
+  ["#wuxian"] = "穆皇后",
+	["designer:wuxian"] = "wlf元首",
+	["cv:wuxian"] = "冯骏骅",
+	["illustrator:wuxian"] = "缨尧",
+
   ["fumian"] = "福绵",
   [":fumian"] = "准备阶段，你可以选择一项：1.本回合下个摸牌阶段摸牌数+1；2.本回合限一次，当你使用红色牌时，可以令此牌目标数+1。若你选择的选项"..
   "与你上回合选择的选项不同，则本回合该选项数值+1。",
@@ -864,34 +878,44 @@ local jiexun = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local n1 = 0
+    for _, p in ipairs(room.alive_players) do
+      n1 = n1 + #table.filter(p:getCardIds("ej"), function(id) return Fk:getCardById(id).suit == Card.Diamond end)
+    end
+    local n2 = player:usedSkillTimes(self.name, Player.HistoryGame) + 1
     local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper),
-      1, 1, "#jiexun-choose", self.name, true)
+      1, 1, "#jiexun-choose:::"..n1..":"..n2, self.name, true)
     if #to > 0 then
-      self.cost_data = to[1]
+      self.cost_data = {to[1], n1, n2}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = room:getPlayerById(self.cost_data)
-    local n = 0
-    for _, p in ipairs(room.alive_players) do
-      n = n + #table.filter(p:getCardIds("ej"), function(id) return Fk:getCardById(id).suit == Card.Diamond end)
-    end
-    if n > 0 then
-      to:drawCards(n, self.name)
+    local to = room:getPlayerById(self.cost_data[1])
+    local n1, n2 = self.cost_data[2], self.cost_data[3]
+    if n1 > 0 then
+      to:drawCards(n1, self.name)
     end
     if to:isNude() or to.dead then return end
-    n = player:usedSkillTimes(self.name, Player.HistoryGame)
-    if #to:getCardIds("he") > n then
-      room:askForDiscard(to, n, n, true, self.name, false)
-    else
-      to:throwAllCards("he")
-      if not player.dead then
-        room:handleAddLoseSkills(player, "-jiexun", nil, true, false)
+    local throw = room:askForDiscard(to, n2, n2, true, self.name, false, ".", nil, true)
+    local change = (#throw == #to:getCardIds("he"))
+    room:throwCard(throw, self.name, to, to)
+    if change and not player.dead then
+      room:handleAddLoseSkills(player, "-jiexun", nil, true, false)
+      if player:hasSkill("funan", true) then
         room:handleAddLoseSkills(player, "-funan|funanEx", nil, false, true)
       end
     end
+  end,
+
+  refresh_events = {fk.EventLoseSkill}, -- for god sunquan
+  can_refresh = function (self, event, target, player, data)
+    return player == target and data == self
+  end,
+  on_refresh = function (self, event, target, player, data)
+    player:setSkillUseHistory(self.name, 0, Player.HistoryGame)
   end,
 }
 local funanEx = fk.CreateTriggerSkill{
@@ -922,16 +946,18 @@ xuezong:addSkill(funan)
 xuezong:addSkill(jiexun)
 Fk:loadTranslationTable{
   ["xuezong"] = "薛综",
+  ["#xuezong"] = "彬彬之玊",
+  ["illustrator:xuezong"] = "秋呆呆",
   ["funan"] = "复难",
   [":funan"] = "其他角色使用或打出牌响应你使用的牌时，你可以令其获得你使用的牌（其本回合不能使用或打出这张牌），然后你获得其使用或打出的牌。",
   ["jiexun"] = "诫训",
   [":jiexun"] = "结束阶段，你可令一名其他角色摸等同于场上<font color='red'>♦</font>牌数的牌，然后弃置X张牌（X为本技能发动过的次数），"..
-  "若其因此法弃置了所有牌，则你失去〖诫训〗，然后修改〖复难〗。",
+  "若其因此法弃置了所有牌，则你失去〖诫训〗，然后修改〖复难〗（删去“令其获得你使用的牌”）。",
   ["funanEx"] = "复难",
   [":funanEx"] = "其他角色使用或打出牌响应你使用的牌时，你可以获得其使用或打出的牌。",
   ["#funan-invoke"] = "复难：你可以令 %dest 获得你使用的%arg，你获得其使用的%arg2",
   ["#funanEx-invoke"] = "复难：你可以获得 %dest 使用的%arg",
-  ["#jiexun-choose"] = "诫训：你可以令一名其他角色摸场上<font color='red'>♦</font>牌数的牌，然后弃置你发动“诫训”次数的牌",
+  ["#jiexun-choose"] = "诫训：你可以令一名其他角色摸 %arg 张牌，然后弃置 %arg2 张牌",
 
   ["$funan1"] = "礼尚往来，乃君子风范。",
   ["$funan2"] = "以子之矛，攻子之盾。",
@@ -1023,8 +1049,10 @@ caojie:addSkill(huimin)
 Fk:loadTranslationTable{
   ["caojie"] = "曹节",
   ["#caojie"] = "献穆皇后",
+  ["designer:caojie"] = "会智迟的沮授",
   ["cv:caojie"] = "醋醋", -- 文晓依
 	["illustrator:caojie"] = "小小鸡仔",
+
   ["shouxi"] = "守玺",
   [":shouxi"] = "当你成为【杀】的目标后，你可声明一种未以此法声明过的基本牌或锦囊牌的牌名，然后使用者选择一项：弃置一张你声明的牌，然后"..
   "获得你的一张牌；或令此【杀】对你无效。",
@@ -1171,6 +1199,8 @@ local tongbo_active = fk.CreateActiveSkill{
 Fk:addSkill(tongbo_active)
 Fk:loadTranslationTable{
   ["caiyong"] = "蔡邕",
+  ["#caiyong"] = "大鸿儒",
+  ["illustrator:caiyong"] = "Town",
 
   ["pizhuan"] = "辟撰",
   [":pizhuan"] = "当你使用♠牌时，或你成为其他角色使用♠牌的目标后，你可以将牌堆顶的一张牌置于武将牌上，称为“书”；你至多拥有四张“书”，你的手牌上限+X"..

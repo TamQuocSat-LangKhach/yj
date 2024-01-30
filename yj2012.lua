@@ -634,6 +634,9 @@ chengpu:addSkill(lihuo)
 chengpu:addSkill(chunlao)
 Fk:loadTranslationTable{
   ["chengpu"] = "程普",
+  ["#chengpu"] = "三朝虎臣",
+  ["cv:chengpu"] = "符冲",
+	["illustrator:chengpu"] = "G.G.G.",
   ["lihuo"] = "疬火",
   [":lihuo"] = "当你使用普通【杀】时，你可以将此【杀】改为火【杀】，然后此【杀】结算结束后，若此【杀】造成过伤害，你失去1点体力；你使用火【杀】可以多选择一个目标。",
   ["chunlao"] = "醇醪",
@@ -819,6 +822,9 @@ nos__handang:addSkill(nos__gongqi)
 nos__handang:addSkill(nos__jiefan)
 Fk:loadTranslationTable{
   ["nos__handang"] = "韩当",
+  ["#nos__handang"] = "石城侯",
+  ["designer:nos__handang"] = "ByArt",
+	["illustrator:nos__handang"] = "DH",
   ["nos__gongqi"] = "弓骑",
   [":nos__gongqi"] = "你可以将一张装备牌当【杀】使用或打出；你以此法使用的【杀】无距离限制。",
   ["nos__jiefan"] = "解烦",
@@ -897,6 +903,7 @@ handang:addSkill(gongqi)
 handang:addSkill(jiefan)
 Fk:loadTranslationTable{
   ["handang"] = "韩当",
+  ["#handang"] = "石城侯",
   ["gongqi"] = "弓骑",
   [":gongqi"] = "出牌阶段限一次，你可以弃置一张牌，此回合你的攻击范围无限。若你以此法弃置的牌为装备牌，你可以弃置一名其他角色的一张牌。",
   ["jiefan"] = "解烦",
@@ -942,6 +949,9 @@ liubiao:addSkill(zishou)
 liubiao:addSkill(zongshi)
 Fk:loadTranslationTable{
   ["liubiao"] = "刘表",
+  ["#liubiao"] = "跨蹈汉南",
+  ["designer:liubiao"] = "管乐",
+  ["illustrator:liubiao"] = "关东煮",
   ["zishou"] = "自守",
   [":zishou"] = "摸牌阶段，你可以额外摸X张牌（X为你已损失的体力值），然后跳过你的出牌阶段。",
   ["zongshi"] = "宗室",
@@ -998,6 +1008,9 @@ local shiyong = fk.CreateTriggerSkill{
 huaxiong:addSkill(shiyong)
 Fk:loadTranslationTable{
   ["huaxiong"] = "华雄",
+  ["#huaxiong"] = "魔将",
+  ["designer:huaxiong"] = "小立",
+  ["illustrator:huaxiong"] = "地狱许",
   ["shiyong"] = "恃勇",
   [":shiyong"] = "锁定技，每当你受到一次红色【杀】或【酒】【杀】造成的伤害后，你减1点体力上限。",
 
@@ -1014,7 +1027,7 @@ local quanji = fk.CreateTriggerSkill{
   on_trigger = function(self, event, target, player, data)
     self.cancel_cost = false
     for i = 1, data.damage do
-      if self.cancel_cost then break end
+      if self.cancel_cost or player.dead then break end
       self:doCost(event, target, player, data)
     end
   end,
@@ -1119,6 +1132,8 @@ zhonghui:addSkill(zili)
 zhonghui:addRelatedSkill(paiyi)
 Fk:loadTranslationTable{
   ["zhonghui"] = "钟会",
+  ["#zhonghui"] = "桀骜的野心家",
+  ["illustrator:zhonghui"] = "雪君S",
   ["quanji"] = "权计",
   [":quanji"] = "每当你受到1点伤害后，你可以摸一张牌，然后将一张手牌置于武将牌上，称为“权”；每有一张“权”，你的手牌上限便+1。",
   ["zili"] = "自立",
