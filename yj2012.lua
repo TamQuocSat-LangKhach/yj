@@ -659,6 +659,7 @@ Fk:loadTranslationTable{
 local bulianshi = General(extension, "bulianshi", "wu", 3, 3, General.Female)
 local anxu = fk.CreateActiveSkill{
   name = "anxu",
+  prompt = "#anxu-active",
   anim_type = "control",
   target_num = 2,
   card_num = 0,
@@ -692,7 +693,10 @@ local anxu = fk.CreateActiveSkill{
     local card = room:askForCardChosen(from, to, "h", self.name)
     room:obtainCard(from.id, card, true, fk.ReasonPrey)
     if Fk:getCardById(card).suit ~= Card.Spade then
-      room:getPlayerById(effect.from):drawCards(1)
+      local player = room:getPlayerById(effect.from)
+      if not player.dead then
+        player:drawCards(1, self.name)
+      end
     end
   end,
 }
@@ -734,9 +738,11 @@ bulianshi:addSkill(zhuiyi)
 Fk:loadTranslationTable{
   ["bulianshi"] = "步练师",
   ["anxu"] = "安恤",
-  [":anxu"] = "出牌阶段限一次，你可以选择两名手牌数不相等的其他角色，令其中手牌少的角色获得手牌多的角色一张手牌并展示之，若此牌不为♠，你摸一张牌。",
+  [":anxu"] = "出牌阶段限一次，你可以选择两名手牌数不相等的其他角色，"..
+  "令其中手牌少的角色获得手牌多的角色一张手牌（正面朝上移动），若此牌的花色不为♠，你摸一张牌。",
   ["zhuiyi"] = "追忆",
   [":zhuiyi"] = "你死亡时，可以令一名其他角色（杀死你的角色除外）摸三张牌并回复1点体力。",
+  ["#anxu-active"] = "发动 安恤，选择两名手牌数不相等的其他角色",
   ["#zhuiyi-choose"] = "追忆：你可以令一名角色摸三张牌并回复1点体力",
 
   ["$anxu1"] = "和鸾雍雍，万福攸同。",

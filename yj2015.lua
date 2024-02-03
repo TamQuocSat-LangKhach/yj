@@ -780,11 +780,8 @@ local xingxue = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
-    local n = player.hp
-    if player:getMark("yanzhu") > 0 then
-      n = player.maxHp
-    end
-    local tos = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper),
+    local n = player:hasSkill(yanzhu, true) and player.hp or player.maxHp
+    local tos = player.room:askForChoosePlayers(player, table.map(player.room.alive_players, Util.IdMapper),
       1, n, "#xingxue-choose:::"..n, self.name, true)
     if #tos > 0 then
       self.cost_data = tos
@@ -793,17 +790,23 @@ local xingxue = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for _, id in ipairs(self.cost_data) do
+    local targets = table.simpleClone(self.cost_data)
+    room:sortPlayersByAction(targets)
+    for _, id in ipairs(targets) do
       local to = room:getPlayerById(id)
-      to:drawCards(1, self.name)
-      local card = room:askForCard(to, 1, 1, true, self.name, false, ".", "#xingxue-card")
-      room:moveCards({
-        ids = card,
-        from = id,
-        toArea = Card.DrawPile,
-        moveReason = fk.ReasonJustMove,
-        skillName = self.name,
-      })
+      if not to.dead then
+        to:drawCards(1, self.name)
+        if not (to.dead or to:isNude()) then
+          local card = room:askForCard(to, 1, 1, true, self.name, false, ".", "#xingxue-card")
+          room:moveCards({
+            ids = card,
+            from = id,
+            toArea = Card.DrawPile,
+            moveReason = fk.ReasonJustMove,
+            skillName = self.name,
+          })
+        end
+      end
     end
   end,
 }
@@ -830,7 +833,7 @@ Fk:loadTranslationTable{
   [":zhaofu"] = "主公技，锁定技，与你距离为1的角色视为在其他吴势力角色的攻击范围内。",
   ["#yanzhu-discard"] = "宴诛：弃置一张牌，或点“取消”将所有装备交给 %src（若没装备则必须弃一张牌）",
   ["#xingxue-choose"] = "兴学：你可以令至多%arg名角色依次摸一张牌并将一张牌置于牌堆顶",
-  ["#xingxue-card"] = "兴学：将一张牌置于牌堆顶",
+  ["#xingxue-card"] = "兴学：选择一张牌置于牌堆顶",
 
   ["$yanzhu1"] = "不诛此权臣，朕，何以治天下？",
   ["$yanzhu2"] = "大局已定，你还是放弃吧。",
@@ -877,14 +880,14 @@ Fk:loadTranslationTable{
 }
 
 local zhuzhi = General(extension, "zhuzhi", "wu", 4)
-local function doAnguo(player, type, source)
+local function doAnguo(player, anguo_type, source)
   local room = player.room
-  if type == "draw" then
+  if anguo_type == "draw" then
     if table.every(room.alive_players, function (p) return p:getHandcardNum() >= player:getHandcardNum() end) then
       player:drawCards(1, "anguo")
       return true
     end
-  elseif type == "recover" then
+  elseif anguo_type == "recover" then
     if player:isWounded() and table.every(room.alive_players, function (p) return p.hp >= player.hp end) then
       room:recover({
         who = player,
@@ -894,14 +897,13 @@ local function doAnguo(player, type, source)
       })
       return true
     end
-  elseif type == "equip" then
+  elseif anguo_type == "equip" then
     if table.every(room.alive_players, function (p)
       return #p.player_cards[Player.Equip] >= #player.player_cards[Player.Equip] end) then
-      local types = {Card.SubtypeWeapon, Card.SubtypeArmor, Card.SubtypeDefensiveRide, Card.SubtypeOffensiveRide, Card.SubtypeTreasure}
       local cards = {}
       for _, id in ipairs(room.draw_pile) do
         local card = Fk:getCardById(id)
-        if card.type == Card.TypeEquip and player:hasEmptyEquipSlot(card.sub_type) and not player:prohibitUse(card) then
+        if card.type == Card.TypeEquip and player:canUse(card) and not player:prohibitUse(card) then
           table.insert(cards, card)
         end
       end
@@ -920,6 +922,7 @@ end
 local anguo = fk.CreateActiveSkill{
   name = "anguo",
   anim_type = "support",
+  prompt = "#anguo-active",
   card_num = 0,
   target_num = 1,
   can_use = function(self, player)
@@ -936,9 +939,13 @@ local anguo = fk.CreateActiveSkill{
     for i = 3, 1, -1 do
       if doAnguo(target, types[i], player) then
         table.removeOne(types, types[i])
+        if target.dead then
+          break
+        end
       end
     end
     for i = #types, 1, -1 do
+      if player.dead then break end
       doAnguo(player, types[i], player)
     end
   end,
@@ -947,12 +954,15 @@ zhuzhi:addSkill(anguo)
 Fk:loadTranslationTable{
   ["zhuzhi"] = "朱治",
   ["anguo"] = "安国",
-  [":anguo"] = "出牌阶段限一次，你可以选择一名其他角色，若其手牌数为全场最少，其摸一张牌；体力值为全场最低，回复1点体力；"..
-  "装备区内牌数为全场最少，随机使用牌堆中一张装备牌。然后若该角色有未执行的效果且你满足条件，你执行之。",
+  [":anguo"] = "出牌阶段限一次，你可以选择一名其他角色，令其依次执行：若其手牌数为全场最少，其摸一张牌；"..
+  "体力值为全场最低，回复1点体力；装备区内牌数为全场最少，随机使用牌堆中一张装备牌。"..
+  "然后若该角色有未执行的效果且你满足条件，你执行之。",
 
-  ["~zhuzhi"] = "集毕生之力，保国泰民安。",
+  ["#anguo-active"] = "发动 安国，选择一名其他角色",
+
   ["$anguo1"] = "止干戈，休战事。",
   ["$anguo2"] = "安邦定国，臣子分内之事。",
+  ["~zhuzhi"] = "集毕生之力，保国泰民安。",
 }
 
 local gongsunyuan = General(extension, "gongsunyuan", "qun", 4)

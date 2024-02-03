@@ -883,8 +883,8 @@ local jiexun = fk.CreateTriggerSkill{
     for _, p in ipairs(room.alive_players) do
       n1 = n1 + #table.filter(p:getCardIds("ej"), function(id) return Fk:getCardById(id).suit == Card.Diamond end)
     end
-    local n2 = player:usedSkillTimes(self.name, Player.HistoryGame) + 1
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper),
+    local n2 = player:getMark("@jiexun") + 1
+    local to = room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper),
       1, 1, "#jiexun-choose:::"..n1..":"..n2, self.name, true)
     if #to > 0 then
       self.cost_data = {to[1], n1, n2}
@@ -893,6 +893,7 @@ local jiexun = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    room:addPlayerMark(player, "@jiexun")
     local to = room:getPlayerById(self.cost_data[1])
     local n1, n2 = self.cost_data[2], self.cost_data[3]
     if n1 > 0 then
@@ -910,12 +911,12 @@ local jiexun = fk.CreateTriggerSkill{
     end
   end,
 
-  refresh_events = {fk.EventLoseSkill}, -- for god sunquan
+  refresh_events = {fk.EventLoseSkill},
   can_refresh = function (self, event, target, player, data)
     return player == target and data == self
   end,
   on_refresh = function (self, event, target, player, data)
-    player:setSkillUseHistory(self.name, 0, Player.HistoryGame)
+    player.room:setPlayerMark(player, "@jiexun", 0)
   end,
 }
 local funanEx = fk.CreateTriggerSkill{
@@ -958,6 +959,7 @@ Fk:loadTranslationTable{
   ["#funan-invoke"] = "复难：你可以令 %dest 获得你使用的%arg，你获得其使用的%arg2",
   ["#funanEx-invoke"] = "复难：你可以获得 %dest 使用的%arg",
   ["#jiexun-choose"] = "诫训：你可以令一名其他角色摸 %arg 张牌，然后弃置 %arg2 张牌",
+  ["@jiexun"] = "诫训",
 
   ["$funan1"] = "礼尚往来，乃君子风范。",
   ["$funan2"] = "以子之矛，攻子之盾。",

@@ -13,73 +13,56 @@ local luoying = fk.CreateTriggerSkill{
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) then
+      local ids = {}
+      local room = player.room
       for _, move in ipairs(data) do
-        if move.extra_data and move.extra_data.luoying then
-          for _, id in ipairs(move.extra_data.luoying) do
-            if player.room:getCardArea(id) == Card.DiscardPile then
-              return true
+        if move.toArea == Card.DiscardPile then
+          if move.moveReason == fk.ReasonDiscard and move.from and move.from ~= player.id then
+            for _, info in ipairs(move.moveInfo) do
+              if (info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip) and
+              Fk:getCardById(info.cardId).suit == Card.Club and
+              room:getCardArea(info.cardId) == Card.DiscardPile then
+                table.insertIfNeed(ids, info.cardId)
+              end
+            end
+          elseif move.moveReason == fk.ReasonJudge then
+            local judge_event = room.logic:getCurrentEvent():findParent(GameEvent.Judge)
+            if judge_event and judge_event.data[1].who ~= player then
+              for _, info in ipairs(move.moveInfo) do
+                if info.fromArea == Card.Processing and Fk:getCardById(info.cardId).suit == Card.Club and
+                room:getCardArea(info.cardId) == Card.DiscardPile then
+                  table.insertIfNeed(ids, info.cardId)
+                end
+              end
             end
           end
         end
+      end
+      ids = U.moveCardsHoldingAreaCheck(room, ids)
+      if #ids > 0 then
+        self.cost_data = ids
+        return true
       end
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local ids = {}
-    for _, move in ipairs(data) do
-      if move.extra_data and move.extra_data.luoying then
-        for _, id in ipairs(move.extra_data.luoying) do
-          if room:getCardArea(id) == Card.DiscardPile then
-            table.insertIfNeed(ids, id)
-          end
-        end
+    local ids = table.simpleClone(self.cost_data)
+    if #ids > 1 then
+      local cards, _ = U.askforChooseCardsAndChoice(player, ids, {"OK"}, self.name,
+      "#luoying-choose", {"get_all"}, 1, #ids)
+      if #cards > 0 then
+        ids = cards
       end
     end
-    local cards = room:askForCardsChosen(player, player, 1, #ids, {card_data = {{self.name, ids}}}, self.name)
-    if #cards > 0 then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(cards)
-      room:obtainCard(player.id, dummy, true, fk.ReasonJustMove)
-    end
-  end,
-
-  refresh_events = {fk.BeforeCardsMove},
-  can_refresh = function(self, event, target, player, data)
-    if player:hasSkill(self) then
-      for _, move in ipairs(data) do
-        if (not move.from or move.from ~= player.id) and (move.moveReason == fk.ReasonDiscard or move.moveReason == fk.ReasonJudge) and
-          move.toArea == Card.DiscardPile then
-          return true
-        end
-      end
-    end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    for _, move in ipairs(data) do
-      if (not move.from or move.from ~= player.id) and (move.moveReason == fk.ReasonDiscard or move.moveReason == fk.ReasonJudge) and
-        move.toArea == Card.DiscardPile then
-        local ids = {}
-        for _, info in ipairs(move.moveInfo) do
-          if Fk:getCardById(info.cardId).suit == Card.Club then
-            table.insertIfNeed(ids, info.cardId)
-          end
-        end
-        if #ids > 0 then
-          move.extra_data = move.extra_data or {}
-          move.extra_data.luoying = ids
-        end
-      end
-    end
+    room:moveCardTo(ids, Card.PlayerHand, player, fk.ReasonPrey, self.name)
   end,
 }
 local jiushi = fk.CreateViewAsSkill{
   name = "jiushi",
   anim_type = "support",
   pattern = "analeptic",
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   before_use = function(self, player)
     player:turnOver()
   end,
@@ -126,6 +109,9 @@ Fk:loadTranslationTable{
   [":luoying"] = "当其他角色的♣牌因弃置或判定进入弃牌堆后，你可以获得之。",
   ["jiushi"] = "酒诗",
   [":jiushi"] = "若你的武将牌正面朝上，你可以翻面视为使用一张【酒】；若你的武将牌背面朝上，当你受到伤害时，你可在伤害结算后翻至正面。",
+
+  ["#luoying-choose"] = "落英：选择要获得的牌",
+  ["get_all"] = "全部获得",
 
   ["$luoying1"] = "这些都是我的。",
   ["$luoying2"] = "别着急扔，给我就好。",

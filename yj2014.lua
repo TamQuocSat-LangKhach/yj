@@ -574,18 +574,19 @@ local guyong = General(extension, "guyong", "wu", 3)
 local shenxing = fk.CreateActiveSkill{
   name = "shenxing",
   anim_type = "drawcard",
+  prompt = "#shenxing-active",
   card_num = 2,
   target_num = 0,
-  can_use = function(self, player)
-    return not player:isNude()
-  end,
+  can_use = Util.TrueFunc,
   card_filter = function(self, to_select, selected)
-    return #selected < 2
+    return #selected < 2 and not Self:prohibitDiscard(Fk:getCardById(to_select))
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     room:throwCard(effect.cards, self.name, player, player)
-    player:drawCards(1, self.name)
+    if not player.dead then
+      player:drawCards(1, self.name)
+    end
   end
 }
 local bingyi = fk.CreateTriggerSkill{
@@ -620,6 +621,8 @@ Fk:loadTranslationTable{
   [":shenxing"] = "出牌阶段，你可以弃置两张牌，然后摸一张牌。",
   ["bingyi"] = "秉壹",
   [":bingyi"] = "结束阶段开始时，你可以展示所有手牌，若均为同一颜色，则你令至多X名角色各摸一张牌（X为你的手牌数）。",
+
+  ["#shenxing-active"] = "发动 慎行，选择要弃置的两张牌",
   ["#bingyi-choose"] = "秉壹：你可以令至多%arg名角色各摸一张牌",
 
   ["$shenxing1"] = "审时度势，乃容万变。",
