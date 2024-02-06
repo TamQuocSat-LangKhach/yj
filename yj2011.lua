@@ -104,6 +104,7 @@ caozhi:addSkill(jiushi)
 Fk:loadTranslationTable{
   ["caozhi"] = "曹植",
   ["#caozhi"] = "八斗之才",
+  ["designer:caozhi"] = "Foxear",
 	["illustrator:caozhi"] = "木美人",
   ["luoying"] = "落英",
   [":luoying"] = "当其他角色的♣牌因弃置或判定进入弃牌堆后，你可以获得之。",
@@ -135,6 +136,10 @@ local yizhong = fk.CreateTriggerSkill{
 yujin:addSkill(yizhong)
 Fk:loadTranslationTable{
   ["yujin"] = "于禁",
+  ["#yujin"] = "讨暴坚垒",
+  ["designer:yujin"] = "许坦",
+	["illustrator:yujin"] = "Yi章",
+
   ["yizhong"] = "毅重",
   [":yizhong"] = "锁定技，当你没有装备防具时，黑色的【杀】对你无效。",
 
@@ -181,6 +186,7 @@ zhangchunhua:addSkill(shangshi)
 Fk:loadTranslationTable{
   ["zhangchunhua"] = "张春华",
   ["#zhangchunhua"] = "冷血皇后",
+  ["designer:zhangchunhua"] = "JZHIEI",
   ["illustrator:zhangchunhua"] = "樱花闪乱",
   ["jueqing"] = "绝情",
   [":jueqing"] = "锁定技，你造成的伤害均视为体力流失。",
@@ -273,6 +279,7 @@ nos__fazheng:addSkill(nos__xuanhuo)
 Fk:loadTranslationTable{
   ["nos__fazheng"] = "法正",
   ["#nos__fazheng"] = "蜀汉的辅翼",
+  ["designer:nos__fazheng"] = "Michael_Lee",
   ["illustrator:nos__fazheng"] = "雷没才",
   ["nos__enyuan"] = "恩怨",
   [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张<font color='red'>♥</font>手牌，"..
@@ -414,6 +421,8 @@ fazheng:addSkill(xuanhuo)
 Fk:loadTranslationTable{
   ["fazheng"] = "法正",
   ["#fazheng"] = "蜀汉的辅翼",
+  ["designer:fazheng"] = "韩旭",
+
   ["enyuan"] = "恩怨",
   [":enyuan"] = "当你获得一名其他角色两张或更多的牌时，可令其摸一张牌；当你受到1点伤害后，你可以令伤害来源选择一项：交给你一张手牌，或失去1点体力。",
   ["xuanhuo"] = "眩惑",
@@ -478,7 +487,9 @@ masu:addSkill(huilei)
 Fk:loadTranslationTable{
   ["masu"] = "马谡",
   ["#masu"] = "军略之才器",
+  ["designer:masu"] = "点点",
   ["illustrator:masu"] = "张帅",
+
   ["xinzhan"] = "心战",
   [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示并获得其中任意张<font color='red'>♥</font>牌，其余以任意顺序置于牌堆顶。",
   ["#xinzhan_choose"] = "心战：获得任意张♥牌",
@@ -550,6 +561,7 @@ Fk:loadTranslationTable{
   ["#nos__xushu"] = "忠孝的侠士",
   ["designer:nos__xushu"] = "双叶松",
   ["illustrator:nos__xushu"] = "XINA",
+
   ["nos__wuyan"] = "无言",
   [":nos__wuyan"] = "锁定技，你使用的非延时类锦囊对其他角色无效；其他角色使用的非延时类锦囊对你无效。",
   ["nos__jujian"] = "举荐",
@@ -620,6 +632,7 @@ Fk:loadTranslationTable{
   ["xushu"] = "徐庶",
   ["#xushu"] = "忠孝的侠士",
   ["illustrator:xushu"] = "L",
+
   ["wuyan"] = "无言",
   [":wuyan"] = "锁定技，你防止你造成或受到的任何锦囊牌的伤害。",
   ["jujian"] = "举荐",
@@ -691,7 +704,9 @@ Fk:loadTranslationTable{
   ["nos__lingtong"] = "凌统",
   ["#nos__lingtong"] = "豪情烈胆",
   ["cv:nos__lingtong"] = "冷泉月夜",
+  ["designer:xxx_general"] = "ShadowLee",
 	["illustrator:nos__lingtong"] = "绵Myan",
+
   ["nos__xuanfeng"] = "旋风",
   [":nos__xuanfeng"] = "当你失去装备区内的牌后，你可以选择一项：1.视为使用一张【杀】（无距离次数限制）；2.对距离1的一名其他角色造成1点伤害。",
   ["#nos__xuanfeng-choose"] = "旋风：你可以视为使用一张【杀】，或对距离1的一名其他角色造成1点伤害",
@@ -761,6 +776,7 @@ Fk:loadTranslationTable{
   ["#lingtong"] = "豪情烈胆",
   ["cv:lingtong"] = "冷泉月夜",
 	["illustrator:lingtong"] = "DH", -- 精良皮 豪情烈胆
+
   ["xuanfeng"] = "旋风",
   [":xuanfeng"] = "当你失去装备区里的牌后，或你弃置过至少两张牌的弃牌阶段结束时，你可以依次弃置一至两名角色共计两张牌。",
   ["#xuanfeng-choose"] = "旋风：你可以依次弃置一至两名角色的共计两张牌",
@@ -872,6 +888,7 @@ Fk:loadTranslationTable{
   ["#wuguotai"] = "武烈皇后",
   ["designer:wuguotai"] = "章鱼",
 	["illustrator:wuguotai"] = "zoo",
+
   ["ganlu"] = "甘露",
   [":ganlu"] = "出牌阶段限一次，你可以选择装备区内牌数之差不大于X的两名角色，交换其装备区内的牌（X为你已损失体力值）。",
   ["buyi"] = "补益",
@@ -902,6 +919,10 @@ local pojun = fk.CreateTriggerSkill{
 xusheng:addSkill(pojun)
 Fk:loadTranslationTable{
   ["xusheng"] = "徐盛",
+  ["#xusheng"] = "江东的铁壁",
+  ["designer:xusheng"] = "阿江",
+	["illustrator:xusheng"] = "刘周",
+  
   ["pojun"] = "破军",
   [":pojun"] = "当你使用【杀】造成伤害后，你可以令受到伤害的角色摸X张牌（X为其当前体力值，最多为5），然后其翻面。",
 
@@ -1003,7 +1024,9 @@ gaoshun:addSkill(jinjiu)
 Fk:loadTranslationTable{
   ["gaoshun"] = "高顺",
   ["#gaoshun"] = "攻无不克",
+  ["designer:xxx_general"] = "羽柴文理",
 	["illustrator:gaoshun"] = "鄧Sir",
+
   ["xianzhen"] = "陷阵",
   [":xianzhen"] = "出牌阶段限一次，你可以与一名角色拼点：若你赢，直到回合结束，你对该角色使用牌无距离限制且无视其防具牌，使用【杀】无次数限制；"..
   "若你没赢，你不能使用【杀】直到回合结束。",
@@ -1092,6 +1115,7 @@ Fk:loadTranslationTable{
   ["designer:chengong"] = "Kaycent",
   ["cv:chengong"] = "金垚",
   ["illustrator:chengong"] = "黑月乱",
+  
   ["mingce"] = "明策",
   [":mingce"] = "出牌阶段限一次，你可以交给一名其他角色一张装备牌或【杀】，其选择一项：1.视为对其攻击范围内一名你指定的角色使用一张【杀】；2.摸一张牌。",
   ["zhichi"] = "智迟",
