@@ -271,18 +271,21 @@ local nos__qianxi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and player:distanceTo(data.to) == 1 and not data.chain
+    return target == player and player:hasSkill(self) and player:distanceTo(data.to) == 1 and
+    data.card and data.card.trueName == "slash" and U.damageByCardEffect(player.room)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local judge = {
-      who = data.to,
+      who = player,
       reason = self.name,
       pattern = ".|.|^heart",
     }
     room:judge(judge)
     if judge.card.suit ~= Card.Heart then
-      room:changeMaxHp(data.to, -1)
+      if not data.to.dead then
+        room:changeMaxHp(data.to, -1)
+      end
       return true
     end
   end,

@@ -282,15 +282,15 @@ local shenduan_active = fk.CreateActiveSkill{
     end
   end,
 }
-local yonglve = fk.CreateTriggerSkill{
-  name = "yonglve",
+local yonglue = fk.CreateTriggerSkill{
+  name = "yonglue",
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(self) and target.phase == Player.Judge and #target:getCardIds("j") > 0 and player:inMyAttackRange(target)
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#yonglve-invoke::"..target.id)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#yonglue-invoke::"..target.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -313,21 +313,21 @@ local yonglve = fk.CreateTriggerSkill{
 }
 Fk:addSkill(shenduan_active)
 hanhaoshihuan:addSkill(shenduan)
-hanhaoshihuan:addSkill(yonglve)
+hanhaoshihuan:addSkill(yonglue)
 Fk:loadTranslationTable{
   ["hanhaoshihuan"] = "韩浩史涣",
   ["shenduan"] = "慎断",
   [":shenduan"] = "当你的黑色基本牌因弃置进入弃牌堆时，你可以将之当作【兵粮寸断】置于一名其他角色的判定区里。",
-  ["yonglve"] = "勇略",
-  [":yonglve"] = "你攻击范围内的一名其他角色的判定阶段开始时，你可以弃置其判定区里的一张牌，视为对该角色使用【杀】，若此【杀】未造成伤害，你摸一张牌。",
+  ["yonglue"] = "勇略",
+  [":yonglue"] = "你攻击范围内的一名其他角色的判定阶段开始时，你可以弃置其判定区里的一张牌，视为对该角色使用【杀】，若此【杀】未造成伤害，你摸一张牌。",
   ["#shenduan-use"] = "慎断：你可以将这些牌当【兵粮寸断】置入其他角色判定区",
   ["shenduan_active"] = "慎断",
-  ["#yonglve-invoke"] = "勇略：你可以弃置 %dest 判定区一张牌，视为对其使用【杀】",
+  ["#yonglue-invoke"] = "勇略：你可以弃置 %dest 判定区一张牌，视为对其使用【杀】",
 
   ["$shenduan1"] = "良机虽去，尚可截资断源！",
   ["$shenduan2"] = "行军须慎，谋断当绝！",
-  ["$yonglve1"] = "不必从言，自有主断！",
-  ["$yonglve2"] = "非常之机，当行非常之计！",
+  ["$yonglue1"] = "不必从言，自有主断！",
+  ["$yonglue2"] = "非常之机，当行非常之计！",
   ["~hanhaoshihuan"] = "那拈弓搭箭的将军，是何人？",
 }
 
