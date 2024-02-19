@@ -67,10 +67,15 @@ local jiushi = fk.CreateViewAsSkill{
     player:turnOver()
   end,
   view_as = function(self, cards)
-    if not Self.faceup then return end
     local c = Fk:cloneCard("analeptic")
     c.skillName = self.name
     return c
+  end,
+  enabled_at_play = function (self, player)
+    return player.faceup
+  end,
+  enabled_at_response = function (self, player, response)
+    return player.faceup and not response
   end,
 }
 local jiushi_trigger = fk.CreateTriggerSkill{
@@ -109,7 +114,7 @@ Fk:loadTranslationTable{
   ["luoying"] = "落英",
   [":luoying"] = "当其他角色的♣牌因弃置或判定进入弃牌堆后，你可以获得之。",
   ["jiushi"] = "酒诗",
-  [":jiushi"] = "若你的武将牌正面朝上，你可以翻面视为使用一张【酒】；若你的武将牌背面朝上，当你受到伤害时，你可在伤害结算后翻至正面。",
+  [":jiushi"] = "若你的武将牌正面朝上，你可以翻面视为使用一张【酒】；当你受到伤害时，若你的武将牌背面朝上，你可以在受到伤害后翻至正面。",
 
   ["#luoying-choose"] = "落英：选择要获得的牌",
   ["get_all"] = "全部获得",
@@ -170,7 +175,13 @@ local shangshi = fk.CreateTriggerSkill{
     if player:hasSkill(self) and player:getHandcardNum() < player:getLostHp() then
       if event == fk.AfterCardsMove then
         for _, move in ipairs(data) do
-          return move.from == player.id
+          if move.from == player.id then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.PlayerHand then
+                return true
+              end
+            end
+          end
         end
       else
         return target == player

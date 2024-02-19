@@ -628,7 +628,7 @@ local anjian = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and
-      not data.to:inMyAttackRange(player) and not data.chain
+      not data.to:inMyAttackRange(player) and U.damageByCardEffect(player.room)
   end,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1
@@ -747,7 +747,7 @@ Fk:loadTranslationTable{
   ["zongxuan"] = "纵玄",
   [":zongxuan"] = "当你的牌因弃置而移至弃牌堆后，你可以将其中至少一张牌置于牌堆顶。",
   ["zhiyan"] = "直言",
-  [":zhiyan"] = "结束阶段开始时，你可以令一名角色摸一张牌并展示之，若此牌为装备牌，该角色回复1点体力并使用此牌。",
+  [":zhiyan"] = "结束阶段开始时，你可以令一名角色摸一张牌并展示之，若此牌为装备牌，其使用此牌并回复1点体力。",
   ["zongxuanNoput"] = "不置于牌堆顶",
   ["#zhiyan-choose"] = "直言：你可以令一名角色摸一张牌并展示之，若为装备牌其使用之并回复1点体力",
 

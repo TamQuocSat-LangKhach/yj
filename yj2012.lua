@@ -254,7 +254,7 @@ Fk:loadTranslationTable{
   ["zhenlie"] = "贞烈",
   [":zhenlie"] = "当你成为其他角色使用【杀】或普通锦囊牌的目标后，你可以失去1点体力使此牌对你无效，然后你弃置其一张牌。",
   ["miji"] = "秘计",
-  [":miji"] = "结束阶段，你可以摸至多X张牌（X为你已损失的体力值），然后你可以将等量的手牌分配给其他角色。",
+  [":miji"] = "结束阶段，你可以摸X张牌（X为你已损失的体力值），然后你可以将等量的手牌分配给其他角色。",
   ["miji_active"] = "秘计",
   ["#miji-invoke"] = "秘计：是否将 %arg 张手牌分配给其他角色",
 
@@ -476,10 +476,9 @@ local fuhun = fk.CreateViewAsSkill{
 }
 local fuhun_delay = fk.CreateTriggerSkill{
   name = "#fuhun_delay",
-  mute = true,
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target == player and data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play
+    return player:hasSkill(fuhun) and target == player and data.card and table.contains(data.card.skillNames, "fuhun") and player.phase == Player.Play
   end,
   on_cost = Util.TrueFunc,
   on_trigger = function(self, event, target, player, data)
@@ -507,6 +506,7 @@ Fk:loadTranslationTable{
   ["guanxingzhangbao"] = "关兴张苞",
   ["fuhun"] = "父魂",
   [":fuhun"] = "你可以将两张手牌当【杀】使用或打出；当你于出牌阶段内以此法造成伤害后，本回合获得〖武圣〗和〖咆哮〗。",
+  ["#fuhun_delay"] = "父魂",
 
   ["$fuhun1"] = "光复汉室，重任在肩！",
   ["$fuhun2"] = "将门虎子，承我父志！",
@@ -551,10 +551,22 @@ local lihuo = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     if event == fk.AfterCardUseDeclared then
-      local fireSlash = Fk:cloneCard("fire__slash")
-      fireSlash.skillName = self.name
-      fireSlash:addSubcard(data.card)
-      data.card = fireSlash
+      local card = Fk:cloneCard("fire__slash", data.card.suit, data.card.number)
+      for k, v in pairs(data.card) do
+        if card[k] == nil then
+          card[k] = v
+        end
+      end
+      if data.card:isVirtual() then
+        card.subcards = data.card.subcards
+      else
+        card.id = data.card.id
+      end
+      card.skillNames = data.card.skillNames
+      data.card = card
+      data.extra_data = data.extra_data or {}
+      data.extra_data.lihuo = data.extra_data.lihuo or {}
+      table.insert(data.extra_data.lihuo, player.id)
     else
       local tos = self.cost_data
       player.room:sendLog{
@@ -573,7 +585,8 @@ local lihuo_record = fk.CreateTriggerSkill{
   events = {fk.CardUseFinished},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and table.contains(data.card.skillNames, "lihuo") and data.damageDealt and not player.dead
+    return not player.dead and data.damageDealt and data.extra_data and data.extra_data.lihuo and
+    table.contains(data.extra_data.lihuo, player.id)
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
