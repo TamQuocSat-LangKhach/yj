@@ -136,6 +136,8 @@ caorui:addSkill(mingjian)
 caorui:addSkill(xingshuai)
 Fk:loadTranslationTable{
   ["caorui"] = "曹叡",
+  ["#caorui"] = "天姿的明君",
+  ["illustrator:caorui"] = "Thinking",
   ["huituo"] = "恢拓",
   [":huituo"] = "当你受到伤害后，你可以令一名角色进行判定，若结果为：红色，其回复1点体力；黑色，其摸X张牌（X为伤害值）。",
   ["mingjian"] = "明鉴",
@@ -235,6 +237,8 @@ nos__taoxi:addRelatedSkill(nos__taoxi_prohibit)
 nos__caoxiu:addSkill(nos__taoxi)
 Fk:loadTranslationTable{
   ["nos__caoxiu"] = "曹休",
+  ["#nos__caoxiu"] = "千里骐骥",
+  ["illustrator:nos__caoxiu"] = "eshao111",
   ["nos__taoxi"] = "讨袭",
   [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。"..
   "回合结束时，若该角色未失去此手牌，则你失去1点体力。",
@@ -282,6 +286,8 @@ caoxiu:addSkill(qianju)
 caoxiu:addSkill(qingxi)
 Fk:loadTranslationTable{
   ["caoxiu"] = "曹休",
+  ["#caoxiu"] = "千里骐骥",
+  ["illustrator:caoxiu"] = "NOVAR", -- 皮肤 下辩扬威
   ["qianju"] = "千驹",
   [":qianju"] = "锁定技，你计算与其他角色的距离-X。（X为你已损失的体力值）",
   ["qingxi"] = "倾袭",
@@ -407,6 +413,8 @@ local zuoding = fk.CreateTriggerSkill{
 zhongyao:addSkill(zuoding)
 Fk:loadTranslationTable{
   ["zhongyao"] = "钟繇",
+  ["#zhongyao"] = "正楷萧曹",
+  ["illustrator:zhongyao"] = "eshao111",
   ["huomo"] = "活墨",
   [":huomo"] = "当你需要使用基本牌时（你本回合使用过的基本牌除外），你可以将一张黑色非基本牌置于牌堆顶，视为使用此基本牌。",
   ["zuoding"] = "佐定",
@@ -524,6 +532,8 @@ liuchen:addSkill(zhanjue)
 liuchen:addSkill(qinwang)
 Fk:loadTranslationTable{
   ["liuchen"] = "刘谌",
+  ["#liuchen"] = "血荐轩辕",
+  ["illustrator:liuchen"] = "凌天翼&depp",
   ["zhanjue"] = "战绝",
   [":zhanjue"] = "出牌阶段，你可以将所有手牌当【决斗】使用，然后你和受伤的角色各摸一张牌。若你此法摸过两张或更多的牌，则本阶段〖战绝〗失效。",
   ["qinwang"] = "勤王",
@@ -598,6 +608,8 @@ xiahoushi:addSkill(qiaoshi)
 xiahoushi:addSkill(yanyu)
 Fk:loadTranslationTable{
   ["xiahoushi"] = "夏侯氏",
+  ["#xiahoushi"] = "采缘撷睦",
+  ["illustrator:xiahoushi"] = "2B铅笔",
   ["qiaoshi"] = "樵拾",
   [":qiaoshi"] = "其他角色的结束阶段，若其手牌数等于你，你可以与其各摸一张牌。",
   ["yanyu"] = "燕语",
@@ -666,13 +678,10 @@ local shizhi_trigger = fk.CreateTriggerSkill{
   name = "#shizhi_trigger",
   refresh_events = {fk.HpChanged},
   can_refresh = function(self, event, target, player, data)
-    return player == target and player:hasSkill(self)
+    return player == target and player:hasSkill(shizhi, true)
   end,
   on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    for _, id in ipairs(player:getCardIds("h")) do
-      Fk:filterCard(id, player)
-    end
+    player:filterHandcards()
   end,
 }
 shizhi:addRelatedSkill(shizhi_trigger)
@@ -680,6 +689,8 @@ zhangyi:addSkill(wurong)
 zhangyi:addSkill(shizhi)
 Fk:loadTranslationTable{
   ["zhangyi"] = "张嶷",
+  ["#zhangyi"] = "通壮逾古",
+  ["illustrator:zhangyi"] = "livsinno",
   ["wurong"] = "怃戎",
   [":wurong"] = "出牌阶段限一次，你可以和一名其他角色同时展示一张手牌：若你展示的是【杀】且该角色不是【闪】，你弃置此【杀】，然后对其造成1点伤害；"..
   "若你展示的不是【杀】且该角色是【闪】，你弃置此牌，然后获得其一张牌。",
@@ -732,6 +743,8 @@ local zhenshan = fk.CreateViewAsSkill{
 quancong:addSkill(zhenshan)
 Fk:loadTranslationTable{
   ["quancong"] = "全琮",
+  ["#quancong"] = "慕势耀族",
+  ["illustrator:quancong"] = "小小鸡仔",
   ["zhenshan"] = "振赡",
   [":zhenshan"] = "每回合限一次，当你需要使用或打出一张基本牌时，你可以与一名手牌数少于你的角色交换手牌，若如此做，视为你使用或打出此牌。",
   ["#zhenshan-choose"] = "振赡：与一名手牌数少于你的角色交换手牌",
@@ -825,6 +838,8 @@ sunxiu:addSkill(xingxue)
 sunxiu:addSkill(zhaofu)
 Fk:loadTranslationTable{
   ["sunxiu"] = "孙休",
+  ["#sunxiu"] = "弥殇的景君",
+  ["illustrator:sunxiu"] = "XXX",
   ["yanzhu"] = "宴诛",
   [":yanzhu"] = "出牌阶段限一次，你可以令一名其他角色选择一项：1.弃置一张牌；2.交给你装备区内所有的牌，你失去〖宴诛〗并修改〖兴学〗为“X为你的体力上限”。",
   ["xingxue"] = "兴学",
@@ -871,6 +886,8 @@ local nos__anguo = fk.CreateActiveSkill{
 nos__zhuzhi:addSkill(nos__anguo)
 Fk:loadTranslationTable{
   ["nos__zhuzhi"] = "朱治",
+  ["#nos__zhuzhi"] = "王事靡盬",
+  ["illustrator:nos__zhuzhi"] = "心中一凛",
   ["nos__anguo"] = "安国",
   [":nos__anguo"] = "出牌阶段限一次，你可以选择其他角色场上的一张装备牌并令其获得之，然后若其攻击范围内的角色因此而变少，则你摸一张牌。",
 
@@ -953,6 +970,8 @@ local anguo = fk.CreateActiveSkill{
 zhuzhi:addSkill(anguo)
 Fk:loadTranslationTable{
   ["zhuzhi"] = "朱治",
+  ["#zhuzhi"] = "王事靡盬",
+  ["illustrator:zhuzhi"] = "折原", -- 皮肤 气冲牛斗
   ["anguo"] = "安国",
   [":anguo"] = "出牌阶段限一次，你可以选择一名其他角色，令其依次执行：若其手牌数为全场最少，其摸一张牌；"..
   "体力值为全场最低，回复1点体力；装备区内牌数为全场最少，随机使用牌堆中一张装备牌。"..
@@ -974,38 +993,43 @@ local huaiyi = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
-  card_filter = function()
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cards = player.player_cards[Player.Hand]
     player:showCards(cards)
     local colors = {}
     for _, id in ipairs(cards) do
-      table.insertIfNeed(colors, Fk:getCardById(id):getColorString())
+      if Fk:getCardById(id).color ~= Card.NoColor then
+        table.insertIfNeed(colors, Fk:getCardById(id):getColorString())
+      end
     end
     if #colors < 2 then return end
     local color = room:askForChoice(player, colors, self.name)
     local throw = {}
     for _, id in ipairs(cards) do
-      if Fk:getCardById(id):getColorString() == color then
+      if Fk:getCardById(id):getColorString() == color and not player:prohibitDiscard(Fk:getCardById(id)) then
         table.insert(throw, id)
       end
     end
+    if #throw == 0 then return end
     room:throwCard(throw, self.name, player, player)
+    if player.dead then return end
     local targets = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
       return (not p:isNude()) end), Util.IdMapper), 1, #throw, "#huaiyi-choose:::"..tostring(#throw), self.name, true)
     if #targets > 0 then
-      local get = {}
+      room:sortPlayersByAction(targets)
+      local n = 0
       for _, p in ipairs(targets) do
-        local id = room:askForCardChosen(player, room:getPlayerById(p), "he", self.name)
-        table.insert(get, id)
+        if player.dead then return end
+        local to = room:getPlayerById(p)
+        if not to:isNude() then
+          local id = room:askForCardChosen(player, to, "he", self.name)
+          n = n + 1
+          room:moveCardTo(id, Card.PlayerHand, player, fk.ReasonPrey, self.name, nil, false, player.id)
+        end
       end
-      for _, id in ipairs(get) do
-        room:obtainCard(player, id, false, fk.ReasonPrey)
-      end
-      if #get > 1 then
+      if n > 1 and not player.dead then
         room:loseHp(player, 1, self.name)
       end
     end
@@ -1014,6 +1038,8 @@ local huaiyi = fk.CreateActiveSkill{
 gongsunyuan:addSkill(huaiyi)
 Fk:loadTranslationTable{
   ["gongsunyuan"] = "公孙渊",
+  ["#gongsunyuan"] = "狡徒悬海",
+  ["illustrator:gongsunyuan"] = "尼乐小丑",
   ["huaiyi"] = "怀异",
   [":huaiyi"] = "出牌阶段限一次，你可以展示所有手牌，若其中包含两种颜色，则你弃置其中一种颜色的牌，然后获得至多X名角色的各一张牌"..
   "（X为你以此法弃置的手牌数）。若你获得的牌大于一张，则你失去1点体力。",
@@ -1114,6 +1140,8 @@ guotupangji:addSkill(jigong)
 guotupangji:addSkill(shifei)
 Fk:loadTranslationTable{
   ["guotupangji"] = "郭图逄纪",
+  ["#guotupangji"] = "凶蛇两端",
+  ["illustrator:guotupangji"] = "Aimer&Vwolf",
   ["jigong"] = "急攻",
   [":jigong"] = "出牌阶段开始时，你可以摸两张牌，然后你本回合的手牌上限等于你本阶段造成的伤害值。",
   ["shifei"] = "饰非",
