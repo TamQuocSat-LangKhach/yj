@@ -453,6 +453,20 @@ Fk:loadTranslationTable{
 }
 
 local masu = General(extension, "masu", "shu", 3)
+Fk:addPoxiMethod{
+  name = "xinzhan_choose",
+  card_filter = function(to_select)
+    return Fk:getCardById(to_select).suit == Card.Heart
+  end,
+  feasible = Util.TrueFunc,
+  prompt = function ()
+    return Fk:translate("#xinzhan-choose")
+  end,
+  default_choice = function(data)
+    if not data then return {} end
+    return table.filter(data[1][2], function(id) return Fk:getCardById(id).suit == Card.Heart end)
+  end,
+}
 local xinzhan = fk.CreateActiveSkill{
   name = "xinzhan",
   anim_type = "drawcard",
@@ -465,16 +479,18 @@ local xinzhan = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cards = room:getNCards(3)
-    local hearts = table.filter(cards, function (id) return Fk:getCardById(id).suit == Card.Heart end)
-    local get, _ = U.askforChooseCardsAndChoice(player, hearts,  {"OK"}, self.name, "#xinzhan_choose", {"Cancel"}, 1, 3, cards)
+    local get = room:askForPoxi(player, "xinzhan_choose", {
+      { self.name, cards },
+    }, nil, false)
     if #get > 0 then
       player:showCards(get)
+      if player.dead then return end
       local dummy = Fk:cloneCard("dilu")
       for _, id in ipairs(get) do
         table.removeOne(cards, id)
         dummy:addSubcard(id)
       end
-      room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
+      room:obtainCard(player.id, dummy, true, fk.ReasonPrey, player.id)
     end
     if #cards > 0 then
       room:askForGuanxing(player, cards, nil, {0, 0})
@@ -487,7 +503,7 @@ local huilei = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Death},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self, false, true) and data.damage and data.damage.from
+    return target == player and player:hasSkill(self, false, true) and data.damage and data.damage.from and not data.damage.from:isNude()
   end,
   on_use = function(self, event, target, player, data)
     data.damage.from:throwAllCards("he")
@@ -502,10 +518,12 @@ Fk:loadTranslationTable{
   ["illustrator:masu"] = "张帅",
 
   ["xinzhan"] = "心战",
-  [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示并获得其中任意张<font color='red'>♥</font>牌，其余以任意顺序置于牌堆顶。",
-  ["#xinzhan_choose"] = "心战：获得任意张♥牌",
+  [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的<font color='red'>♥</font>牌，获得所有你以此法展示的牌，将其余的牌置于牌堆顶。",
   ["huilei"] = "挥泪",
-  [":huilei"] = "锁定技，杀死你的角色立即弃置所有牌。",
+  [":huilei"] = "锁定技，杀死你的角色弃置所有牌。",
+
+  ["xinzhan_choose"] = "心战",
+  ["#xinzhan-choose"] = "心战：获得任意张♥牌",
 
   ["$xinzhan1"] = "吾通晓兵法，世人皆知。",
   ["$xinzhan2"] = "用兵之道，攻心为上。",
@@ -664,13 +682,12 @@ local nos__xuanfeng = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) then
-      for _, move in ipairs(data) do
-        if move.from == player.id then
-          for _, info in ipairs(move.moveInfo) do
-            if info.fromArea == Card.PlayerEquip then
-              return true
-            end
+    if not player:hasSkill(self) then return end
+    for _, move in ipairs(data) do
+      if move.from == player.id then
+        for _, info in ipairs(move.moveInfo) do
+          if info.fromArea == Card.PlayerEquip then
+            return true
           end
         end
       end
@@ -715,7 +732,7 @@ Fk:loadTranslationTable{
   ["nos__lingtong"] = "凌统",
   ["#nos__lingtong"] = "豪情烈胆",
   ["cv:nos__lingtong"] = "冷泉月夜",
-  ["designer:xxx_general"] = "ShadowLee",
+  ["designer:nos__lingtong"] = "ShadowLee",
 	["illustrator:nos__lingtong"] = "绵Myan",
 
   ["nos__xuanfeng"] = "旋风",
@@ -735,49 +752,43 @@ local xuanfeng = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.AfterCardsMove, fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) then
-      if event == fk.AfterCardsMove then
-        for _, move in ipairs(data) do
-          if move.from == player.id then
-            for _, info in ipairs(move.moveInfo) do
-              if info.fromArea == Card.PlayerEquip then
-                return true
-              end
+    if not player:hasSkill(self) or table.every(player.room:getOtherPlayers(player), function (p) return p:isNude() end) then return end
+    if event == fk.AfterCardsMove then
+      for _, move in ipairs(data) do
+        if move.from == player.id then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerEquip then
+              return true
             end
           end
         end
-      else
-        if target == player and player.phase == Player.Discard then
-          local n = 0
-          player.room.logic:getEventsOfScope(GameEvent.MoveCards, 2, function(e)
-            for _, move in ipairs(e.data) do
-              if move.from == player.id and move.moveReason == fk.ReasonDiscard then
-                n = n + #move.moveInfo
-              end
-            end
-          end, Player.HistoryPhase)
-          return n > 1
-        end
       end
+    elseif target == player and player.phase == Player.Discard then
+      local n = 0
+      player.room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
+        for _, move in ipairs(e.data) do
+          if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+            n = n + #move.moveInfo
+          end
+        end
+        return n > 1
+      end, Player.HistoryPhase)
+      return n > 1
     end
-  end,
-  on_cost = function(self, event, target, player, data)
-    if table.every(player.room:getOtherPlayers(player), function (p) return p:isNude() end) then return end
-    return player.room:askForSkillInvoke(player, self.name)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for i = 1, 2, 1 do
+    for _ = 1, 2, 1 do
+      if player.dead then return end
       local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
         return not p:isNude() end), Util.IdMapper)
       if #targets == 0 then return end
-      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanfeng-choose", self.name, false)
-      if #tos == 0 then
-        tos = {table.random(targets)}
-      end
+      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanfeng-choose", self.name, true)
+      if #tos == 0 then return end
+      local to = room:getPlayerById(tos[1])
       room:doIndicate(player.id, tos)
-      local card = room:askForCardChosen(player, room:getPlayerById(tos[1]), "he", self.name)
-      room:throwCard({card}, self.name, room:getPlayerById(tos[1]), player)
+      local card = room:askForCardChosen(player, to, "he", self.name)
+      room:throwCard({card}, self.name, to, player)
     end
   end,
 }
@@ -789,7 +800,7 @@ Fk:loadTranslationTable{
 	["illustrator:lingtong"] = "DH", -- 精良皮 豪情烈胆
 
   ["xuanfeng"] = "旋风",
-  [":xuanfeng"] = "当你失去装备区里的牌后，或你弃置过至少两张牌的弃牌阶段结束时，你可以依次弃置一至两名角色共计两张牌。",
+  [":xuanfeng"] = "当你失去装备区里的牌后，或弃牌阶段结束时，若你于此阶段内弃置过你的至少两张手牌，你可以依次弃置至多两名其他角色共计两张牌。",
   ["#xuanfeng-choose"] = "旋风：你可以依次弃置一至两名角色的共计两张牌",
 
   ["$xuanfeng1"] = "伤敌于千里之外！",
@@ -812,57 +823,89 @@ local ganlu = fk.CreateActiveSkill{
   card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     if #selected == 0 then
-      return true
+      return #Fk:currentRoom():getPlayerById(to_select).player_cards[Player.Equip] > 0
     elseif #selected == 1 then
       local target1 = Fk:currentRoom():getPlayerById(to_select)
       local target2 = Fk:currentRoom():getPlayerById(selected[1])
-      if #target1:getCardIds("e") == 0 and #target2:getCardIds("e") == 0 then
-        return false
-      end
       return math.abs(#target1:getCardIds("e") - #target2:getCardIds("e")) <= Self:getLostHp()
     else
       return false
     end
   end,
   on_use = function(self, room, effect)
-    local cards1 = table.clone(room:getPlayerById(effect.tos[1]):getCardIds("e"))
-    local cards2 = table.clone(room:getPlayerById(effect.tos[2]):getCardIds("e"))
-    local move1 = {
-      from = effect.tos[1],
-      ids = cards1,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonJustMove,
-      proposer = effect.from,
-      skillName = self.name,
-    }
-    local move2 = {
-      from = effect.tos[2],
-      ids = cards2,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonJustMove,
-      proposer = effect.from,
-      skillName = self.name,
-    }
-    room:moveCards(move1, move2)
-    local move3 = {
-      ids = table.filter(cards1, function(id) return room:getCardArea(id) == Card.Processing end),
-      fromArea = Card.Processing,
-      to = effect.tos[2],
-      toArea = Card.PlayerEquip,
-      moveReason = fk.ReasonJustMove,
-      proposer = effect.from,
-      skillName = self.name,
-    }
-    local move4 = {
-      ids = table.filter(cards2, function(id) return room:getCardArea(id) == Card.Processing end),
-      fromArea = Card.Processing,
-      to = effect.tos[1],
-      toArea = Card.PlayerEquip,
-      moveReason = fk.ReasonJustMove,
-      proposer = effect.from,
-      skillName = self.name,
-    }
-    room:moveCards(move3, move4)
+    local target1 = Fk:currentRoom():getPlayerById(effect.tos[1])
+    local target2 = Fk:currentRoom():getPlayerById(effect.tos[2])
+    local cards1 = table.clone(target1.player_cards[Player.Equip])
+    local cards2 = table.clone(target2.player_cards[Player.Equip])
+    local moveInfos = {}
+    if #cards1 > 0 then
+      table.insert(moveInfos, {
+        from = effect.tos[1],
+        ids = cards1,
+        toArea = Card.Processing,
+        moveReason = fk.ReasonExchange,
+        proposer = effect.from,
+        skillName = self.name,
+      })
+    end
+    if #cards2 > 0 then
+      table.insert(moveInfos, {
+        from = effect.tos[2],
+        ids = cards2,
+        toArea = Card.Processing,
+        moveReason = fk.ReasonExchange,
+        proposer = effect.from,
+        skillName = self.name,
+      })
+    end
+    if #moveInfos > 0 then
+      room:moveCards(table.unpack(moveInfos))
+    end
+    moveInfos = {}
+    if not target2.dead then
+      local to_ex_cards1 = table.filter(cards1, function (id)
+        return room:getCardArea(id) == Card.Processing and target2:getEquipment(Fk:getCardById(id).sub_type) == nil
+      end)
+      if #to_ex_cards1 > 0 then
+        table.insert(moveInfos, {
+          ids = to_ex_cards1,
+          fromArea = Card.Processing,
+          to = effect.tos[2],
+          toArea = Card.PlayerEquip,
+          moveReason = fk.ReasonExchange,
+          proposer = effect.from,
+          skillName = self.name,
+        })
+      end
+    end
+    if not target1.dead then
+      local to_ex_cards = table.filter(cards2, function (id)
+        return room:getCardArea(id) == Card.Processing and target1:getEquipment(Fk:getCardById(id).sub_type) == nil
+      end)
+      if #to_ex_cards > 0 then
+        table.insert(moveInfos, {
+          ids = to_ex_cards,
+          fromArea = Card.Processing,
+          to = effect.tos[1],
+          toArea = Card.PlayerEquip,
+          moveReason = fk.ReasonExchange,
+          proposer = effect.from,
+          skillName = self.name,
+        })
+      end
+    end
+    if #moveInfos > 0 then
+      room:moveCards(table.unpack(moveInfos))
+    end
+    table.insertTable(cards1, cards2)
+    local dis_cards = table.filter(cards1, function (id)
+      return room:getCardArea(id) == Card.Processing
+    end)
+    if #dis_cards > 0 then
+      local dummy = Fk:cloneCard("dilu")
+      dummy:addSubcards(dis_cards)
+      room:moveCardTo(dummy, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
+    end
   end,
 }
 local buyi = fk.CreateTriggerSkill{
@@ -882,7 +925,7 @@ local buyi = fk.CreateTriggerSkill{
     if target.dead then return end
     if Fk:getCardById(id).type ~= Card.TypeBasic then
       room:throwCard({id}, self.name, target, target)
-      if target.dead then return end
+      if target.dead or not target:isWounded() then return end
       room:recover{
         who = target,
         num = 1,
@@ -920,11 +963,13 @@ local pojun = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and not data.to.dead
+    return target == player and player:hasSkill(self) and U.damageByCardEffect(player.room) and not data.to.dead
   end,
   on_use = function(self, event, target, player, data)
-    data.to:drawCards(math.min(data.to.hp, 5))
-    data.to:turnOver()
+    local to = data.to
+    to:drawCards(math.min(data.to.hp, 5))
+    if to.dead then return end
+    to:turnOver()
   end
 }
 xusheng:addSkill(pojun)
@@ -933,9 +978,9 @@ Fk:loadTranslationTable{
   ["#xusheng"] = "江东的铁壁",
   ["designer:xusheng"] = "阿江",
 	["illustrator:xusheng"] = "刘周",
-  
+
   ["pojun"] = "破军",
-  [":pojun"] = "当你使用【杀】造成伤害后，你可以令受到伤害的角色摸X张牌（X为其当前体力值，最多为5），然后其翻面。",
+  [":pojun"] = "当你使用【杀】对目标角色造成伤害后，你可以令其摸X张牌（X为其体力值，至多为5），然后其翻面。",
 
   ["$pojun1"] = "大军在此！汝等休想前进一步！",
   ["$pojun2"] = "敬请，养精蓄锐！",
@@ -952,11 +997,9 @@ local xianzhen = fk.CreateActiveSkill{
   can_use = function(self, player)
     return not player:isKongcheng() and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+    return #selected == 0 and to_select ~= Self.id and Self:canPindian(Fk:currentRoom():getPlayerById(to_select))
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -1035,7 +1078,7 @@ gaoshun:addSkill(jinjiu)
 Fk:loadTranslationTable{
   ["gaoshun"] = "高顺",
   ["#gaoshun"] = "攻无不克",
-  ["designer:xxx_general"] = "羽柴文理",
+  ["designer:gaoshun"] = "羽柴文理",
 	["illustrator:gaoshun"] = "鄧Sir",
 
   ["xianzhen"] = "陷阵",
@@ -1126,7 +1169,7 @@ Fk:loadTranslationTable{
   ["designer:chengong"] = "Kaycent",
   ["cv:chengong"] = "金垚",
   ["illustrator:chengong"] = "黑月乱",
-  
+
   ["mingce"] = "明策",
   [":mingce"] = "出牌阶段限一次，你可以交给一名其他角色一张装备牌或【杀】，其选择一项：1.视为对其攻击范围内一名你指定的角色使用一张【杀】；2.摸一张牌。",
   ["zhichi"] = "智迟",

@@ -1046,6 +1046,7 @@ local quanji = fk.CreateTriggerSkill{
   name = "quanji",
   anim_type = "masochism",
   events = {fk.Damaged},
+  derived_piles = {"zhonghui_quan"},
   on_trigger = function(self, event, target, player, data)
     self.cancel_cost = false
     for i = 1, data.damage do

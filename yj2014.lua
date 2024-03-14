@@ -469,9 +469,11 @@ local qiangzhi = fk.CreateTriggerSkill{
     player:broadcastSkillInvoke(self.name, 1)
     room:notifySkillInvoked(player, self.name, "control")
     local to = room:getPlayerById(self.cost_data)
+    room:doIndicate(player.id, {self.cost_data})
     local card = Fk:getCardById(room:askForCardChosen(player, to, "h", self.name))
     to:showCards(card)
-    room:setPlayerMark(player, "@qiangzhi-phase", card:getTypeString())
+    local cardType = card:getTypeString()
+    if cardType ~= "notype" then room:setPlayerMark(player, "@qiangzhi-phase", cardType) end
   end,
 }
 local qiangzhi_trigger = fk.CreateTriggerSkill{
@@ -498,7 +500,7 @@ local xiantu = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self) and target.phase == Player.Play
+    return target ~= player and player:hasSkill(self) and target.phase == Player.Play and not target.dead
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, data, "#xiantu-invoke::"..target.id)
@@ -507,6 +509,7 @@ local xiantu = fk.CreateTriggerSkill{
     local room = player.room
     player:broadcastSkillInvoke(self.name, 1)
     room:notifySkillInvoked(player, self.name)
+    room:doIndicate(player.id, {target.id})
     player:drawCards(2, self.name)
     if player:isNude() then return end
     local cards
@@ -554,9 +557,9 @@ zhangsong:addSkill(xiantu)
 Fk:loadTranslationTable{
   ["zhangsong"] = "张松",
   ["qiangzhi"] = "强识",
-  [":qiangzhi"] = "出牌阶段开始时，你可以展示一名其他角色的一张手牌，若如此做，每当你于此阶段内使用与此牌类别相同的牌时，你可以摸一张牌。",
+  [":qiangzhi"] = "出牌阶段开始时，你可以展示一名其他角色的一张手牌，然后当你于此阶段内使用与此牌类别相同的牌时，你可以摸一张牌。",
   ["xiantu"] = "献图",
-  [":xiantu"] = "一名其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，若如此做，此阶段结束时，若该角色未于此回合内杀死过一名角色，则你失去1点体力。",
+  [":xiantu"] = "其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，若如此做，此阶段结束时，若该角色未于此回合内杀死过一名角色，则你失去1点体力。",
   ["#qiangzhi-choose"] = "强识：展示一名其他角色的一张手牌，此阶段内你使用类别相同的牌时，你可以摸一张牌",
   ["#qiangzhi-invoke"] = "强识：你可以摸一张牌",
   ["@qiangzhi-phase"] = "强识",
