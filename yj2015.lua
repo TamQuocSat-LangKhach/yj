@@ -482,17 +482,18 @@ local qinwang = fk.CreateViewAsSkill{
   anim_type = "defensive",
   pattern = "slash",
   card_filter = function(self, to_select, selected)
-    return false
+    return #selected == 0 and not Self:prohibitDiscard(Fk:getCardById(to_select))
   end,
   before_use = function(self, player, use)
     local room = player.room
-    if #room:askForDiscard(player, 1, 1, true, self.name, false, ".") > 0 then
+    if use.card.extra_data and type(use.card.extra_data.qinwangCards) == "table" and #use.card.extra_data.qinwangCards > 0 then
       room:notifySkillInvoked(player, self.name)
       player:broadcastSkillInvoke(self.name)
+      room:throwCard(use.card.extra_data.qinwangCards, self.name, player, player)
       if use.tos then
         room:doIndicate(player.id, TargetGroup:getRealTargets(use.tos))
       end
-  
+
       for _, p in ipairs(room:getOtherPlayers(player)) do
         if p.kingdom == "shu" then
           local cardResponded = room:askForResponse(p, "slash", "slash", "#qinwang-ask:" .. player.id, true)
@@ -502,21 +503,33 @@ local qinwang = fk.CreateViewAsSkill{
               card = cardResponded,
               skipDrop = true,
             })
-  
+
             use.card = cardResponded
-            p:drawCards(1, self.name)
+            use.extra_data = use.extra_data or {}
+            use.extra_data.qinwangUser = p.id
             return
           end
         end
       end
-  
+
       room:setPlayerMark(player, "qinwang-failed-phase", 1)
     end
     return self.name
   end,
+  after_use = function(self, player, use)
+    if use.extra_data and use.extra_data.qinwangUser then
+      local p = player.room:getPlayerById(use.extra_data.qinwangUser)
+      if p and not p.dead then
+        p:drawCards(1, self.name)
+      end
+    end
+  end,
   view_as = function(self, cards)
+    if #cards < 1 then return end
     local c = Fk:cloneCard("slash")
     c.skillName = self.name
+    c.extra_data = c.extra_data or {}
+    c.extra_data.qinwangCards = cards
     return c
   end,
   enabled_at_play = function(self, player)
