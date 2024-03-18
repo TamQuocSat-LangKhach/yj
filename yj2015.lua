@@ -430,35 +430,27 @@ Fk:loadTranslationTable{
 }
 
 local liuchen = General(extension, "liuchen", "shu", 4)
-local zhanjue = fk.CreateActiveSkill{
+local zhanjue = fk.CreateViewAsSkill{
   name = "zhanjue",
   anim_type = "offensive",
   card_num = 0,
   min_target_num = 1,
   prompt = "#zhanjue",
-  can_use = function(self, player)
-    return player:getMark("zhanjue-phase") < 2 and not player:isKongcheng()
-  end,
-  card_filter = function(self, to_select, selected, selected_targets)
+  card_filter = function(self, to_select, selected)
     return false
   end,
-  target_filter = function(self, to_select, selected, selected_cards)
+  -- target_filter = function(self, to_select, selected, selected_cards)
+  --   local card = Fk:cloneCard("duel")
+  --   card:addSubcards(Self:getCardIds(Player.Hand))
+  --   return Self:canUseTo(card, Fk:currentRoom():getPlayerById(to_select))
+  -- end,
+  view_as = function(self, cards)
     local card = Fk:cloneCard("duel")
     card:addSubcards(Self:getCardIds(Player.Hand))
-    return Self:canUse(card) and card.skill:targetFilter(to_select, selected, selected_cards, card) and
-      not Self:isProhibited(Fk:currentRoom():getPlayerById(to_select), card)
+    return card
   end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local card = Fk:cloneCard("duel")
-    card:addSubcards(player:getCardIds(Player.Hand))
-    -- use
-    local use = {} ---@type CardUseStruct
-    use.from = effect.from
-    use.tos = table.map(effect.tos, function(pid) return { pid } end)
-    use.card = card
-
-    room:useCard(use)
+  after_use = function(self, player, use)
+    local room = player.room
     if not player.dead then
       player:drawCards(1, "zhanjue")
       room:addPlayerMark(player, "zhanjue-phase", 1)
@@ -474,6 +466,9 @@ local zhanjue = fk.CreateActiveSkill{
       end
     end
   end,
+  enabled_at_play = function(self, player)
+    return player:getMark("zhanjue-phase") < 2 and not player:isKongcheng()
+  end
 }
 local qinwang = fk.CreateViewAsSkill{
   name = "qinwang$",
