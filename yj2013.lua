@@ -175,6 +175,8 @@ nos__caochong:addSkill(nos__chengxiang)
 nos__caochong:addSkill(nos__renxin)
 Fk:loadTranslationTable{
   ["nos__caochong"] = "曹冲",
+  ["#nos__caochong"] = "仁爱的神童",
+  ["illustrator:nos__caochong"] = "alien", -- 飞虹云象
   ["nos__chengxiang"] = "称象",
   [":nos__chengxiang"] = "每当你受到一次伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于13的牌。",
   ["nos__renxin"] = "仁心",
@@ -208,6 +210,9 @@ local jingce = fk.CreateTriggerSkill{
 guohuai:addSkill(jingce)
 Fk:loadTranslationTable{
   ["guohuai"] = "郭淮",
+  ["#guohuai"] = "垂问秦雍",
+  ["designer:guohuai"] = "五月fy",
+	["illustrator:guohuai"] = "DH",
   ["jingce"] = "精策",
   [":jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
 
@@ -294,6 +299,9 @@ manchong:addSkill(junxing)
 manchong:addSkill(yuce)
 Fk:loadTranslationTable{
   ["manchong"] = "满宠",
+  ["#manchong"] = "政法兵谋",
+  ["designer:manchong"] = "VirgoPaladin",
+	["illustrator:manchong"] = "Aimer彩三",
   ["junxing"] = "峻刑",
   [":junxing"] = "出牌阶段限一次，你可以弃置至少一张手牌，令一名其他角色选择一项：1.弃置一张与你弃置的牌类别均不同的手牌；2.翻面并摸等同于你弃牌数的牌。",
   ["yuce"] = "御策",
@@ -339,6 +347,9 @@ local longyin = fk.CreateTriggerSkill{
 guanping:addSkill(longyin)
 Fk:loadTranslationTable{
   ["guanping"] = "关平",
+  ["#guanping"] = "忠臣孝子",
+  ["designer:guanping"] = "昂翼天使",
+	["illustrator:guanping"] = "樱花闪乱",
   ["longyin"] = "龙吟",
   [":longyin"] = "每当一名角色在其出牌阶段使用【杀】时，你可以弃置一张牌令此【杀】不计入出牌阶段使用次数，若此【杀】为红色，你摸一张牌。",
   ["#longyin-invoke"] = "龙吟：你可以弃置一张牌令 %dest 的【杀】不计入次数限制",
@@ -407,7 +418,7 @@ qiaoshui:addRelatedSkill(qiaoshui_delay)
 local qiaoshui_prohibit = fk.CreateProhibitSkill{
   name = "#qiaoshui_prohibit",
   prohibit_use = function(self, player, card)
-    return player:hasSkill(self.name, true) and player:getMark("@@qiaoshui_lose-turn") > 0 and card.type == Card.TypeTrick
+    return player:hasSkill(self, true) and player:getMark("@@qiaoshui_lose-turn") > 0 and card.type == Card.TypeTrick
   end,
 }
 local zongshij = fk.CreateTriggerSkill{
@@ -451,6 +462,9 @@ jianyong:addSkill(qiaoshui)
 jianyong:addSkill(zongshij)
 Fk:loadTranslationTable{
   ["jianyong"] = "简雍",
+  ["#jianyong"] = "悠游风议",
+  ["designer:jianyong"] = "Nocihoo",
+	["illustrator:jianyong"] = "Thinking",
   ["qiaoshui"] = "巧说",
   [":qiaoshui"] = "出牌阶段开始时，你可以与一名其他角色拼点，若你赢，你使用的下一张基本牌或非延时类锦囊牌可以额外指定任意一名其他角色为目标或"..
   "减少指定一个目标；若你没赢，你不能使用锦囊牌直到回合结束。",
@@ -487,38 +501,47 @@ local xiansi = fk.CreateTriggerSkill{
       return not p:isNude() end), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, 2, "#xiansi-choose", self.name, true)
     if #tos > 0 then
+      room:sortPlayersByAction(tos)
       self.cost_data = tos
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for _, p in ipairs(self.cost_data) do
-      local id = room:askForCardChosen(player, room:getPlayerById(p), "he", self.name)
-      player:addToPile("liufeng_ni", id, true, self.name)
+    for _, pid in ipairs(self.cost_data) do
+      if player.dead then break end
+      local p = room:getPlayerById(pid)
+      if not p:isNude() then
+        local id = room:askForCardChosen(player, p, "he", self.name)
+        player:addToPile("liufeng_ni", id, true, self.name)
+      end
     end
   end,
 
   refresh_events = {fk.GameStart, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed},
   can_refresh = function(self, event, target, player, data)
     if event == fk.GameStart then
-      return player:hasSkill(self.name, true)
-    elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
-      return data == self
-    else
-      return target == player and player:hasSkill(self.name, true, true)
+      return player:hasSkill(self, true)
+    elseif event == fk.EventAcquireSkill then
+      return data == self and target == player and player.room:getTag("RoundCount")
+    elseif not table.find(player.room.alive_players, function (p) return p:hasSkill(self, true) end) then
+      if event == fk.EventLoseSkill then
+        return data == self and target == player
+      else
+        return target == player and player:hasSkill(self, true, true)
+      end
     end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     if event == fk.GameStart or event == fk.EventAcquireSkill then
-      if player:hasSkill(self.name, true) then
+      if player:hasSkill(self, true) then
         for _, p in ipairs(room:getOtherPlayers(player)) do
           room:handleAddLoseSkills(p, "xiansi&", nil, false, true)
         end
       end
     elseif event == fk.EventLoseSkill or event == fk.Deathed then
-      for _, p in ipairs(room:getOtherPlayers(player, true, true)) do
+      for _, p in ipairs(room.players) do
         room:handleAddLoseSkills(p, "-xiansi&", nil, false, true)
       end
     end
@@ -563,7 +586,7 @@ local xiansi_viewas = fk.CreateViewAsSkill{
 local xiansi_prohibit = fk.CreateProhibitSkill{  --FIXME: 目标多指！
   name = "#xiansi_prohibit",
   is_prohibited = function(self, from, to, card)
-    if from:hasSkill(self.name, true) then
+    if from:hasSkill(self, true) then
       return card.trueName == "slash" and table.contains(card.skillNames, "xiansi") and
         not (to:hasSkill("xiansi", true) and #to:getPile("liufeng_ni") > 1)
     end
@@ -574,6 +597,9 @@ Fk:addSkill(xiansi_viewas)
 liufeng:addSkill(xiansi)
 Fk:loadTranslationTable{
   ["liufeng"] = "刘封",
+  ["#liufeng"] = "骑虎之殇",
+  ["designer:liufeng"] = "香蒲神殇",
+	["illustrator:liufeng"] = "Thinking",
   ["xiansi"] = "陷嗣",
   [":xiansi"] = "回合开始阶段开始时，你可以将至多两名其他角色的各一张牌置于你的武将牌上，称为“逆”。每当其他角色需要对你使用一张【杀】时，"..
   "该角色可以弃置你武将牌上的两张“逆”，视为对你使用一张【杀】。",
@@ -638,6 +664,9 @@ panzhangmazhong:addSkill(duodao)
 panzhangmazhong:addSkill(anjian)
 Fk:loadTranslationTable{
   ["panzhangmazhong"] = "潘璋马忠",
+  ["#panzhangmazhong"] = "擒龙伏虎",
+  ["designer:panzhangmazhong"] = "Michael_Lee",
+	["illustrator:panzhangmazhong"] = "zzyzzyy",
   ["duodao"] = "夺刀",
   [":duodao"] = "当你受到【杀】造成的伤害后，你可以弃置一张牌，然后获得伤害来源装备区里的武器牌。",
   ["anjian"] = "暗箭",
@@ -744,6 +773,9 @@ yufan:addSkill(zongxuan)
 yufan:addSkill(zhiyan)
 Fk:loadTranslationTable{
   ["yufan"] = "虞翻",
+  ["#yufan"] = "狂直之士",
+  ["designer:yufan"] = "幻岛",
+	["illustrator:yufan"] = "L",
   ["zongxuan"] = "纵玄",
   [":zongxuan"] = "当你的牌因弃置而移至弃牌堆后，你可以将其中至少一张牌置于牌堆顶。",
   ["zhiyan"] = "直言",
@@ -775,6 +807,9 @@ local nos__danshou = fk.CreateTriggerSkill{
 nos__zhuran:addSkill(nos__danshou)
 Fk:loadTranslationTable{
   ["nos__zhuran"] = "朱然",
+  ["#nos__zhuran"] = "不动之督",
+  ["designer:nos__zhuran"] = "迁迁婷婷",
+	["illustrator:nos__zhuran"] = "Ccat",
   ["nos__danshou"] = "胆守",
   [":nos__danshou"] = "每当你造成一次伤害后，你可以摸一张牌，若如此做，终止一切结算，当前回合结束。",
 
@@ -849,6 +884,9 @@ local danshou = fk.CreateActiveSkill{
 zhuran:addSkill(danshou)
 Fk:loadTranslationTable{
   ["zhuran"] = "朱然",
+  ["#zhuran"] = "不动之督",
+  ["designer:zhuran"] = "Loun老萌",
+	["illustrator:zhuran"] = "NOVART", -- 猇亭之战
   ["danshou"] = "胆守",
   [":danshou"] = "出牌阶段，你可以弃置X张牌并选择你攻击范围内的一名其他角色（X为你此阶段内发动〖胆守〗的次数），若X为：1，你弃置其一张牌；"..
   "2，其将一张牌交给你；3，你对其造成1点伤害；不小于4，你与其各摸两张牌。",
@@ -935,6 +973,9 @@ fuhuanghou:addSkill(zhuikong)
 fuhuanghou:addSkill(qiuyuan)
 Fk:loadTranslationTable{
   ["fuhuanghou"] = "伏皇后",
+  ["#fuhuanghou"] = "孤注一掷",
+  ["designer:fuhuanghou"] = "萌D",
+	["illustrator:fuhuanghou"] = "小莘",
   ["zhuikong"] = "惴恐",
   [":zhuikong"] = "一名角色的回合开始时，若你已受伤，你可以与该角色拼点，若你赢，该角色本回合使用的牌不能指定除该角色以外的角色为目标；若你没赢，该角色与你的距离视为1直到回合结束。",
   ["qiuyuan"] = "求援",
@@ -1021,6 +1062,9 @@ nos__fuhuanghou:addSkill(nos__zhuikong)
 nos__fuhuanghou:addSkill(nos__qiuyuan)
 Fk:loadTranslationTable{
   ["nos__fuhuanghou"] = "伏皇后",
+  ["#nos__fuhuanghou"] = "孤注一掷",
+  ["designer:nos__fuhuanghou"] = "萌D",
+	["illustrator:nos__fuhuanghou"] = "琛·美弟奇",
   ["nos__zhuikong"] = "惴恐",
   [":nos__zhuikong"] = "一名角色的回合开始时，若你已受伤，你可以和该角色进行一次拼点。若你赢，该角色跳过本回合的出牌阶段；"..
   "若你没赢，该角色与你距离为1直到回合结束。",
@@ -1166,6 +1210,9 @@ nos__liru:addSkill(nos__mieji)
 nos__liru:addSkill(nos__fencheng)
 Fk:loadTranslationTable{
   ["nos__liru"] = "李儒",
+  ["#nos__liru"] = "魔仕",
+  ["designer:nos__liru"] = "淬毒",
+	["illustrator:nos__liru"] = "zoo", -- 烈火焚城
   ["nos__juece"] = "绝策",
   [":nos__juece"] = "在你的回合内，一名角色失去最后的手牌时，你可以对其造成1点伤害。",
   ["nos__mieji"] = "灭计",
@@ -1294,6 +1341,9 @@ liru:addSkill(mieji)
 liru:addSkill(fencheng)
 Fk:loadTranslationTable{
   ["liru"] = "李儒",
+  ["#liru"] = "魔仕",
+  ["designer:liru"] = "淬毒",
+	["illustrator:liru"] = "MSNZero",
   ["juece"] = "绝策",
   [":juece"] = "结束阶段，你可以对一名没有手牌的其他角色造成1点伤害。",
   ["mieji"] = "灭计",

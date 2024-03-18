@@ -859,7 +859,7 @@ local qieting = fk.CreateTriggerSkill{
 
   refresh_events = {fk.CardUsing},
   can_refresh = function(self, event, target, player, data)
-    return player:hasSkill(self.name, true) and target ~= player and target.phase ~= Player.NotActive and data.tos
+    return player:hasSkill(self, true) and target ~= player and target.phase ~= Player.NotActive and data.tos
   end,
   on_refresh = function(self, event, target, player, data)
     for _, info in ipairs(data.tos) do

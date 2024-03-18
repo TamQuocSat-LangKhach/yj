@@ -66,7 +66,7 @@ local jiushi = fk.CreateViewAsSkill{
   before_use = function(self, player)
     player:turnOver()
   end,
-  view_as = function(self, cards)
+  view_as = function(self)
     local c = Fk:cloneCard("analeptic")
     c.skillName = self.name
     return c
@@ -84,7 +84,7 @@ local jiushi_trigger = fk.CreateTriggerSkill{
   main_skill = jiushi,
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and data.jiushi
+    return target == player and (data.extra_data or {}).jiushi_check
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, "jiushi")
@@ -97,10 +97,11 @@ local jiushi_trigger = fk.CreateTriggerSkill{
 
   refresh_events = {fk.DamageInflicted},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and not player.faceup
+    return target == player and player:hasSkill(jiushi) and not player.faceup
   end,
   on_refresh = function(self, event, target, player, data)
-    data.jiushi = true
+    data.extra_data = data.extra_data or {}
+    data.extra_data.jiushi_check = true
   end,
 }
 jiushi:addRelatedSkill(jiushi_trigger)

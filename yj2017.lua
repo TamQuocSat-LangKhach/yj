@@ -191,7 +191,7 @@ local juexiang = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.Death},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name,false,true) and target == player
+    return player:hasSkill(self,false,true) and target == player
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -701,18 +701,18 @@ local wengua_trigger = fk.CreateTriggerSkill{
   refresh_events = {fk.GameStart, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed},
   can_refresh = function(self, event, target, player, data)
     if event == fk.GameStart then
-      return player:hasSkill(self.name, true)
+      return player:hasSkill(self, true)
     elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
       return data == self and not table.find(player.room:getOtherPlayers(player), function(p) return p:hasSkill("wengua", true) end)
     else
-      return target == player and player:hasSkill(self.name, true, true) and
+      return target == player and player:hasSkill(self, true, true) and
         not table.find(player.room:getOtherPlayers(player), function(p) return p:hasSkill("wengua", true) end)
     end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     if event == fk.GameStart or event == fk.EventAcquireSkill then
-      if player:hasSkill(self.name, true) then
+      if player:hasSkill(self, true) then
         for _, p in ipairs(room:getOtherPlayers(player)) do
           room:handleAddLoseSkills(p, "wengua&", nil, false, true)
         end

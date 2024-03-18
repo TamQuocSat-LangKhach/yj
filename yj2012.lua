@@ -98,13 +98,13 @@ local jiangchi = fk.CreateTriggerSkill{
 local jiangchi_targetmod = fk.CreateTargetModSkill{
   name = "#jiangchi_targetmod",
   residue_func = function(self, player, skill, scope)
-    if player:hasSkill(self.name, true) and skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 and
+    if player:hasSkill(self, true) and skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 and
       scope == Player.HistoryPhase then
       return 1
     end
   end,
   distance_limit_func =  function(self, player, skill)
-    if player:hasSkill(self.name, true) and skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 then
+    if player:hasSkill(self, true) and skill.trueName == "slash_skill" and player:getMark("jiangchi-1-turn") > 0 then
       return 999
     end
   end,
@@ -112,10 +112,10 @@ local jiangchi_targetmod = fk.CreateTargetModSkill{
 local jiangchi_prohibit = fk.CreateProhibitSkill{
   name = "#jiangchi_prohibit",
   prohibit_use = function(self, player, card)
-    return player:hasSkill(self.name, true) and player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
+    return player:hasSkill(self, true) and player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
   end,
   prohibit_response = function(self, player, card)
-    return player:hasSkill(self.name, true) and player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
+    return player:hasSkill(self, true) and player:getMark("jiangchi+1-turn") > 0 and card.trueName == "slash"
   end,
 }
 jiangchi:addRelatedSkill(jiangchi_targetmod)
@@ -748,7 +748,7 @@ local zhuiyi = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.Death},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, false, true)
+    return target == player and player:hasSkill(self, false, true)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
