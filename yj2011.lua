@@ -84,7 +84,7 @@ local jiushi_trigger = fk.CreateTriggerSkill{
   main_skill = jiushi,
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and (data.extra_data or {}).jiushi_check
+    return target == player and player:hasSkill(jiushi) and (data.extra_data or {}).jiushi_check and not player.faceup
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, "jiushi")
@@ -97,7 +97,7 @@ local jiushi_trigger = fk.CreateTriggerSkill{
 
   refresh_events = {fk.DamageInflicted},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(jiushi) and not player.faceup
+    return target == player and not player.faceup
   end,
   on_refresh = function(self, event, target, player, data)
     data.extra_data = data.extra_data or {}
