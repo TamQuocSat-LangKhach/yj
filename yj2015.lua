@@ -54,18 +54,14 @@ local mingjian = fk.CreateActiveSkill{
   can_use = function(self, player)
     return not player:isKongcheng() and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(player.player_cards[Player.Hand])
-    room:obtainCard(target, dummy, false, fk.ReasonGive)
+    room:moveCardTo(player.player_cards[Player.Hand], Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
     room:addPlayerMark(target, "@@" .. self.name, 1)
   end,
 }
@@ -110,6 +106,7 @@ local xingshuai = fk.CreateTriggerSkill{
     end
     if #targets > 0 then
       for _, p in ipairs(targets) do
+        if player.dead or not player:isWounded() then break end
         room:recover{
           who = player,
           num = 1,
@@ -137,6 +134,7 @@ caorui:addSkill(xingshuai)
 Fk:loadTranslationTable{
   ["caorui"] = "曹叡",
   ["#caorui"] = "天姿的明君",
+  ["designer:caorui"] = "Ptolemy_M7",
   ["illustrator:caorui"] = "Thinking",
   ["huituo"] = "恢拓",
   [":huituo"] = "当你受到伤害后，你可以令一名角色进行判定，若结果为：红色，其回复1点体力；黑色，其摸X张牌（X为伤害值）。",
@@ -238,6 +236,7 @@ nos__caoxiu:addSkill(nos__taoxi)
 Fk:loadTranslationTable{
   ["nos__caoxiu"] = "曹休",
   ["#nos__caoxiu"] = "千里骐骥",
+  ["designer:nos__caoxiu"] = "蹩脚狐小三",
   ["illustrator:nos__caoxiu"] = "eshao111",
   ["nos__taoxi"] = "讨袭",
   [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。"..
@@ -414,6 +413,7 @@ zhongyao:addSkill(zuoding)
 Fk:loadTranslationTable{
   ["zhongyao"] = "钟繇",
   ["#zhongyao"] = "正楷萧曹",
+  ["designer:zhongyao"] = "怀默",
   ["illustrator:zhongyao"] = "eshao111",
   ["huomo"] = "活墨",
   [":huomo"] = "当你需要使用基本牌时（你本回合使用过的基本牌除外），你可以将一张黑色非基本牌置于牌堆顶，视为使用此基本牌。",
@@ -541,6 +541,7 @@ liuchen:addSkill(qinwang)
 Fk:loadTranslationTable{
   ["liuchen"] = "刘谌",
   ["#liuchen"] = "血荐轩辕",
+  ["designer:liuchen"] = "列缺霹雳",
   ["illustrator:liuchen"] = "凌天翼&depp",
   ["zhanjue"] = "战绝",
   [":zhanjue"] = "出牌阶段，你可以将所有手牌当【决斗】使用，然后你和受伤的角色各摸一张牌。若你此法摸过两张或更多的牌，则本阶段〖战绝〗失效。",
@@ -564,15 +565,17 @@ local qiaoshi = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self) and target.phase == Player.Finish and
+    return target ~= player and player:hasSkill(self) and target.phase == Player.Finish and not target.dead and
       player:getHandcardNum() == target:getHandcardNum()
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#qiaoshi-invoke::"..target.id)
   end,
   on_use = function(self, event, target, player, data)
-    player:drawCards(1, self.name)
     target:drawCards(1, self.name)
+    if not player.dead then
+      player:drawCards(1, self.name)
+    end
   end,
 }
 local yanyu = fk.CreateActiveSkill{
@@ -617,6 +620,7 @@ xiahoushi:addSkill(yanyu)
 Fk:loadTranslationTable{
   ["xiahoushi"] = "夏侯氏",
   ["#xiahoushi"] = "采缘撷睦",
+  ["designer:xiahoushi"] = "淬毒",
   ["illustrator:xiahoushi"] = "2B铅笔",
   ["qiaoshi"] = "樵拾",
   [":qiaoshi"] = "其他角色的结束阶段，若其手牌数等于你，你可以与其各摸一张牌。",
@@ -698,6 +702,7 @@ zhangyi:addSkill(shizhi)
 Fk:loadTranslationTable{
   ["zhangyi"] = "张嶷",
   ["#zhangyi"] = "通壮逾古",
+  ["designer:zhangyi"] = "XYZ",
   ["illustrator:zhangyi"] = "livsinno",
   ["wurong"] = "怃戎",
   [":wurong"] = "出牌阶段限一次，你可以和一名其他角色同时展示一张手牌：若你展示的是【杀】且该角色不是【闪】，你弃置此【杀】，然后对其造成1点伤害；"..
@@ -847,6 +852,7 @@ sunxiu:addSkill(zhaofu)
 Fk:loadTranslationTable{
   ["sunxiu"] = "孙休",
   ["#sunxiu"] = "弥殇的景君",
+  ["designer:sunxiu"] = "顶尖对决&剑",
   ["illustrator:sunxiu"] = "XXX",
   ["yanzhu"] = "宴诛",
   [":yanzhu"] = "出牌阶段限一次，你可以令一名其他角色选择一项：1.弃置一张牌；2.交给你装备区内所有的牌，你失去〖宴诛〗并修改〖兴学〗为“X为你的体力上限”。",
@@ -895,6 +901,7 @@ nos__zhuzhi:addSkill(nos__anguo)
 Fk:loadTranslationTable{
   ["nos__zhuzhi"] = "朱治",
   ["#nos__zhuzhi"] = "王事靡盬",
+  ["designer:nos__zhuzhi"] = "May&Roy",
   ["illustrator:nos__zhuzhi"] = "心中一凛",
   ["nos__anguo"] = "安国",
   [":nos__anguo"] = "出牌阶段限一次，你可以选择其他角色场上的一张装备牌并令其获得之，然后若其攻击范围内的角色因此而变少，则你摸一张牌。",
@@ -1047,6 +1054,7 @@ gongsunyuan:addSkill(huaiyi)
 Fk:loadTranslationTable{
   ["gongsunyuan"] = "公孙渊",
   ["#gongsunyuan"] = "狡徒悬海",
+  ["designer:gongsunyuan"] = "死水微澜",
   ["illustrator:gongsunyuan"] = "尼乐小丑",
   ["huaiyi"] = "怀异",
   [":huaiyi"] = "出牌阶段限一次，你可以展示所有手牌，若其中包含两种颜色，则你弃置其中一种颜色的牌，然后获得至多X名角色的各一张牌"..
@@ -1149,6 +1157,7 @@ guotupangji:addSkill(shifei)
 Fk:loadTranslationTable{
   ["guotupangji"] = "郭图逄纪",
   ["#guotupangji"] = "凶蛇两端",
+  ["designer:guotupangji"] = "辰木",
   ["illustrator:guotupangji"] = "Aimer&Vwolf",
   ["jigong"] = "急攻",
   [":jigong"] = "出牌阶段开始时，你可以摸两张牌，然后你本回合的手牌上限等于你本阶段造成的伤害值。",

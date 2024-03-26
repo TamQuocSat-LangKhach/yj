@@ -152,7 +152,7 @@ local faen = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.TurnedOver, fk.ChainStateChanged},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) then
+    if player:hasSkill(self) and not target.dead then
       return event == fk.TurnedOver or (event == fk.ChainStateChanged and target.chained)
     end
   end,
@@ -160,6 +160,7 @@ local faen = fk.CreateTriggerSkill{
     return player.room:askForSkillInvoke(player, self.name, nil, "#faen-invoke::"..target.id)
   end,
   on_use = function(self, event, target, player, data)
+    player.room:doIndicate(player.id, {target.id})
     target:drawCards(1, self.name)
   end,
 }
