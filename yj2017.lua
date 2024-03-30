@@ -1081,6 +1081,7 @@ local caiyong = General(extension, "caiyong", "qun", 3, 3)
 local pizhuan = fk.CreateTriggerSkill{
   name = "pizhuan",
   anim_type = "special",
+  derived_piles = "caiyong_book",
   events = {fk.CardUsing, fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self) and data.card.suit == Card.Spade and #player:getPile("caiyong_book") < 4 then
@@ -1088,14 +1089,13 @@ local pizhuan = fk.CreateTriggerSkill{
     end
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    player:addToPile("caiyong_book", room:getNCards(1)[1], true, self.name)
+    player:addToPile("caiyong_book", player.room:getNCards(1), true, self.name)
   end,
 }
 local pizhuan_maxcards = fk.CreateMaxCardsSkill{
   name = "#pizhuan_maxcards",
   correct_func = function(self, player)
-    if player:hasSkill(self) then
+    if player:hasSkill(pizhuan) then
       return #player:getPile("caiyong_book")
     end
   end,
@@ -1112,96 +1112,28 @@ local tongbo = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local piles = room:askForExchange(player, {player:getPile("caiyong_book"), player:getCardIds("he")},
-      {"caiyong_book", player.general}, self.name)
-    local cards1, cards2 = {}, {}
-    for _, id in ipairs(piles[1]) do
-      if room:getCardArea(id) == Player.Hand or room:getCardArea(id) == Player.Equip then
-        table.insert(cards1, id)
-      end
+    local books = player:getPile("caiyong_book")
+    local piles = U.askForArrangeCards(player, self.name,
+    {"caiyong_book", books, "$MyCard", player:getCardIds{Player.Hand, Player.Equip}})
+    if table.every(piles[1], function (id)
+      return table.contains(books, id)
+    end) then return false end
+    U.swapCardsWithPile(player, piles[1], piles[2], self.name, "caiyong_book")
+    if player.dead then return false end
+    local targets = room:getOtherPlayers(player, false)
+    if #targets == 0 then return false end
+    books = player:getPile("caiyong_book")
+    if #books < 4 then return false end
+    local suits = {1, 2, 3, 4}
+    for _, id in ipairs(books) do
+      table.removeOne(suits, Fk:getCardById(id).suit)
     end
-    for _, id in ipairs(piles[2]) do
-      if room:getCardArea(id) == Card.PlayerSpecial then
-        table.insert(cards2, id)
-      end
-    end
-    room:moveCards(
-      {
-        ids = cards2,
-        from = player.id,
-        to = player.id,
-        fromArea = Card.PlayerSpecial,
-        toArea = Card.PlayerHand,
-        moveReason = fk.ReasonExchange,
-        proposer = player.id,
-        specialName = "caiyong_book",
-        skillName = self.name,
-      },
-      {
-        ids = cards1,
-        from = player.id,
-        to = player.id,
-        fromArea = Card.PlayerHand,
-        toArea = Card.PlayerSpecial,
-        moveReason = fk.ReasonExchange,
-        proposer = player.id,
-        specialName = "caiyong_book",
-        skillName = self.name,
-      }
-    )
-    local suits = {}
-    for _, id in ipairs(player:getPile("caiyong_book")) do
-      table.insertIfNeed(suits, Fk:getCardById(id).suit)
-    end
-    if #suits ~= 4 then return false end
-    local moveInfos = {}
-    local cards = table.simpleClone(player:getPile("caiyong_book"))
-    for _, id in ipairs(cards) do room:setCardMark(Fk:getCardById(id), self.name, 1) end
-    while #cards > 0 do
-      local _, ret = room:askForUseActiveSkill(player, "tongbo_active", "#tongbo-give", false, data, true)
-      local to, give_cards
-      if ret then
-        give_cards = ret.cards
-        to =  ret.targets[1]
-      else
-        give_cards = cards
-        to = table.random(table.map(room:getOtherPlayers(player), Util.IdMapper))
-      end
-      room:getCardArea(give_cards[1])
-      for _, id in ipairs(give_cards) do
-        table.removeOne(cards, id)
-        room:setCardMark(Fk:getCardById(id), self.name, 0)
-      end
-      table.insert(moveInfos, {
-        ids = give_cards,
-        from = player.id,
-        fromArea = Card.PlayerSpecial,
-        to = to,
-        toArea = Card.PlayerHand,
-        moveReason = fk.ReasonJustMove,
-        proposer = player.id,
-        specialName = "caiyong_book",
-        skillName = self.name,
-      })
-    end
-    room:moveCards(table.unpack(moveInfos))
+    if #suits > 0 then return false end
+    U.askForDistribution(player, books, targets, self.name, #books, #books, "#tongbo-give", "caiyong_book")
   end,
 }
 caiyong:addSkill(tongbo)
-local tongbo_active = fk.CreateActiveSkill{
-  name = "tongbo_active",
-  mute = true,
-  min_card_num = 1,
-  target_num = 1,
-  expand_pile = "caiyong_book",
-  card_filter = function(self, to_select)
-    return Self:getPileNameOfId(to_select) == "caiyong_book" and Fk:getCardById(to_select):getMark("tongbo") > 0
-  end,
-  target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id
-  end,
-}
-Fk:addSkill(tongbo_active)
+
 Fk:loadTranslationTable{
   ["caiyong"] = "蔡邕",
   ["#caiyong"] = "大鸿儒",
@@ -1211,12 +1143,11 @@ Fk:loadTranslationTable{
   [":pizhuan"] = "当你使用♠牌时，或你成为其他角色使用♠牌的目标后，你可以将牌堆顶的一张牌置于武将牌上，称为“书”；你至多拥有四张“书”，你的手牌上限+X"..
   "（X为“书”的数量）。",
   ["caiyong_book"] = "书",
-
   ["tongbo"] = "通博",
   [":tongbo"] = "摸牌阶段结束时，你可以用任意张牌替换等量的“书”，然后若你的“书”包含四种花色，你须将所有“书”分配给任意名其他角色。 ",
   ["#tongbo-exchange"] = "通博：你可以用任意张牌替换等量的“书”",
+  ["$MyCard"] = "我的牌",
   ["#tongbo-give"] = "通博：你须将所有“书”分配给任意名其他角色",
-  ["tongbo_active"] = "通博",
 
   ["$pizhuan1"] = "无墨不成书，无识不成才。",
   ["$pizhuan2"] = "笔可抒情，亦可诛心。",
