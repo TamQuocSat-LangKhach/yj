@@ -505,7 +505,7 @@ local jianzhengq = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.TargetSpecifying},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target ~= player and data.card.trueName == "slash" and data.firstTarget and
+    return player:hasSkill(self) and target ~= player and data.card.trueName == "slash" and
       not table.contains(AimGroup:getAllTargets(data.tos), player.id) and target:inMyAttackRange(player) and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
@@ -524,7 +524,7 @@ local jianzhengq = fk.CreateTriggerSkill{
       from = player.id,
       fromArea = Card.PlayerHand,
       toArea = Card.DrawPile,
-      moveReason = fk.ReasonJustMove,
+      moveReason = fk.ReasonPut,
       skillName = self.name,
     })
     for _, id in ipairs(TargetGroup:getRealTargets(data.tos)) do
@@ -627,9 +627,11 @@ Fk:loadTranslationTable{
   ["qinmi"] = "秦宓",
   ["#qinmi"] = "彻天之舌",
   ["cv:qinmi"] = "曹真",
+  ["designer:qinmi"] = "凌天翼",
 	["illustrator:qinmi"] = "Thinking",
+
   ["jianzhengq"] = "谏征",
-  [":jianzhengq"] = "其他角色使用【杀】指定其他角色为目标时，若你在其攻击范围内，你可以将一张手牌置于牌堆顶，取消所有目标，然后若此【杀】"..
+  [":jianzhengq"] = "当其他角色使用【杀】指定目标时，若你在其攻击范围内且你不是目标，你可以将一张手牌置于牌堆顶，取消所有目标，然后若此【杀】"..
   "不为黑色，你成为目标。",
   ["zhuandui"] = "专对",
   [":zhuandui"] = "当你使用【杀】指定目标后，你可以与目标拼点：若你赢，其不能响应此【杀】。当你成为【杀】的目标后，你可以与使用者拼点：若你赢，"..
@@ -816,6 +818,10 @@ xushi:addSkill(wengua)
 xushi:addSkill(fuzhu)
 Fk:loadTranslationTable{
   ["xushi"] = "徐氏",
+  ["#xushi"] = "节义双全",
+  ["designer:xushi"] = "追蛋格林",
+	["illustrator:xushi"] = "懿肆琬兮",
+
   ["wengua"] = "问卦",
   [":wengua"] = "出牌阶段限一次，你可以将一张牌置于牌堆顶或牌堆底，然后从另一端摸一张牌。"..
   "其他角色的出牌阶段限一次，其可以将一张牌交给你，然后你可以将此牌置于牌堆顶或牌堆底，你与其从另一端摸一张牌。",
@@ -951,7 +957,9 @@ xuezong:addSkill(jiexun)
 Fk:loadTranslationTable{
   ["xuezong"] = "薛综",
   ["#xuezong"] = "彬彬之玊",
+  ["designer:xuezong"] = "韩旭",
   ["illustrator:xuezong"] = "秋呆呆",
+
   ["funan"] = "复难",
   [":funan"] = "其他角色使用或打出牌响应你使用的牌时，你可以令其获得你使用的牌（其本回合不能使用或打出这张牌），然后你获得其使用或打出的牌。",
   ["jiexun"] = "诫训",
@@ -1137,6 +1145,7 @@ caiyong:addSkill(tongbo)
 Fk:loadTranslationTable{
   ["caiyong"] = "蔡邕",
   ["#caiyong"] = "大鸿儒",
+  ["designer:caiyong"] = "千幻",
   ["illustrator:caiyong"] = "Town",
 
   ["pizhuan"] = "辟撰",
