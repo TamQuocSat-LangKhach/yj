@@ -158,58 +158,84 @@ Fk:loadTranslationTable{
 }
 
 local nos__caoxiu = General(extension, "nos__caoxiu", "wei", 4)
-local nos__taoxi = fk.CreateTriggerSkill{
+local nos__taoxi = fk.CreateViewAsSkill{
   name = "nos__taoxi",
+  pattern = ".",
+  anim_type = "special",
+  expand_pile = function() return U.getMark(Self, "@$nos__taoxi-turn") end,
+  card_filter = function(self, to_select, selected)
+    if #selected == 0 and table.contains(U.getMark(Self, "@$nos__taoxi-turn"), to_select) then
+      local card = Fk:getCardById(to_select)
+      if Fk.currentResponsePattern == nil then
+        return Self:canUse(card) and not Self:prohibitUse(card)
+      else
+        return Exppattern:Parse(Fk.currentResponsePattern):match(card)
+      end
+    end
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 then return end
+    return Fk:getCardById(cards[1])
+  end,
+  enabled_at_play = function(self, player)
+    return player:getMark("@$nos__taoxi-turn") ~= 0
+  end,
+  enabled_at_response = function(self, player, response)
+    if player:getMark("@$nos__taoxi-turn") ~= 0 and not response and Fk.currentResponsePattern then
+      return table.find(player:getMark("@$nos__taoxi-turn"), function (id)
+        return Exppattern:Parse(Fk.currentResponsePattern):match(Fk:getCardById(id))
+      end)
+    end
+  end,
+}
+local nos__taoxi_trigger = fk.CreateTriggerSkill{
+  name = "#nos__taoxi_trigger",
   mute = true,
   events = {fk.TargetSpecified, fk.TurnEnd},
   can_trigger = function(self, event, target, player, data)
     if target == player then
       if event == fk.TargetSpecified then
-        return player:hasSkill(self) and player.phase == Player.Play and data.to ~= player.id and
-          U.isOnlyTarget(player.room:getPlayerById(data.to), data, fk.TargetSpecified) and
+        return player:hasSkill(nos__taoxi) and player.phase == Player.Play and data.to ~= player.id and
+          U.isOnlyTarget(player.room:getPlayerById(data.to), data, event) and
           not player.room:getPlayerById(data.to):isKongcheng() and
-          player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+          player:usedSkillTimes(nos__taoxi.name, Player.HistoryPhase) == 0
       else
-        return #player:getPile("nos__taoxi&") > 0
+        return player:getMark("@$nos__taoxi-turn") ~= 0
       end
     end
   end,
   on_cost = function(self, event, target, player, data)
     if event == fk.TargetSpecified then
-      return player.room:askForSkillInvoke(player, self.name, nil, "#nos__taoxi-invoke::"..data.to)
+      return player.room:askForSkillInvoke(player, nos__taoxi.name, nil, "#nos__taoxi-invoke::"..data.to)
     else
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    player:broadcastSkillInvoke(self.name)
+    player:broadcastSkillInvoke(nos__taoxi.name)
     if event == fk.TargetSpecified then
-      room:notifySkillInvoked(player, self.name, "offensive")
+      room:notifySkillInvoked(player, nos__taoxi.name, "offensive")
       room:doIndicate(player.id, {data.to})
       local to = room:getPlayerById(data.to)
-      local card = room:askForCardChosen(player, to, "h", self.name, "#nos__taoxi-choose::"..data.to)
+      local card = room:askForCardChosen(player, to, "h", nos__taoxi.name, "#nos__taoxi-choose::"..data.to)
       to:showCards(card)
       if room:getCardOwner(card) ~= to or room:getCardArea(card) ~= Card.PlayerHand then return end
-      player.special_cards["nos__taoxi&"] = {card}
+      local mark = U.getMark(player, "@$nos__taoxi-turn")
+      table.insertIfNeed(mark, card)
+      room:setPlayerMark(player, "@$nos__taoxi-turn", mark)
     else
-      room:notifySkillInvoked(player, self.name, "negative")
-      room:loseHp(player, 1, self.name)
-      player.special_cards["nos__taoxi&"] = {}
+      room:notifySkillInvoked(player, nos__taoxi.name, "negative")
+      room:loseHp(player, 1, nos__taoxi.name)
     end
-    player:doNotify("ChangeSelf", json.encode {
-      id = player.id,
-      handcards = player:getCardIds("h"),
-      special_cards = player.special_cards,
-    })
   end,
 
-  refresh_events = {fk.BeforeCardsMove},
+  refresh_events = {fk.AfterCardsMove},
   can_refresh = function(self, event, target, player, data)
-    if #player:getPile("nos__taoxi&") > 0 then
+    if player:getMark("@$nos__taoxi-turn") ~= 0 then
       for _, move in ipairs(data) do
         for _, info in ipairs(move.moveInfo) do
-          if info.cardId == player:getPile("nos__taoxi&")[1] then
+          if table.contains(player:getMark("@$nos__taoxi-turn"), info.cardId) then
             return true
           end
         end
@@ -217,33 +243,32 @@ local nos__taoxi = fk.CreateTriggerSkill{
     end
   end,
   on_refresh = function(self, event, target, player, data)
-    player.special_cards["nos__taoxi&"] = {}
-    player:doNotify("ChangeSelf", json.encode {
-      id = player.id,
-      handcards = player:getCardIds("h"),
-      special_cards = player.special_cards,
-    })
+    local mark = player:getMark("@$nos__taoxi-turn")
+    for _, move in ipairs(data) do
+      for _, info in ipairs(move.moveInfo) do
+        if table.contains(mark, info.cardId) then
+          table.removeOne(mark, info.cardId)
+        end
+      end
+    end
+    player.room:setPlayerMark(player, "@$nos__taoxi-turn", #mark > 0 and mark or 0)
   end,
 }
-local nos__taoxi_prohibit = fk.CreateProhibitSkill{
-  name = "#nos__taoxi_prohibit",
-  prohibit_response = function(self, player, card)
-    return #player:getPile("nos__taoxi&") > 0 and table.contains(player:getPile("nos__taoxi&"), card:getEffectiveId())
-  end,
-}
-nos__taoxi:addRelatedSkill(nos__taoxi_prohibit)
+nos__taoxi:addRelatedSkill(nos__taoxi_trigger)
 nos__caoxiu:addSkill(nos__taoxi)
 Fk:loadTranslationTable{
   ["nos__caoxiu"] = "曹休",
   ["#nos__caoxiu"] = "千里骐骥",
   ["designer:nos__caoxiu"] = "蹩脚狐小三",
   ["illustrator:nos__caoxiu"] = "eshao111",
+
   ["nos__taoxi"] = "讨袭",
   [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。"..
   "回合结束时，若该角色未失去此手牌，则你失去1点体力。",
-  ["#nos__taoxi-invoke"] = "讨袭：你可以亮出 %dest 一张手牌，直到回合结束你可以使用此牌",
+  ["#nos__taoxi-invoke"] = "讨袭：你可以亮出 %dest 一张手牌，直到回合结束前你可以使用此牌",
   ["#nos__taoxi-choose"] = "讨袭：展示%dest一张手牌",
-  ["nos__taoxi&"] = "讨袭",
+  ["@$nos__taoxi-turn"] = "讨袭",
+  ["#nos__taoxi_trigger"] = "讨袭",
 
   ["$nos__taoxi1"] = "策马疾如电，溃敌一瞬间。",
   ["$nos__taoxi2"] = "虎豹骑岂能徒有虚名？杀！",
