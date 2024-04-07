@@ -454,20 +454,6 @@ Fk:loadTranslationTable{
 }
 
 local masu = General(extension, "masu", "shu", 3)
-Fk:addPoxiMethod{
-  name = "xinzhan_choose",
-  card_filter = function(to_select)
-    return Fk:getCardById(to_select).suit == Card.Heart
-  end,
-  feasible = Util.TrueFunc,
-  prompt = function ()
-    return Fk:translate("#xinzhan-choose")
-  end,
-  default_choice = function(data)
-    if not data then return {} end
-    return table.filter(data[1][2], function(id) return Fk:getCardById(id).suit == Card.Heart end)
-  end,
-}
 local xinzhan = fk.CreateActiveSkill{
   name = "xinzhan",
   anim_type = "drawcard",
@@ -480,21 +466,13 @@ local xinzhan = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cards = room:getNCards(3)
-    local get = room:askForPoxi(player, "xinzhan_choose", {
-      { self.name, cards },
-    }, nil, false)
-    if #get > 0 then
-      player:showCards(get)
-      if player.dead then return end
-      local dummy = Fk:cloneCard("dilu")
-      for _, id in ipairs(get) do
-        table.removeOne(cards, id)
-        dummy:addSubcard(id)
-      end
-      room:obtainCard(player.id, dummy, true, fk.ReasonPrey, player.id)
+    local cardmap = U.askForArrangeCards(player, self.name, {cards, "Top", "toObtain"}, "#xinzhan-choose", true, 3,
+    {3, 3}, {0, 0}, ".|.|heart")
+    for i = #cardmap[1], 1, -1 do
+      table.insert(room.draw_pile, 1, cardmap[1][i])
     end
-    if #cards > 0 then
-      room:askForGuanxing(player, cards, nil, {0, 0})
+    if #cardmap[2] > 0 then
+      room:moveCardTo(cardmap[2], Player.Hand, player, fk.ReasonPrey, self.name)
     end
   end
 }
@@ -519,12 +497,11 @@ Fk:loadTranslationTable{
   ["illustrator:masu"] = "张帅",
 
   ["xinzhan"] = "心战",
-  [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的<font color='red'>♥</font>牌，获得所有你以此法展示的牌，将其余的牌置于牌堆顶。",
+  [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的<font color='red'>♥</font>牌并获得之，最后将其余的牌以任意顺序置于牌堆顶。",
   ["huilei"] = "挥泪",
   [":huilei"] = "锁定技，杀死你的角色弃置所有牌。",
 
-  ["xinzhan_choose"] = "心战",
-  ["#xinzhan-choose"] = "心战：获得任意张♥牌",
+  ["#xinzhan-choose"] = "获得任意<font color='red'>♥</font>牌，调整其余牌顺序",
 
   ["$xinzhan1"] = "吾通晓兵法，世人皆知。",
   ["$xinzhan2"] = "用兵之道，攻心为上。",
