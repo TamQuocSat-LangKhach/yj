@@ -504,6 +504,7 @@ local xiantu = fk.CreateTriggerSkill{
     player:broadcastSkillInvoke(self.name, 1)
     room:notifySkillInvoked(player, self.name)
     room:doIndicate(player.id, {target.id})
+    room:setPlayerMark(player, "xiantu-phase", 1)
     player:drawCards(2, self.name)
     if player:isNude() then return end
     local cards
@@ -512,20 +513,7 @@ local xiantu = fk.CreateTriggerSkill{
     else
       cards = room:askForCard(player, 2, 2, true, self.name, false, ".", "#xiantu-give::"..target.id)
     end
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(cards)
-    room:obtainCard(target.id, dummy, false, fk.ReasonGive)
-  end,
-
-  refresh_events = {fk.Death},
-  can_refresh = function(self, event, target, player, data)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) > 0 and not player.dead
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if data.damage and data.damage.from and room.current.id == data.damage.from.id then
-      room:setPlayerMark(player, "xiantu-phase", 1)
-    end
+    room:moveCardTo(cards, Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
   end,
 }
 local xiantu_trigger = fk.CreateTriggerSkill{
@@ -533,8 +521,12 @@ local xiantu_trigger = fk.CreateTriggerSkill{
   mute = true,
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and target.phase == Player.Play and player:usedSkillTimes("xiantu", Player.HistoryPhase) > 0 and
-      player:getMark("xiantu-phase") == 0
+    if target ~= player and target.phase == Player.Play and player:getMark("xiantu-phase") > 0 then
+      return #player.room.logic:getEventsOfScope(GameEvent.Death, 1, function(e)
+        local death = e.data[1]
+        return death.damage and death.damage.from == target
+      end, Player.HistoryPhase) == 0
+    end
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
@@ -556,7 +548,7 @@ Fk:loadTranslationTable{
   ["qiangzhi"] = "强识",
   [":qiangzhi"] = "出牌阶段开始时，你可以展示一名其他角色的一张手牌，然后当你于此阶段内使用与此牌类别相同的牌时，你可以摸一张牌。",
   ["xiantu"] = "献图",
-  [":xiantu"] = "其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，若如此做，此阶段结束时，若该角色未于此回合内杀死过一名角色，则你失去1点体力。",
+  [":xiantu"] = "其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，若如此做，此阶段结束时，若该角色未于此阶段内杀死过一名角色，则你失去1点体力。",
   ["#qiangzhi-choose"] = "强识：展示一名其他角色的一张手牌，此阶段内你使用类别相同的牌时，你可以摸一张牌",
   ["#qiangzhi-invoke"] = "强识：你可以摸一张牌",
   ["@qiangzhi-phase"] = "强识",
