@@ -247,7 +247,7 @@ Fk:loadTranslationTable{
   ["guohuanghou"] = "郭皇后",
   ["#guohuanghou"] = "月华驱霾",
   ["designer:guohuanghou"] = "杰米Y",
-	["illustrator:guohuanghou"] = "樱花闪乱",
+  ["illustrator:guohuanghou"] = "樱花闪乱",
 
   ["jiaozhao"] = "矫诏",
   [":jiaozhao"] = "出牌阶段限一次，你可以展示一张手牌并选择一名距离最近的其他角色，该角色声明一种基本牌的牌名，本回合你可以将此牌当声明的牌使用"..
@@ -382,7 +382,7 @@ Fk:loadTranslationTable{
   ["sunziliufang"] = "孙资刘放",
   ["#sunziliufang"] = "服谗搜慝",
   ["designer:sunziliufang"] = "Rivers",
-	["illustrator:sunziliufang"] = "sinno",
+  ["illustrator:sunziliufang"] = "sinno",
 
   ["guizao"] = "瑰藻",
   [":guizao"] = "弃牌阶段结束时，若你本阶段弃置过至少两张牌且花色均不相同，你可以回复1点体力或摸一张牌。",
@@ -516,7 +516,7 @@ Fk:loadTranslationTable{
   ["liyans"] = "李严",
   ["#liyans"] = "矜风流务",
   ["designer:liyans"] = "RP集散中心",
-	["illustrator:liyans"] = "米SIR",
+  ["illustrator:liyans"] = "米SIR",
 
   ["duliang"] = "督粮",
   [":duliang"] = "出牌阶段限一次，你可以获得一名其他角色一张牌，然后选择一项：1.其观看牌堆顶的两张牌，获得其中的基本牌；2.其下个摸牌阶段额外摸一张牌。",
@@ -625,7 +625,7 @@ Fk:loadTranslationTable{
   ["huanghao"] = "黄皓",
   ["#huanghao"] = "便辟佞慧",
   ["designer:huanghao"] = "凌天翼",
-	["illustrator:huanghao"] = "2B铅笔",
+  ["illustrator:huanghao"] = "2B铅笔",
 
   ["qinqing"] = "寝情",
   [":qinqing"] = "结束阶段，你可以选择任意名攻击范围内含有主公的角色，然后你弃置这些角色的一张牌（无牌则不弃），并令这些角色依次摸一张牌。"..
@@ -697,7 +697,7 @@ Fk:loadTranslationTable{
   ["sundeng"] = "孙登",
   ["#sundeng"] = "孙登",
   ["designer:sundeng"] = "过客",
-	["illustrator:sundeng"] = "DH",
+  ["illustrator:sundeng"] = "DH",
 
   ["kuangbi"] = "匡弼",
   [":kuangbi"] = "出牌阶段限一次，你可以令一名其他角色将一至三张牌置于你的武将牌上。若如此做，你的下回合开始时，你获得武将牌上所有牌，其摸等量的牌。",
@@ -782,7 +782,7 @@ Fk:loadTranslationTable{
   ["cenhun"] = "岑昏",
   ["#cenhun"] = "岑昏",
   ["designer:cenhun"] = "韩旭",
-	["illustrator:cenhun"] = "心中一凛",
+  ["illustrator:cenhun"] = "心中一凛",
 
   ["jishe"] = "极奢",
   [":jishe"] = "出牌阶段，若你的手牌上限大于0，你可以摸一张牌，然后本回合你的手牌上限-1；结束阶段，若你没有手牌，你可以横置至多X名角色（X为你的体力值）。",
@@ -865,7 +865,7 @@ Fk:loadTranslationTable{
   ["liuyu"] = "刘虞",
   ["#liuyu"] = "甘棠永固",
   ["designer:liuyu"] = "冰眼",
-	["illustrator:liuyu"] = "尼乐小丑",
+  ["illustrator:liuyu"] = "尼乐小丑",
 
   ["zhige"] = "止戈",
   [":zhige"] = "出牌阶段限一次，若你的手牌数大于体力值，你可以令一名攻击范围包含你的其他角色选择一项：1.使用一张【杀】；2.将装备区里的一张牌交给你。",
@@ -966,7 +966,7 @@ Fk:loadTranslationTable{
   ["zhangrang"] = "张让",
   ["#zhangrang"] = "窃幸绝禋",
   ["designer:zhangrang"] = "千幻",
-	["illustrator:zhangrang"] = "蚂蚁君",
+  ["illustrator:zhangrang"] = "蚂蚁君",
 
   ["taoluan"] = "滔乱",
   [":taoluan"] = "当你需要使用一张基本牌或普通锦囊牌时，若没有角色处于濒死状态，你可以将一张牌当任意一张基本牌或普通锦囊牌使用（每种牌名每局游戏限一次），"..

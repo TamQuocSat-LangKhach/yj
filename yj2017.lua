@@ -99,7 +99,7 @@ Fk:loadTranslationTable{
   ["xinxianying"] = "辛宪英",
   ["#xinxianying"] = "名门智女",
   ["designer:xinxianying"] = "如释帆飞",
-	["cv:xinxianying"] = "小N",
+  ["cv:xinxianying"] = "小N",
   ["illustrator:xinxianying"] = "玫芍之言",
 
   ["zhongjian"] = "忠鉴",
@@ -475,9 +475,9 @@ wuxian:addSkill(daiyan)
 Fk:loadTranslationTable{
   ["wuxian"] = "吴苋",
   ["#wuxian"] = "穆皇后",
-	["designer:wuxian"] = "wlf元首",
-	["cv:wuxian"] = "冯骏骅",
-	["illustrator:wuxian"] = "缨尧",
+  ["designer:wuxian"] = "wlf元首",
+  ["cv:wuxian"] = "冯骏骅",
+  ["illustrator:wuxian"] = "缨尧",
 
   ["fumian"] = "福绵",
   [":fumian"] = "准备阶段，你可以选择一项：1.本回合下个摸牌阶段摸牌数+1；2.本回合限一次，当你使用红色牌时，可以令此牌目标数+1。若你选择的选项"..
@@ -628,7 +628,7 @@ Fk:loadTranslationTable{
   ["#qinmi"] = "彻天之舌",
   ["cv:qinmi"] = "曹真",
   ["designer:qinmi"] = "凌天翼",
-	["illustrator:qinmi"] = "Thinking",
+  ["illustrator:qinmi"] = "Thinking",
 
   ["jianzhengq"] = "谏征",
   [":jianzhengq"] = "当其他角色使用【杀】指定目标时，若你在其攻击范围内且你不是目标，你可以将一张手牌置于牌堆顶，取消所有目标，然后若此【杀】"..
@@ -820,7 +820,7 @@ Fk:loadTranslationTable{
   ["xushi"] = "徐氏",
   ["#xushi"] = "节义双全",
   ["designer:xushi"] = "追蛋格林",
-	["illustrator:xushi"] = "懿肆琬兮",
+  ["illustrator:xushi"] = "懿肆琬兮",
 
   ["wengua"] = "问卦",
   [":wengua"] = "出牌阶段限一次，你可以将一张牌置于牌堆顶或牌堆底，然后从另一端摸一张牌。"..
@@ -1064,7 +1064,7 @@ Fk:loadTranslationTable{
   ["#caojie"] = "献穆皇后",
   ["designer:caojie"] = "会智迟的沮授",
   ["cv:caojie"] = "醋醋", -- 文晓依
-	["illustrator:caojie"] = "小小鸡仔",
+  ["illustrator:caojie"] = "小小鸡仔",
 
   ["shouxi"] = "守玺",
   [":shouxi"] = "当你成为【杀】的目标后，你可声明一种未以此法声明过的基本牌或锦囊牌的牌名，然后使用者选择一项：弃置一张你声明的牌，然后"..

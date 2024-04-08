@@ -57,7 +57,7 @@ Fk:loadTranslationTable{
   ["caozhen"] = "曹真",
   ["#caozhen"] = "荷国天督",
   ["designer:caozhen"] = "世外高v狼",
-	["illustrator:caozhen"] = "Thinking",
+  ["illustrator:caozhen"] = "Thinking",
   ["sidi"] = "司敌",
   [":sidi"] = "每当你使用或其他角色在你的回合内使用【闪】时，你可以将牌堆顶的一张牌正面向上置于你的武将牌上；一名其他角色的出牌阶段开始时，"..
   "你可以将你武将牌上的一张牌置入弃牌堆，然后该角色本阶段可使用【杀】的次数上限-1。",
@@ -171,7 +171,7 @@ Fk:loadTranslationTable{
   ["chenqun"] = "陈群",
   ["#chenqun"] = "万世臣表",
   ["designer:chenqun"] = "Michael_Lee",
-	["illustrator:chenqun"] = "DH",
+  ["illustrator:chenqun"] = "DH",
   ["dingpin"] = "定品",
   [":dingpin"] = "出牌阶段，你可以弃置一张与你本回合已使用或弃置的牌类别均不同的手牌，然后令一名已受伤的角色进行一次判定，若结果为黑色，"..
   "该角色摸X张牌（X为该角色已损失的体力值），然后你本回合不能再对其发动〖定品〗；若结果为红色，将你的武将牌翻面。",
@@ -303,7 +303,7 @@ Fk:loadTranslationTable{
   ["hanhaoshihuan"] = "韩浩史涣",
   ["#hanhaoshihuan"] = "中军之主",
   ["designer:hanhaoshihuan"] = "浪人兵法家",
-	["illustrator:hanhaoshihuan"] = "lylylyang",
+  ["illustrator:hanhaoshihuan"] = "lylylyang",
   ["shenduan"] = "慎断",
   [":shenduan"] = "当你的黑色基本牌因弃置进入弃牌堆时，你可以将此牌当无距离限制的【兵粮寸断】使用。",
   ["yonglue"] = "勇略",
@@ -354,7 +354,7 @@ Fk:loadTranslationTable{
   ["zhoucang"] = "周仓",
   ["#zhoucang"] = "披肝沥胆",
   ["designer:zhoucang"] = "WOLVES29",
-	["illustrator:zhoucang"] = "ocsky",
+  ["illustrator:zhoucang"] = "ocsky",
   ["zhongyong"] = "忠勇",
   [":zhongyong"] = "当你于出牌阶段内使用的【杀】被目标角色使用的【闪】抵消时，你可以将此【闪】交给除该角色外的一名角色，若获得此【闪】的角色不是你，"..
   "你可以对相同的目标再使用一张【杀】。",
@@ -427,7 +427,7 @@ Fk:loadTranslationTable{
   ["wuyi"] = "吴懿",
   ["#wuyi"] = "建兴鞍辔",
   ["designer:wuyi"] = "沸治克里夫",
-	["illustrator:wuyi"] = "蚂蚁君",
+  ["illustrator:wuyi"] = "蚂蚁君",
   ["benxi"] = "奔袭",
   [":benxi"] = "锁定技，当你于回合内使用牌时，本回合你计算与其他角色的距离-1；你的回合内，若你与所有其他角色的距离均为1，"..
   "则你无视其他角色的防具且你使用【杀】可以多指定一个目标。",
@@ -544,11 +544,11 @@ Fk:loadTranslationTable{
   ["zhangsong"] = "张松",
   ["#zhangsong"] = "怀璧待凤仪",
   ["designer:zhangsong"] = "冷王无双",
-	["illustrator:zhangsong"] = "尼乐小丑",
+  ["illustrator:zhangsong"] = "尼乐小丑",
   ["qiangzhi"] = "强识",
   [":qiangzhi"] = "出牌阶段开始时，你可以展示一名其他角色的一张手牌，然后当你于此阶段内使用与此牌类别相同的牌时，你可以摸一张牌。",
   ["xiantu"] = "献图",
-  [":xiantu"] = "其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，若如此做，此阶段结束时，若该角色未于此阶段内杀死过一名角色，则你失去1点体力。",
+  [":xiantu"] = "其他角色的出牌阶段开始时，你可以摸两张牌，然后交给其两张牌，然后此阶段结束时，若其于此回合内未杀死过角色，则你失去1点体力。",
   ["#qiangzhi-choose"] = "强识：展示一名其他角色的一张手牌，此阶段内你使用类别相同的牌时，你可以摸一张牌",
   ["#qiangzhi-invoke"] = "强识：你可以摸一张牌",
   ["@qiangzhi-phase"] = "强识",
@@ -611,7 +611,7 @@ Fk:loadTranslationTable{
   ["guyong"] = "顾雍",
   ["#guyong"] = "庙堂的玉磐",
   ["designer:guyong"] = "睿笛终落",
-	["illustrator:guyong"] = "大佬荣",
+  ["illustrator:guyong"] = "大佬荣",
   ["shenxing"] = "慎行",
   [":shenxing"] = "出牌阶段，你可以弃置两张牌，然后摸一张牌。",
   ["bingyi"] = "秉壹",
@@ -689,7 +689,7 @@ Fk:loadTranslationTable{
   ["sunluban"] = "孙鲁班",
   ["#sunluban"] = "为虎作伥",
   ["designer:sunluban"] = "CatCat44",
-	["illustrator:sunluban"] = "FOOLTOWN",
+  ["illustrator:sunluban"] = "FOOLTOWN",
   ["zenhui"] = "谮毁",
   [":zenhui"] = "出牌阶段限一次，当你使用【杀】或黑色非延时类锦囊牌指定唯一目标时，你令可以成为此牌目标的另一名其他角色选择一项："..
   "交给你一张牌并成为此牌的使用者；或成为此牌的额外目标。",
@@ -743,7 +743,7 @@ Fk:loadTranslationTable{
   ["nos__zhuhuan"] = "朱桓",
   ["#nos__zhuhuan"] = "中洲拒天人",
   ["designer:nos__zhuhuan"] = "半缘修道",
-	["illustrator:nos__zhuhuan"] = "XXX",
+  ["illustrator:nos__zhuhuan"] = "XXX",
   ["youdi"] = "诱敌",
   [":youdi"] = "结束阶段开始时，你可以令一名其他角色弃置你的一张牌，若此牌不为【杀】，你获得该角色的一张牌。",
   ["#youdi-choose"] = "诱敌：令一名其他角色弃置你的一张牌，若不为【杀】，你获得其一张牌",
@@ -822,7 +822,7 @@ zhuhuan:addSkill(pingkou)
 Fk:loadTranslationTable{
   ["zhuhuan"] = "朱桓",
   ["#zhuhuan"] = "中洲拒天人",
-	["illustrator:zhuhuan"] = "木碗Rae", -- 飞刀制敌
+  ["illustrator:zhuhuan"] = "木碗Rae", -- 飞刀制敌
   ["fenli"] = "奋励",
   [":fenli"] = "若你的手牌数为全场最多，你可以跳过摸牌阶段；若你的体力值为全场最多，你可以跳过出牌阶段；"..
   "若你的装备区里有牌且数量为全场最多，你可以跳过弃牌阶段。",
@@ -930,7 +930,7 @@ Fk:loadTranslationTable{
   ["caifuren"] = "蔡夫人",
   ["#caifuren"] = "襄江的蒲苇",
   ["designer:caifuren"] = "Dream彼端",
-	["illustrator:caifuren"] = "B_LEE",
+  ["illustrator:caifuren"] = "B_LEE",
   ["qieting"] = "窃听",
   [":qieting"] = "一名其他角色的回合结束时，若其未于此回合内使用过指定另一名角色为目标的牌，你可以选择一项："..
   "将其装备区里的一张牌移动至你装备区里的相应位置；或摸一张牌。",
@@ -1017,7 +1017,7 @@ Fk:loadTranslationTable{
   ["jvshou"] = "沮授",
   ["#jvshou"] = "监军谋国",
   ["designer:jvshou"] = "精精神神",
-	["illustrator:jvshou"] = "酱油之神",
+  ["illustrator:jvshou"] = "酱油之神",
   ["jianying"] = "渐营",
   [":jianying"] = "每当你于出牌阶段内使用的牌与此阶段你使用的上一张牌点数或花色相同时，你可以摸一张牌。",
   ["shibei"] = "矢北",

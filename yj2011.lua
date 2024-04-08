@@ -111,7 +111,7 @@ Fk:loadTranslationTable{
   ["caozhi"] = "曹植",
   ["#caozhi"] = "八斗之才",
   ["designer:caozhi"] = "Foxear",
-	["illustrator:caozhi"] = "木美人",
+  ["illustrator:caozhi"] = "木美人",
   ["luoying"] = "落英",
   [":luoying"] = "当其他角色的♣牌因弃置或判定进入弃牌堆后，你可以获得之。",
   ["jiushi"] = "酒诗",
@@ -144,7 +144,7 @@ Fk:loadTranslationTable{
   ["yujin"] = "于禁",
   ["#yujin"] = "讨暴坚垒",
   ["designer:yujin"] = "许坦",
-	["illustrator:yujin"] = "Yi章",
+  ["illustrator:yujin"] = "Yi章",
 
   ["yizhong"] = "毅重",
   [":yizhong"] = "锁定技，当你没有装备防具时，黑色的【杀】对你无效。",
@@ -711,7 +711,7 @@ Fk:loadTranslationTable{
   ["#nos__lingtong"] = "豪情烈胆",
   ["cv:nos__lingtong"] = "冷泉月夜",
   ["designer:nos__lingtong"] = "ShadowLee",
-	["illustrator:nos__lingtong"] = "绵Myan",
+  ["illustrator:nos__lingtong"] = "绵Myan",
 
   ["nos__xuanfeng"] = "旋风",
   [":nos__xuanfeng"] = "当你失去装备区内的牌后，你可以选择一项：1.视为使用一张【杀】（无距离次数限制）；2.对距离1的一名其他角色造成1点伤害。",
@@ -775,7 +775,7 @@ Fk:loadTranslationTable{
   ["lingtong"] = "凌统",
   ["#lingtong"] = "豪情烈胆",
   ["cv:lingtong"] = "冷泉月夜",
-	["illustrator:lingtong"] = "DH", -- 精良皮 豪情烈胆
+  ["illustrator:lingtong"] = "DH", -- 精良皮 豪情烈胆
 
   ["xuanfeng"] = "旋风",
   [":xuanfeng"] = "当你失去装备区里的牌后，或弃牌阶段结束时，若你于此阶段内弃置过你的至少两张手牌，你可以依次弃置至多两名其他角色共计两张牌。",
@@ -919,7 +919,7 @@ Fk:loadTranslationTable{
   ["wuguotai"] = "吴国太",
   ["#wuguotai"] = "武烈皇后",
   ["designer:wuguotai"] = "章鱼",
-	["illustrator:wuguotai"] = "zoo",
+  ["illustrator:wuguotai"] = "zoo",
 
   ["ganlu"] = "甘露",
   [":ganlu"] = "出牌阶段限一次，你可以选择装备区内牌数之差不大于X的两名角色，交换其装备区内的牌（X为你已损失体力值）。",
@@ -955,7 +955,7 @@ Fk:loadTranslationTable{
   ["xusheng"] = "徐盛",
   ["#xusheng"] = "江东的铁壁",
   ["designer:xusheng"] = "阿江",
-	["illustrator:xusheng"] = "刘周",
+  ["illustrator:xusheng"] = "刘周",
 
   ["pojun"] = "破军",
   [":pojun"] = "当你使用【杀】对目标角色造成伤害后，你可以令其摸X张牌（X为其体力值，至多为5），然后其翻面。",
@@ -1057,7 +1057,7 @@ Fk:loadTranslationTable{
   ["gaoshun"] = "高顺",
   ["#gaoshun"] = "攻无不克",
   ["designer:gaoshun"] = "羽柴文理",
-	["illustrator:gaoshun"] = "鄧Sir",
+  ["illustrator:gaoshun"] = "鄧Sir",
 
   ["xianzhen"] = "陷阵",
   [":xianzhen"] = "出牌阶段限一次，你可以与一名角色拼点：若你赢，直到回合结束，你对该角色使用牌无距离限制且无视其防具牌，使用【杀】无次数限制；"..

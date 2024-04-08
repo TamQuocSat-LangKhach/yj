@@ -56,7 +56,7 @@ Fk:loadTranslationTable{
   ["xunyou"] = "荀攸",
   ["#xunyou"] = "曹魏的谋主",
   ["designer:xunyou"] = "淬毒",
-	["illustrator:xunyou"] = "魔鬼鱼",
+  ["illustrator:xunyou"] = "魔鬼鱼",
   ["qice"] = "奇策",
   [":qice"] = "出牌阶段限一次，你可以将所有的手牌当任意一张非延时类锦囊牌使用。",
   ["zhiyu"] = "智愚",
@@ -125,7 +125,7 @@ Fk:loadTranslationTable{
   ["caozhang"] = "曹彰",
   ["#caozhang"] = "黄须儿",
   ["designer:caozhang"] = "潜龙勿用",
-	["illustrator:caozhang"] = "Yi章",
+  ["illustrator:caozhang"] = "Yi章",
   ["jiangchi"] = "将驰",
   [":jiangchi"] = "摸牌阶段，你可以选择一项：1.额外摸一张牌，此回合你不能使用或打出【杀】。2.少摸一张牌，此回合出牌阶段你使用【杀】无距离限制，"..
   "且你【杀】的使用上限+1。",
@@ -205,7 +205,7 @@ Fk:loadTranslationTable{
   ["nos__wangyi"] = "王异",
   ["#nos__wangyi"] = "决意的巾帼",
   ["designer:nos__wangyi"] = "VirgoPaladin", -- 罗森？
-	["illustrator:nos__wangyi"] = "木美人",
+  ["illustrator:nos__wangyi"] = "木美人",
   ["nos__zhenlie"] = "贞烈",
   [":nos__zhenlie"] = "当你的判定牌生效前，你可以亮出牌堆顶的一张牌代替之。",
   ["nos__miji"] = "秘计",
@@ -262,7 +262,7 @@ Fk:loadTranslationTable{
   ["wangyi"] = "王异",
   ["#wangyi"] = "决意的巾帼",
   ["designer:wangyi"] = "VirgoPaladin",
-	["illustrator:wangyi"] = "团扇子",
+  ["illustrator:wangyi"] = "团扇子",
   ["zhenlie"] = "贞烈",
   [":zhenlie"] = "当你成为其他角色使用【杀】或普通锦囊牌的目标后，你可以失去1点体力使此牌对你无效，然后你弃置其一张牌。",
   ["miji"] = "秘计",
@@ -308,7 +308,7 @@ Fk:loadTranslationTable{
   ["nos__madai"] = "马岱",
   ["#nos__madai"] = "临危受命",
   ["designer:nos__madai"] = "凌天翼",
-	["illustrator:nos__madai"] = "琛·美弟奇",
+  ["illustrator:nos__madai"] = "琛·美弟奇",
   ["nos__qianxi"] = "潜袭",
   [":nos__qianxi"] = "每当你使用【杀】对距离为1的目标角色造成伤害时，你可以进行一次判定，若判定结果不为<font color='red'>♥</font>，"..
   "你防止此伤害，改为令其减1点体力上限。",
@@ -360,7 +360,7 @@ madai:addSkill(qianxi)
 Fk:loadTranslationTable{
   ["madai"] = "马岱",
   ["#madai"] = "临危受命",
-	["illustrator:madai"] = "大佬荣",
+  ["illustrator:madai"] = "大佬荣",
   ["qianxi"] = "潜袭",
   [":qianxi"] = "准备阶段，你可以进行判定，然后令距离为1的一名角色本回合不能使用或打出与结果颜色相同的手牌。",
   ["#qianxi-choose"] = "潜袭：令一名角色本回合不能使用或打出%arg手牌",
@@ -413,7 +413,7 @@ Fk:loadTranslationTable{
   ["liaohua"] = "廖化",
   ["#liaohua"] = "历尽沧桑",
   ["designer:liaohua"] = "桃花僧",
-	["illustrator:liaohua"] = "天空之城",
+  ["illustrator:liaohua"] = "天空之城",
   ["dangxian"] = "当先",
   [":dangxian"] = "锁定技，回合开始时，你执行一个额外的出牌阶段。",
   ["fuli"] = "伏枥",
@@ -471,7 +471,7 @@ Fk:loadTranslationTable{
   ["nos__guanxingzhangbao"] = "关兴张苞",
   ["#nos__guanxingzhangbao"] = "将门虎子",
   ["designer:nos__guanxingzhangbao"] = "诺思冥羽",
-	["illustrator:nos__guanxingzhangbao"] = "HOOO",
+  ["illustrator:nos__guanxingzhangbao"] = "HOOO",
   ["nos__fuhun"] = "父魂",
   [":nos__fuhun"] = "摸牌阶段，你可以放弃摸牌，改为亮出牌堆顶的两张牌并获得之，若亮出的牌颜色不同，你获得技能〖武圣〗、〖咆哮〗，直到回合结束。",
 
@@ -528,7 +528,7 @@ guanxingzhangbao:addRelatedSkill("paoxiao")
 Fk:loadTranslationTable{
   ["guanxingzhangbao"] = "关兴张苞",
   ["#guanxingzhangbao"] = "将门虎子",
-	["illustrator:guanxingzhangbao"] = "HOOO",
+  ["illustrator:guanxingzhangbao"] = "HOOO",
 
   ["fuhun"] = "父魂",
   [":fuhun"] = "你可以将两张手牌当【杀】使用或打出；当你于出牌阶段内以此法造成伤害后，本回合获得〖武圣〗和〖咆哮〗。",
@@ -679,7 +679,7 @@ Fk:loadTranslationTable{
   ["#chengpu"] = "三朝虎臣",
   ["cv:chengpu"] = "符冲",
   ["designer:chengpu"] = "Michael_Lee",
-	["illustrator:chengpu"] = "G.G.G.",
+  ["illustrator:chengpu"] = "G.G.G.",
   ["lihuo"] = "疬火",
   [":lihuo"] = "当你使用普通【杀】时，你可以将此【杀】改为火【杀】，然后此【杀】结算结束后，若此【杀】造成过伤害，你失去1点体力；你使用火【杀】可以多选择一个目标。",
   ["chunlao"] = "醇醪",
@@ -782,7 +782,7 @@ Fk:loadTranslationTable{
   ["bulianshi"] = "步练师",
   ["#bulianshi"] = "无冕之后",
   ["designer:bulianshi"] = "Anais&我是Kururu",
-	["illustrator:bulianshi"] = "勺子妞",
+  ["illustrator:bulianshi"] = "勺子妞",
   ["anxu"] = "安恤",
   [":anxu"] = "出牌阶段限一次，你可以选择两名手牌数不相等的其他角色，"..
   "令其中手牌少的角色获得手牌多的角色一张手牌（正面朝上移动），若此牌的花色不为♠，你摸一张牌。",
@@ -876,7 +876,7 @@ Fk:loadTranslationTable{
   ["nos__handang"] = "韩当",
   ["#nos__handang"] = "石城侯",
   ["designer:nos__handang"] = "ByArt",
-	["illustrator:nos__handang"] = "DH",
+  ["illustrator:nos__handang"] = "DH",
   ["nos__gongqi"] = "弓骑",
   [":nos__gongqi"] = "你可以将一张装备牌当【杀】使用或打出；你以此法使用的【杀】无距离限制。",
   ["nos__jiefan"] = "解烦",
@@ -956,7 +956,7 @@ handang:addSkill(jiefan)
 Fk:loadTranslationTable{
   ["handang"] = "韩当",
   ["#handang"] = "石城侯",
-	["illustrator:handang"] = "XXX", -- 皮肤 从击敌寇
+  ["illustrator:handang"] = "XXX", -- 皮肤 从击敌寇
   ["gongqi"] = "弓骑",
   [":gongqi"] = "出牌阶段限一次，你可以弃置一张牌，此回合你的攻击范围无限。若你以此法弃置的牌为装备牌，你可以弃置一名其他角色的一张牌。",
   ["jiefan"] = "解烦",
