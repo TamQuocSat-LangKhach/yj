@@ -10,19 +10,17 @@ Fk:loadTranslationTable{
 local caochong = General(extension, "caochong", "wei", 3)
 Fk:addPoxiMethod{
   name = "chengxiang_count",
-  card_filter = function(to_select, selected)
+  card_filter = function(to_select, selected, data)
+    if table.contains(data[2], to_select) then return true end
     local n = Fk:getCardById(to_select).number
-    for _, id in ipairs(selected) do
+    for _, id in ipairs(data[2]) do
       n = n + Fk:getCardById(id).number
     end
-    return n <= 13
+    return n < 14
   end,
   feasible = function(selected)
-    return #selected > 0
+    return true
   end,
-  prompt = function ()
-    return Fk:translate("#chengxiang-choose")
-  end
 }
 local chengxiang = fk.CreateTriggerSkill{
   name = "chengxiang",
@@ -36,14 +34,9 @@ local chengxiang = fk.CreateTriggerSkill{
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
     })
-    local get = room:askForPoxi(player, "chengxiang_count", {
-      { self.name, cards },
-    }, nil, true)
-    if #get > 0 then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(get)
-      room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
-    end
+    local get = U.askForArrangeCards(player, self.name, {cards},
+    "#chengxiang-choose", false, 0, {4, 4}, {0, 1}, ".", "chengxiang_count", {{}, {cards[1]}})[2]
+    room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, self.name, "", true, player.id)
     cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
     if #cards > 0 then
       room:moveCards({
@@ -86,8 +79,7 @@ Fk:loadTranslationTable{
   ["renxin"] = "仁心",
   [":renxin"] = "每当体力值为1的一名其他角色受到伤害时，你可以弃置一张装备牌，将武将牌翻面并防止此伤害。",
   ["#renxin-invoke"] = "仁心：你可以弃置一张装备牌，防止 %dest 受到的致命伤害",
-  ["#chengxiang-choose"] = "获得任意点数之和小于或等于13的牌",
-  ["chengxiang_count"] = "称象",
+  ["#chengxiang-choose"] = "称象：获得任意点数之和小于或等于13的牌",
 
   ["$chengxiang1"] = "依我看，小事一桩。",
   ["$chengxiang2"] = "孰重孰轻，一称便知。",
@@ -98,20 +90,18 @@ Fk:loadTranslationTable{
 
 local nos__caochong = General(extension, "nos__caochong", "wei", 3)
 Fk:addPoxiMethod{
-  name = "nos_chengxiang_count",
-  card_filter = function(to_select, selected)
+  name = "nos__chengxiang_count",
+  card_filter = function(to_select, selected, data)
+    if table.contains(data[2], to_select) then return true end
     local n = Fk:getCardById(to_select).number
-    for _, id in ipairs(selected) do
+    for _, id in ipairs(data[2]) do
       n = n + Fk:getCardById(id).number
     end
     return n < 13
   end,
   feasible = function(selected)
-    return #selected > 0
+    return true
   end,
-  prompt = function ()
-    return Fk:translate("#nos_chengxiang-choose")
-  end
 }
 local nos__chengxiang = fk.CreateTriggerSkill{
   name = "nos__chengxiang",
@@ -125,13 +115,17 @@ local nos__chengxiang = fk.CreateTriggerSkill{
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
     })
-    local get = room:askForPoxi(player, "nos_chengxiang_count", {
-      { self.name, cards },
-    }, nil, true)
+    local get = {}
+    for _, id in ipairs(cards) do
+      if Fk:getCardById(id, true).number < 13 then
+        table.insert(get, id)
+        break
+      end
+    end
+    get = U.askForArrangeCards(player, self.name, {cards},
+    "#nos__chengxiang-choose", false, 0, {4, 4}, {0, #get}, ".", "nos__chengxiang_count", {{}, get})[2]
     if #get > 0 then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(get)
-      room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
+      room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, self.name, "", true, player.id)
     end
     cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
     if #cards > 0 then
@@ -182,8 +176,7 @@ Fk:loadTranslationTable{
   ["nos__renxin"] = "仁心",
   [":nos__renxin"] = "当一名其他角色处于濒死状态时，你可以将武将牌翻面并将所有手牌（至少一张）交给该角色。若如此做，该角色回复1点体力。",
   ["#nos__renxin-invoke"] = "仁心：你可以将所有手牌交给 %dest，令其回复1点体力",
-  ["#nos_chengxiang-choose"] = "获得任意点数之和小于13的牌",
-  ["nos_chengxiang_count"] = "称象",
+  ["#nos__chengxiang-choose"] = "称象：获得任意点数之和小于13的牌",
 
   ["$nos__chengxiang1"] = "以船载象，以石易象，称石则可得象斤重。",
   ["$nos__chengxiang2"] = "若以冲所言行事，则此象之重可称也。",
