@@ -42,7 +42,7 @@ local zhongjian = fk.CreateActiveSkill{
       if room:askForChoice(player, choices, self.name) == "draw1" then
         player:drawCards(1, self.name)
       else
-        local cid = room:askForCardChosen(player, target, "h", self.name)
+        local cid = room:askForCardChosen(player, target, "he", self.name)
         room:throwCard({cid}, self.name, target, player)
       end
       hasSame = true
