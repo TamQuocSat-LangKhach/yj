@@ -482,6 +482,7 @@ local liufeng = General(extension, "liufeng", "shu", 4)
 local xiansi = fk.CreateTriggerSkill{
   name = "xiansi",
   anim_type = "control",
+  derived_piles = "liufeng_ni",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self) and player.phase == Player.Start then

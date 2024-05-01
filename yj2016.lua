@@ -465,7 +465,7 @@ local fulin_record = fk.CreateTriggerSkill{
   name = "#fulin_record",
   refresh_events = {fk.AfterCardsMove, fk.TurnEnd},
   can_refresh = function(self, event, target, player, data)
-    if player:hasSkill("fulin") then
+    if player:hasShownSkill(fulin, true) then
       if event == fk.AfterCardsMove and player.phase ~= Player.NotActive then
         for _, move in ipairs(data) do
           if move.to == player.id and move.toArea == Card.PlayerHand then
