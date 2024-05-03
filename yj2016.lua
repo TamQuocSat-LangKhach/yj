@@ -678,12 +678,10 @@ local kuangbi_trigger = fk.CreateTriggerSkill {
     local room = player.room
     local to = room:getPlayerById(player:getMark("kuangbi"))
     room:setPlayerMark(player, "kuangbi", 0)
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(player:getPile("kuangbi"))
-    room:obtainCard(player, dummy, false, fk.ReasonJustMove)
+    local cards = player:getPile("kuangbi")
+    room:obtainCard(player, cards, false, fk.ReasonJustMove)
     if not to.dead then
-      room:doIndicate(player.id, {to.id})
-      to:drawCards(#dummy.subcards, "kuangbi")
+      to:drawCards(#cards, "kuangbi")
     end
   end,
 }

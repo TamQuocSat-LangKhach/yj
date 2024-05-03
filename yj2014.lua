@@ -895,9 +895,7 @@ local xianzhou = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     local n = #player.player_cards[Player.Equip]
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(player.player_cards[Player.Equip])
-    room:obtainCard(target, dummy, false, fk.ReasonGive)
+    room:obtainCard(target, player:getCardIds(Player.Equip), false, fk.ReasonGive, player.id)
     local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
       return target:inMyAttackRange(p) end), Util.IdMapper)
     if #targets > 0 then

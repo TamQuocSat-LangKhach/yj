@@ -444,9 +444,7 @@ local nos__fuhun = fk.CreateTriggerSkill{
       skillName = self.name,
     })
     room:delay(1000)
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(ids)
-    room:obtainCard(player.id, dummy, true, fk.ReasonJustMove)
+    room:obtainCard(player.id, ids, true, fk.ReasonJustMove)
     if Fk:getCardById(ids[1]).color ~= Fk:getCardById(ids[2]).color then
       local skills = {}
       for _, skill in ipairs({"wusheng", "paoxiao"}) do

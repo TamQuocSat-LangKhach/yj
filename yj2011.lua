@@ -402,9 +402,7 @@ local xuanhuo = fk.CreateTriggerSkill{
     if #targets == 0 then
       if to:isNude() then return end
       local cards = room:askForCardsChosen(player, to, math.min(2, #to:getCardIds("he")), 2, "he", self.name)
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(cards)
-      room:obtainCard(player, dummy, false, fk.ReasonPrey)
+      room:obtainCard(player, cards, false, fk.ReasonPrey)
     else
       local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanhuo-choose::"..to.id, self.name, false, true)
       local victim
@@ -420,9 +418,7 @@ local xuanhuo = fk.CreateTriggerSkill{
       else
         if to:isNude() then return end
         local cards = room:askForCardsChosen(player, to, math.min(2, #to:getCardIds("he")), 2, "he", self.name)
-        local dummy = Fk:cloneCard("dilu")
-        dummy:addSubcards(cards)
-        room:obtainCard(player, dummy, false, fk.ReasonPrey)
+        room:obtainCard(player, cards, false, fk.ReasonPrey)
       end
     end
     return true
@@ -880,9 +876,7 @@ local ganlu = fk.CreateActiveSkill{
       return room:getCardArea(id) == Card.Processing
     end)
     if #dis_cards > 0 then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(dis_cards)
-      room:moveCardTo(dummy, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
+      room:moveCardTo(dis_cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
     end
   end,
 }

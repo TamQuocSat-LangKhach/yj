@@ -151,10 +151,8 @@ local nos__renxin = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local dying = player.room:getPlayerById(data.who)
-    local dummy = Fk:cloneCard("dilu")
     player:turnOver()
-    dummy:addSubcards(player.player_cards[Player.Hand])
-    room:obtainCard(dying.id, dummy, false, fk.ReasonGive)
+    room:obtainCard(dying.id, player:getCardIds(Player.Hand), false, fk.ReasonGive)
     if not dying.dead and dying:isWounded() then
       room:recover({
         who = dying,

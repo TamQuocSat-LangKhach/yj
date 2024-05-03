@@ -815,9 +815,7 @@ local yanzhu = fk.CreateActiveSkill{
       cancelable = false
     end
     if #room:askForDiscard(target, 1, 1, true, self.name, cancelable, ".", "#yanzhu-discard:"..player.id) == 0 and cancelable then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(target.player_cards[Player.Equip])
-      room:obtainCard(player.id, dummy, true, fk.ReasonGive)
+      room:obtainCard(player.id, target:getCardIds(Player.Equip), true, fk.ReasonGive, target.id)
       room:handleAddLoseSkills(player, "-yanzhu", nil, true, false)
       room:setPlayerMark(player, self.name, 1)
     end
