@@ -740,7 +740,7 @@ local wengua_active = fk.CreateActiveSkill{
     table.insertIfNeed(targetRecorded, target.id)
     room:setPlayerMark(player, "wengua_targets-phase", targetRecorded)
     local id = effect.cards[1]
-    room:obtainCard(target.id, id, false, fk.ReasonGive)
+    room:obtainCard(target.id, id, false, fk.ReasonGive, player.id)
     if target.dead or room:getCardOwner(id) ~= target or room:getCardArea(id) ~= Card.PlayerHand then return end
     local choices = {"Top", "Bottom", "Cancel"}
     local choice = room:askForChoice(target, choices, "wengua",
@@ -1108,15 +1108,12 @@ local pizhuan_maxcards = fk.CreateMaxCardsSkill{
     end
   end,
 }
-pizhuan:addRelatedSkill(pizhuan_maxcards)
-caiyong:addSkill(pizhuan)
 local tongbo = fk.CreateTriggerSkill{
   name = "tongbo",
   anim_type = "special",
-  events = {fk.EventPhaseEnd},
+  events = {fk.AfterDrawNCards},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Draw and #player:getPile("caiyong_book") > 0
-      and not player:isNude()
+    return target == player and player:hasSkill(self) and #player:getPile("caiyong_book") > 0 and not player:isNude()
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1140,6 +1137,8 @@ local tongbo = fk.CreateTriggerSkill{
     U.askForDistribution(player, books, targets, self.name, #books, #books, "#tongbo-give", "caiyong_book")
   end,
 }
+pizhuan:addRelatedSkill(pizhuan_maxcards)
+caiyong:addSkill(pizhuan)
 caiyong:addSkill(tongbo)
 
 Fk:loadTranslationTable{

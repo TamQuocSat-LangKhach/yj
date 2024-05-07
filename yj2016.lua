@@ -817,7 +817,7 @@ local zhige = fk.CreateActiveSkill{
     else
       if #target.player_cards[Player.Equip] > 0 then
         local card = room:askForCard(target, 1, 1, true, self.name, false, ".|.|.|equip", "#zhige-card:"..player.id)
-        room:obtainCard(player, card[1], true, fk.ReasonGive)
+        room:obtainCard(player, card[1], true, fk.ReasonGive, target.id)
       end
     end
   end
@@ -947,7 +947,7 @@ local taoluan_trigger = fk.CreateTriggerSkill{
     local to = room:getPlayerById(tos[1])
     local card = room:askForCard(to, 1, 1, true, "taoluan", true, ".|.|.|.|.|^"..type, "#taoluan-card:"..player.id.."::"..type)
     if #card > 0 then
-      room:obtainCard(player, card[1], false, fk.ReasonGive)
+      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id)
     else
       room:setPlayerMark(player, "@@taoluan-turn", 1)
       room:loseHp(player, 1, "taoluan")

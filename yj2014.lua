@@ -340,7 +340,7 @@ local zhongyong = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:obtainCard(self.cost_data, data.card, true, fk.ReasonGive)
+    room:obtainCard(self.cost_data, data.card, true, fk.ReasonGive, player.id)
     if self.cost_data ~= player.id then
       local use = room:askForUseCard(player, "slash", "slash", "#zhongyong-slash::"..target.id, true, {must_targets = {target.id}})
       if use then
@@ -661,7 +661,7 @@ local zenhui = fk.CreateTriggerSkill{
     end
     local card = room:askForCard(to, 1, 1, true, self.name, true, ".", "#zenhui-give::"..player.id)
     if #card > 0 then
-      room:obtainCard(player, card[1], false, fk.ReasonGive)
+      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id)
       data.from = to.id
       --room.logic:trigger(fk.PreCardUse, to, data)
     else

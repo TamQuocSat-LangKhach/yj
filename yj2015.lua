@@ -361,6 +361,7 @@ local huomo = fk.CreateViewAsSkill{
         moveReason = fk.ReasonPut,
         skillName = self.name,
         proposer = player.id,
+        moveVisible = true,
       })
     end
   end,

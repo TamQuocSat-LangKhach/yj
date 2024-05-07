@@ -33,6 +33,8 @@ local chengxiang = fk.CreateTriggerSkill{
       ids = cards,
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
+      proposer = player.id,
+      skillName = self.name,
     })
     local get = U.askForArrangeCards(player, self.name, {cards},
     "#chengxiang-choose", false, 0, {4, 4}, {0, 1}, ".", "chengxiang_count", {{}, {cards[1]}})[2]
@@ -114,6 +116,8 @@ local nos__chengxiang = fk.CreateTriggerSkill{
       ids = cards,
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
+      proposer = player.id,
+      skillName = self.name,
     })
     local get = {}
     for _, id in ipairs(cards) do
@@ -152,7 +156,7 @@ local nos__renxin = fk.CreateTriggerSkill{
     local room = player.room
     local dying = player.room:getPlayerById(data.who)
     player:turnOver()
-    room:obtainCard(dying.id, player:getCardIds(Player.Hand), false, fk.ReasonGive)
+    room:obtainCard(dying.id, player:getCardIds(Player.Hand), false, fk.ReasonGive, player.id)
     if not dying.dead and dying:isWounded() then
       room:recover({
         who = dying,
@@ -855,7 +859,7 @@ local danshou = fk.CreateActiveSkill{
     elseif #effect.cards == 2 then
       if player.dead or target.dead or target:isNude() then return end
       local card = room:askForCard(target, 1, 1, true, self.name, false, ".", "#danshou-give::"..player.id)
-      room:obtainCard(player.id, card[1], false, fk.ReasonGive)
+      room:obtainCard(player.id, card[1], false, fk.ReasonGive, target.id)
     elseif #effect.cards == 3 then
       room:damage{
         from = player,
@@ -953,7 +957,7 @@ local qiuyuan = fk.CreateTriggerSkill{
     room:doIndicate(player.id, {to})
     local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, true, "jink", "#qiuyuan-give::"..player.id)
     if #card > 0 then
-      room:obtainCard(player.id, Fk:getCardById(card[1]), true, fk.ReasonGive)
+      room:obtainCard(player.id, Fk:getCardById(card[1]), true, fk.ReasonGive, to)
     else
       TargetGroup:pushTargets(data.targetGroup, to)
     end
@@ -1042,7 +1046,7 @@ local nos__qiuyuan = fk.CreateTriggerSkill{
     local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, false, ".|.|.|hand", "#nos__qiuyuan-give::"..player.id)
     if #card > 0 then
       local card = Fk:getCardById(card[1])
-      room:obtainCard(player.id, card, true, fk.ReasonGive)
+      room:obtainCard(player.id, card, true, fk.ReasonGive, to)
       if card.name ~= "jink" then
         TargetGroup:pushTargets(data.targetGroup, to)
       end

@@ -242,7 +242,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
       else
         local card = room:askForCard(data.from, 1, 1, false, self.name, true, ".|.|heart|hand|.|.", "#nos__enyuan-give:"..player.id)
         if #card > 0 then
-          room:obtainCard(player, card[1], true, fk.ReasonGive)
+          room:obtainCard(player, card[1], true, fk.ReasonGive, data.from.id)
         else
           room:loseHp(data.from, 1, self.name)
         end
@@ -268,7 +268,7 @@ local nos__xuanhuo = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
-    room:obtainCard(target.id, effect.cards[1], false, fk.ReasonGive)
+    room:obtainCard(target.id, effect.cards[1], false, fk.ReasonGive, player.id)
     if target:isNude() or player.dead or target.dead then return end
     local id = room:askForCardChosen(player, target, "he", self.name)
     room:obtainCard(player.id, id, false, fk.ReasonPrey)
@@ -282,7 +282,7 @@ local nos__xuanhuo = fk.CreateActiveSkill{
       to = player.id
     end
     if to ~= player.id then
-      room:obtainCard(to, id, false, fk.ReasonGive)
+      room:obtainCard(to, id, false, fk.ReasonGive, player.id)
     end
   end,
 }
@@ -370,7 +370,7 @@ local enyuan = fk.CreateTriggerSkill{
       else
         local card = room:askForCard(data.from, 1, 1, false, self.name, true, ".|.|.|hand|.|.", "#enyuan-give:"..player.id)
         if #card > 0 then
-          room:obtainCard(player, Fk:getCardById(card[1]), true, fk.ReasonGive)
+          room:obtainCard(player, Fk:getCardById(card[1]), true, fk.ReasonGive, data.from.id)
         else
           room:loseHp(data.from, 1, self.name)
         end
@@ -1086,7 +1086,7 @@ local mingce = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
-    room:obtainCard(target.id, Fk:getCardById(effect.cards[1]), false, fk.ReasonGive)
+    room:obtainCard(target.id, Fk:getCardById(effect.cards[1]), false, fk.ReasonGive, player.id)
     if player.dead or target.dead then return end
     local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
       return target:inMyAttackRange(p) end), Util.IdMapper)

@@ -152,6 +152,7 @@ local nos__zhenlie = fk.CreateTriggerSkill{
       toArea = Card.Processing,
       moveReason = fk.ReasonJustMove,
       skillName = self.name,
+      proposer = player.id,
     }
     local move2 = {
       ids = {data.card:getEffectiveId()},
@@ -442,6 +443,7 @@ local nos__fuhun = fk.CreateTriggerSkill{
       toArea = Card.Processing,
       moveReason = fk.ReasonJustMove,
       skillName = self.name,
+      proposer = player.id,
     })
     room:delay(1000)
     room:obtainCard(player.id, ids, true, fk.ReasonJustMove)
