@@ -69,6 +69,93 @@ Fk:loadTranslationTable{
 }
 
 local chenqun = General(extension, "chenqun", "wei", 3)
+local pindi = fk.CreateActiveSkill{
+  name = "pindi",
+  anim_type = "control",
+  card_num = 1,
+  target_num = 1,
+  prompt = function(self)
+    return "#pindi-active:::"..(Self:usedSkillTimes(self.name, Player.HistoryTurn) + 1)
+  end,
+  card_filter = function(self, to_select, selected)
+    if #selected == 0 and not Self:prohibitDiscard(Fk:getCardById(to_select)) then
+      local mark = U.getMark(Self, "pindi_types-turn")
+      return not table.contains(mark, Fk:getCardById(to_select):getTypeString())
+    end
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and not table.contains(U.getMark(Self, "pindi_targets-turn"), to_select)
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+
+    local mark = U.getMark(player, "pindi_types-turn")
+    table.insert(mark, Fk:getCardById(effect.cards[1]):getTypeString())
+    room:setPlayerMark(player, "pindi_types-turn", mark)
+    mark = U.getMark(player, "pindi_targets-turn")
+    table.insert(mark, target.id)
+    room:setPlayerMark(player, "pindi_targets-turn", mark)
+
+    room:throwCard(effect.cards, self.name, player)
+    if player.dead or target.dead then return end
+    local n = player:usedSkillTimes(self.name, Player.HistoryTurn)
+    if target:isNude() or room:askForChoice(player, {"#pindi-draw::".. target.id .. ":" .. n,
+    "#pindi-discard::".. target.id .. ":" .. n}, self.name):startsWith("#pindi-draw") then
+      target:drawCards(n, self.name)
+    else
+      room:askForDiscard(target, n, n, true, self.name)
+    end
+    if not target.dead and target:isWounded() and not player.dead and not player.chained then
+      player:setChainState(true)
+    end
+  end,
+}
+local faen = fk.CreateTriggerSkill{
+  name = "faen",
+  anim_type = "support",
+  events = {fk.TurnedOver, fk.ChainStateChanged},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self) and not target.dead then
+      return (event == fk.TurnedOver and target.faceup) or (event == fk.ChainStateChanged and target.chained)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if room:askForSkillInvoke(player, self.name, nil, "#faen-invoke::"..target.id) then
+      room:doIndicate(player.id, {target.id})
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    target:drawCards(1, self.name)
+  end,
+}
+chenqun:addSkill(pindi)
+chenqun:addSkill(faen)
+Fk:loadTranslationTable{
+  ["chenqun"] = "陈群",
+  ["#chenqun"] = "万世臣表",
+  ["designer:chenqun"] = "Michael_Lee",
+  ["illustrator:chenqun"] = "NOVART",
+  ["pindi"] = "品第",
+  [":pindi"] = "出牌阶段，你可以弃置一张于此回合内未以此法弃置过的类别的牌并选择此回合内未以此法选择过的一名其他角色，"..
+  "你选择：1.令其摸X张牌；2.令其弃置X张牌。若其已受伤，你横置。（X为你于此回合内发动过此技能的次数）",
+  ["faen"] = "法恩",
+  [":faen"] = "当一名角色的武将牌翻至正面朝上或横置后，你可以令其摸一张牌。",
+  ["#pindi-active"] = "品第：弃置一张未弃置过类别的牌，令一名角色摸牌或弃牌（%arg张）",
+  ["#faen-invoke"] = "法恩：你可以令 %dest 摸一张牌",
+  ["#pindi-draw"] = "令%dest摸%arg张牌",
+  ["#pindi-discard"] = "令%dest弃置%arg张牌",
+
+  ["$pindi1"] = "观其风气，查其品行。",
+  ["$pindi2"] = "推举贤才，兴盛大魏。",
+  ["$faen1"] = "王法威仪，恩泽天下。",
+  ["$faen2"] = "法外有情，恩威并举。",
+  ["~chenqun"] = "三朝如一日，弹指一挥间……",
+}
+
+local nos__chenqun = General(extension, "nos__chenqun", "wei", 3)
 local dingpin = fk.CreateActiveSkill{
   name = "dingpin",
   anim_type = "support",
@@ -147,8 +234,8 @@ local dingpin_record = fk.CreateTriggerSkill{
     end
   end,
 }
-local faen = fk.CreateTriggerSkill{
-  name = "faen",
+local nos__faen = fk.CreateTriggerSkill{
+  name = "nos__faen",
   anim_type = "drawcard",
   events = {fk.TurnedOver, fk.ChainStateChanged},
   can_trigger = function(self, event, target, player, data)
@@ -157,7 +244,7 @@ local faen = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#faen-invoke::"..target.id)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#nos__faen-invoke::"..target.id)
   end,
   on_use = function(self, event, target, player, data)
     player.room:doIndicate(player.id, {target.id})
@@ -165,25 +252,25 @@ local faen = fk.CreateTriggerSkill{
   end,
 }
 dingpin:addRelatedSkill(dingpin_record)
-chenqun:addSkill(dingpin)
-chenqun:addSkill(faen)
+nos__chenqun:addSkill(dingpin)
+nos__chenqun:addSkill(nos__faen)
 Fk:loadTranslationTable{
-  ["chenqun"] = "陈群",
-  ["#chenqun"] = "万世臣表",
-  ["designer:chenqun"] = "Michael_Lee",
-  ["illustrator:chenqun"] = "DH",
+  ["nos__chenqun"] = "陈群",
+  ["#nos__chenqun"] = "万世臣表",
+  ["designer:nos__chenqun"] = "Michael_Lee",
+  ["illustrator:nos__chenqun"] = "DH",
   ["dingpin"] = "定品",
   [":dingpin"] = "出牌阶段，你可以弃置一张与你本回合已使用或弃置的牌类别均不同的手牌，然后令一名已受伤的角色进行一次判定，若结果为黑色，"..
   "该角色摸X张牌（X为该角色已损失的体力值），然后你本回合不能再对其发动〖定品〗；若结果为红色，将你的武将牌翻面。",
-  ["faen"] = "法恩",
-  [":faen"] = "每当一名角色的武将牌翻面或横置时，你可以令其摸一张牌。",
-  ["#faen-invoke"] = "法恩：你可以令 %dest 摸一张牌",
+  ["nos__faen"] = "法恩",
+  [":nos__faen"] = "每当一名角色的武将牌翻面或横置时，你可以令其摸一张牌。",
+  ["#nos__faen-invoke"] = "法恩：你可以令 %dest 摸一张牌",
 
   ["$dingpin1"] = "取才赋职，论能行赏。",
   ["$dingpin2"] = "定品寻良骥，中正探人杰。",
-  ["$faen1"] = "礼法容情，皇恩浩荡。",
-  ["$faen2"] = "法理有度，恩威并施。",
-  ["~chenqun"] = "吾身虽陨，典律昭昭。",
+  ["$nos__faen1"] = "礼法容情，皇恩浩荡。",
+  ["$nos__faen2"] = "法理有度，恩威并施。",
+  ["~nos__chenqun"] = "吾身虽陨，典律昭昭。",
 }
 
 local hanhaoshihuan = General(extension, "hanhaoshihuan", "wei", 4)
