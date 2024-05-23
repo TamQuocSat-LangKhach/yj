@@ -781,7 +781,8 @@ local fuzhu = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(self) and target ~= player and target.phase == Player.Finish and
-      target.gender == General.Male and #player.room.draw_pile <= 10 * player.hp
+      (target.gender == General.Male or target.gender == General.Bigender)
+      and #player.room.draw_pile <= 10 * player.hp
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#fuzhu-invoke::"..target.id)
@@ -796,7 +797,7 @@ local fuzhu = fk.CreateTriggerSkill{
       local slash
       for i = #room.draw_pile, 1, -1 do
         slash = Fk:getCardById(room.draw_pile[i])
-        if slash.trueName == "slash" and player:canUseTo(slash, target, { bypass_times = true }) then
+        if slash.trueName == "slash" and player:canUseTo(slash, target, { bypass_times = true, bypass_distances = true }) then
           no_slash = false
           room:useCard({
             from = player.id,
