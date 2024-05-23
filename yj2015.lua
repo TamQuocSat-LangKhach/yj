@@ -294,7 +294,7 @@ local qingxi = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local n = Fk:getCardById(player:getEquipment(Card.SubtypeWeapon)).attack_range
+    local n = Fk:getCardById(player:getEquipment(Card.SubtypeWeapon)):getAttackRange(player)
     if #data.to.player_cards[Player.Hand] < n then
       data.damage = data.damage + 1
       return
