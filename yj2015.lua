@@ -766,7 +766,8 @@ local zhenshan = fk.CreateViewAsSkill{
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p)
       return (#p.player_cards[Player.Hand] < player:getHandcardNum()) end), Util.IdMapper)
-    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#zhenshan-choose", self.name, true)
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#zhenshan-choose", self.name, false)
+    if #tos < 1 then return "" end
     local to = room:getPlayerById(tos[1])
     U.swapHandCards(room, player, player, to, self.name)
   end,
