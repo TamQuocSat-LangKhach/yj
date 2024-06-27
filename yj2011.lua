@@ -462,7 +462,7 @@ local xinzhan = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cards = room:getNCards(3)
-    local cardmap = U.askForArrangeCards(player, self.name, {cards, "Top", "toObtain"}, "#xinzhan-choose", true, 0,
+    local cardmap = room:askForArrangeCards(player, self.name, {cards, "Top", "toObtain"}, "#xinzhan-choose", true, 0,
     {3, 3}, {0, 0}, ".|.|heart")
     for i = #cardmap[1], 1, -1 do
       table.insert(room.draw_pile, 1, cardmap[1][i])

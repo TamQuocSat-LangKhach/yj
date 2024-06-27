@@ -36,7 +36,7 @@ local chengxiang = fk.CreateTriggerSkill{
       proposer = player.id,
       skillName = self.name,
     })
-    local get = U.askForArrangeCards(player, self.name, {cards},
+    local get = room:askForArrangeCards(player, self.name, {cards},
     "#chengxiang-choose", false, 0, {4, 4}, {0, 1}, ".", "chengxiang_count", {{}, {cards[1]}})[2]
     room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, self.name, "", true, player.id)
     cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
@@ -126,7 +126,7 @@ local nos__chengxiang = fk.CreateTriggerSkill{
         break
       end
     end
-    get = U.askForArrangeCards(player, self.name, {cards},
+    get = room:askForArrangeCards(player, self.name, {cards},
     "#nos__chengxiang-choose", false, 0, {4, 4}, {0, #get}, ".", "nos__chengxiang_count", {{}, get})[2]
     if #get > 0 then
       room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, self.name, "", true, player.id)

@@ -1119,7 +1119,7 @@ local tongbo = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local books = player:getPile("caiyong_book")
-    local piles = U.askForArrangeCards(player, self.name,
+    local piles = room:askForArrangeCards(player, self.name,
     {"caiyong_book", books, "$MyCard", player:getCardIds{Player.Hand, Player.Equip}})
     if table.every(piles[1], function (id)
       return table.contains(books, id)
