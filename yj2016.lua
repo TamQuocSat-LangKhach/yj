@@ -879,21 +879,13 @@ local zhangrang = General(extension, "zhangrang", "qun", 3)
 local taoluan = fk.CreateViewAsSkill{
   name = "taoluan",
   pattern = ".",
+  prompt = "#taoluan-prompt",
   interaction = function()
-    local names = {}
-    local mark = U.getMark(Self, "@$taoluan")
-    for _, id in ipairs(Fk:getAllCardIds()) do
-      local card = Fk:getCardById(id)
-      if (card.type == Card.TypeBasic or card:isCommonTrick()) and not card.is_derived and
-        ((Fk.currentResponsePattern == nil and Self:canUse(card)) or
-        (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(card))) then
-        if not table.contains(mark, card.trueName) then
-          table.insertIfNeed(names, card.name)
-        end
-      end
+    local all_names = U.getAllCardNames("bt")
+    local names = U.getViewAsCardNames(Self, "taoluan", all_names, nil, U.getMark(Self, "@$taoluan"))
+    if #names > 0 then
+      return U.CardNameBox { choices = names, all_choices = all_names }
     end
-    if #names == 0 then return end
-    return UI.ComboBox {choices = names}
   end,
   card_filter = function(self, to_select, selected)
     return #selected == 0
@@ -969,6 +961,7 @@ Fk:loadTranslationTable{
   ["#taoluan-choose"] = "滔乱：令一名其他角色交给你一张非%arg，或你失去1点体力且本回合〖滔乱〗失效",
   ["#taoluan-card"] = "滔乱：你需交给 %src 一张非%arg，否则其失去1点体力且本回合〖滔乱〗失效",
   ["@@taoluan-turn"] = "滔乱失效",
+  ["#taoluan-prompt"] = "滔乱：每牌名限一次，你可将一张牌当任意一张基本牌或普通锦囊牌使用",
 
   ["$taoluan1"] = "国家承平，神器稳固，陛下勿忧。",
   ["$taoluan2"] = "睁开你的眼睛看看，现在是谁说了算？",
