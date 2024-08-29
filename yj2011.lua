@@ -55,7 +55,7 @@ local luoying = fk.CreateTriggerSkill{
         ids = cards
       end
     end
-    room:moveCardTo(ids, Card.PlayerHand, player, fk.ReasonPrey, self.name)
+    room:moveCardTo(ids, Card.PlayerHand, player, fk.ReasonJustMove, self.name, nil, true, player.id, "@@luoying-inhand")
   end,
 }
 local jiushi = fk.CreateViewAsSkill{
@@ -119,6 +119,7 @@ Fk:loadTranslationTable{
 
   ["#luoying-choose"] = "落英：选择要获得的牌",
   ["get_all"] = "全部获得",
+  ["@@luoying-inhand"] = "落英",
 
   ["$luoying1"] = "这些都是我的。",
   ["$luoying2"] = "别着急扔，给我就好。",
@@ -142,7 +143,7 @@ local yizhong = fk.CreateTriggerSkill{
 yujin:addSkill(yizhong)
 Fk:loadTranslationTable{
   ["yujin"] = "于禁",
-  ["#yujin"] = "讨暴坚垒",
+  ["#yujin"] = "魏武之刚",
   ["designer:yujin"] = "许坦",
   ["illustrator:yujin"] = "Yi章",
 
@@ -237,6 +238,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
     else
       player:broadcastSkillInvoke(self.name, math.random(3,4))
       room:notifySkillInvoked(player, self.name)
+      room:doIndicate(player.id, {data.from.id})
       if data.from:isKongcheng() then
         room:loseHp(data.from, 1, self.name)
       else
@@ -275,7 +277,8 @@ local nos__xuanhuo = fk.CreateActiveSkill{
     if player.dead then return end
     local targets = table.map(room:getOtherPlayers(target), Util.IdMapper)
     if #targets == 0 or room:getCardOwner(id) ~= player or room:getCardArea(id) ~= Card.PlayerHand then return end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__xuanhuo-choose:::"..Fk:getCardById(id):toLogString(), self.name, false)
+    local to = room:askForChoosePlayers(player, targets, 1, 1,
+      "#nos__xuanhuo-choose:::"..Fk:getCardById(id):toLogString(), self.name, false)
     if #to > 0 then
       to = to[1]
     else
@@ -454,8 +457,9 @@ local xinzhan = fk.CreateActiveSkill{
   name = "xinzhan",
   anim_type = "drawcard",
   card_num = 0,
-  card_filter = Util.FalseFunc,
   target_num = 0,
+  prompt = "#xinzhan",
+  card_filter = Util.FalseFunc,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and player:getHandcardNum() > player.maxHp
   end,
@@ -496,7 +500,7 @@ Fk:loadTranslationTable{
   [":xinzhan"] = "出牌阶段限一次，若你的手牌数大于你的体力上限，你可以观看牌堆顶的三张牌，然后展示其中任意数量的<font color='red'>♥</font>牌并获得之，最后将其余的牌以任意顺序置于牌堆顶。",
   ["huilei"] = "挥泪",
   [":huilei"] = "锁定技，杀死你的角色弃置所有牌。",
-
+  ["#xinzhan"] = "心战：观看牌堆顶的三张牌，获得其中任意张<font color='red'>♥</font>牌，其余牌以任意顺序置于牌堆顶",
   ["#xinzhan-choose"] = "获得任意<font color='red'>♥</font>牌，调整其余牌顺序",
 
   ["$xinzhan1"] = "吾通晓兵法，世人皆知。",
@@ -599,14 +603,14 @@ local jujian = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|.|.|.|^basic", "#jujian-choose", self.name, true)
     if #tos > 0 then
-      self.cost_data = {tos[1], id}
+      self.cost_data = {tos = tos, cards = {id}}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = room:getPlayerById(self.cost_data[1])
-    room:throwCard({self.cost_data[2]}, self.name, player, player)
+    local to = room:getPlayerById(self.cost_data.tos[1])
+    room:throwCard(self.cost_data.cards, self.name, player, player)
     local choices = {"draw2"}
     if to:isWounded() then
       table.insert(choices, "recover")
