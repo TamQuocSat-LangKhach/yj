@@ -1093,7 +1093,8 @@ local pizhuan = fk.CreateTriggerSkill{
   derived_piles = "caiyong_book",
   events = {fk.CardUsing, fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self) and data.card.suit == Card.Spade and #player:getPile("caiyong_book") < 4 then
+    if target == player and player:hasSkill(self) and data.card.suit == Card.Spade and
+      #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra") then
       return event == fk.CardUsing or data.from ~= player.id
     end
   end,
