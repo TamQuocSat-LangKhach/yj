@@ -90,12 +90,8 @@ local pindi = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
 
-    local mark = player:getTableMark("pindi_types-turn")
-    table.insert(mark, Fk:getCardById(effect.cards[1]):getTypeString())
-    room:setPlayerMark(player, "pindi_types-turn", mark)
-    mark = player:getTableMark("pindi_targets-turn")
-    table.insert(mark, target.id)
-    room:setPlayerMark(player, "pindi_targets-turn", mark)
+    room:addTableMark(player, "pindi_types-turn", Fk:getCardById(effect.cards[1]):getTypeString())
+    room:addTableMark(player, "pindi_targets-turn", target.id)
 
     room:throwCard(effect.cards, self.name, player)
     if player.dead or target.dead then return end
@@ -104,7 +100,7 @@ local pindi = fk.CreateActiveSkill{
     "#pindi-discard::".. target.id .. ":" .. n}, self.name):startsWith("#pindi-draw") then
       target:drawCards(n, self.name)
     else
-      room:askForDiscard(target, n, n, true, self.name)
+      room:askForDiscard(target, n, n, true, self.name, false)
     end
     if not target.dead and target:isWounded() and not player.dead and not player.chained then
       player:setChainState(true)
@@ -123,7 +119,7 @@ local faen = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     if room:askForSkillInvoke(player, self.name, nil, "#faen-invoke::"..target.id) then
-      room:doIndicate(player.id, {target.id})
+      self.cost_data = {tos = {target.id}}
       return true
     end
   end,
@@ -143,7 +139,7 @@ Fk:loadTranslationTable{
   "你选择：1.令其摸X张牌；2.令其弃置X张牌。若其已受伤，你横置。（X为你于此回合内发动过此技能的次数）",
   ["faen"] = "法恩",
   [":faen"] = "当一名角色的武将牌翻至正面朝上或横置后，你可以令其摸一张牌。",
-  ["#pindi-active"] = "品第：弃置一张未弃置过类别的牌，令一名角色摸牌或弃牌（%arg张）",
+  ["#pindi-active"] = "品第：弃置一张未弃置过类别的牌，令一名其他角色摸牌或弃牌（%arg张）",
   ["#faen-invoke"] = "法恩：你可以令 %dest 摸一张牌",
   ["#pindi-draw"] = "令%dest摸%arg张牌",
   ["#pindi-discard"] = "令%dest弃置%arg张牌",
@@ -244,10 +240,10 @@ local nos__faen = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
+    self.cost_data = {tos = {target.id}}
     return player.room:askForSkillInvoke(player, self.name, nil, "#nos__faen-invoke::"..target.id)
   end,
   on_use = function(self, event, target, player, data)
-    player.room:doIndicate(player.id, {target.id})
     target:drawCards(1, self.name)
   end,
 }
@@ -421,16 +417,18 @@ local zhongyong = fk.CreateTriggerSkill{
     local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(target), Util.IdMapper), 1, 1,
       "#zhongyong-choose::"..target.id, self.name, true)
     if #to > 0 then
-      self.cost_data = to[1]
+      self.cost_data = {tos = to}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:obtainCard(self.cost_data, data.card, true, fk.ReasonGive, player.id)
-    if self.cost_data ~= player.id then
+    local to = self.cost_data.tos[1]
+    room:obtainCard(to, data.card, true, fk.ReasonGive, player.id)
+    if to ~= player.id then
       local use = room:askForUseCard(player, "slash", "slash", "#zhongyong-slash::"..target.id, true, {must_targets = {target.id}})
       if use then
+        use.extraUse = true
         room:useCard(use)
       end
     end

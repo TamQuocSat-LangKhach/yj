@@ -165,19 +165,22 @@ local qingxian = fk.CreateTriggerSkill{
   on_cost = function (self, event, target, player, data)
     local room = player.room
     if event == fk.Damaged then
-      return room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
+      if room:askForSkillInvoke(player, self.name, data, "#qingxian-invoke:"..data.from.id) then
+        self.cost_data = {tos = {data.from.id}}
+        return true
+      end
     else
       local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
-        "#skillchooseother:::"..self.name, self.name, true)
+        "#qingxian-choose", self.name, true)
       if #tos > 0 then
-        self.cost_data = tos[1]
+        self.cost_data = {tos = tos}
         return true
       end
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = (event == fk.Damaged) and data.from or room:getPlayerById(self.cost_data)
+    local to = room:getPlayerById(self.cost_data.tos[1])
     local choice = room:askForChoice(player, {"qingxian_losehp","qingxian_recover"}, self.name)
     local card = doQingxian(room, to, player, choice, self.name)
     if card and card.suit == Card.Club and player:isWounded() and not player.dead then
@@ -196,15 +199,15 @@ local juexiang = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
-      "#skillchooseother:::"..self.name, self.name, true)
+      "#juexiang-choose", self.name, true, true)
     if #tos > 0 then
-      self.cost_data = tos[1]
+      self.cost_data = {tos = tos}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = room:getPlayerById(self.cost_data)
+    local to = room:getPlayerById(self.cost_data.tos[1])
     local skills = table.filter({"jixiann","liexian","rouxian","hexian"}, function (s) return not to:hasSkill(s,true) end)
     if #skills > 0 then
       room:handleAddLoseSkills(to, table.random(skills), nil)
@@ -236,7 +239,8 @@ local jixiann = fk.CreateTriggerSkill{
     return player:hasSkill(self) and target == player and data.from and not data.from.dead
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
+    self.cost_data = {tos = {data.from.id}}
+    return player.room:askForSkillInvoke(player, self.name, data, "#jixiann-invoke:"..data.from.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -253,15 +257,15 @@ local liexian = fk.CreateTriggerSkill{
   on_cost = function (self, event, target, player, data)
     local room = player.room
     local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
-      "#skillchooseother:::"..self.name, self.name, true)
+      "#liexian-choose", self.name, true)
     if #tos > 0 then
-      self.cost_data = tos[1]
+      self.cost_data = {tos = tos}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    doQingxian(room, room:getPlayerById(self.cost_data), player, "qingxian_losehp", self.name)
+    doQingxian(room, room:getPlayerById(self.cost_data.tos[1]), player, "qingxian_losehp", self.name)
   end,
 }
 jikang:addRelatedSkill(liexian)
@@ -272,7 +276,8 @@ local rouxian = fk.CreateTriggerSkill{
     return player:hasSkill(self) and target == player and data.from and not data.from.dead
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, data, "#skilltosb::"..data.from.id..":"..self.name)
+    self.cost_data = {tos = {data.from.id}}
+    return player.room:askForSkillInvoke(player, self.name, data, "#rouxian-invoke:"..data.from.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -289,15 +294,15 @@ local hexian = fk.CreateTriggerSkill{
   on_cost = function (self, event, target, player, data)
     local room = player.room
     local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
-      "#skillchooseother:::"..self.name, self.name, true)
+      "#hexian-choose", self.name, true, true)
     if #tos > 0 then
-      self.cost_data = tos[1]
+      self.cost_data = {tos = tos}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    doQingxian(room, room:getPlayerById(self.cost_data), player, "qingxian_recover", self.name)
+    doQingxian(room, room:getPlayerById(self.cost_data.tos[1]), player, "qingxian_recover", self.name)
   end,
 }
 jikang:addRelatedSkill(hexian)
@@ -312,21 +317,28 @@ Fk:loadTranslationTable{
   "2.回复1点体力并弃置一张装备牌。若其使用或弃置的牌的花色为♣，你回复1点体力。",
   ["qingxian_losehp"] = "失去1点体力并随机使用牌堆一张装备牌",
   ["qingxian_recover"] = "回复1点体力并弃置一张装备牌",
+  ["#qingxian-invoke"] = "清弦：你可以令 %src 失去体力并使用装备牌/回复体力并弃装备牌",
+  ["#qingxian-choose"] = "清弦：选择一名其他角色，令其失去体力并使用装备牌/回复体力并弃装备牌",
+
   ["juexiang"] = "绝响",
   [":juexiang"] = "当你死亡时，你可以令一名其他角色随机获得〖激弦〗、〖烈弦〗、〖柔弦〗、〖和弦〗中的一个技能，然后直到其下回合开始前，"..
   "该角色不能成为除其以外的角色使用♣牌的目标。",
+  ["#juexiang-choose"] = "绝响：你可以令一名其他角色随机获得“激弦”/“烈弦”/“柔弦”/“和弦”中一个",
   ["@@juexiang"] = "绝响",
   ["#juexiang_prohibit"] = "绝响",
+
   ["jixiann"] = "激弦",
   [":jixiann"] = "当你受到伤害后，你可以令伤害来源失去1点体力并随机使用牌堆一张装备牌。",
+  ["#jixiann-invoke"] = "激弦：你可以令 %src 失去1点体力并使用随机装备牌",
   ["liexian"] = "烈弦",
   [":liexian"] = "当你回复体力后，你可以令一名其他角色失去1点体力并随机使用牌堆一张装备牌。",
+  ["#liexian-choose"] = "烈弦：可以令一名其他角色失去1点体力并随机使用装备牌",
   ["rouxian"] = "柔弦",
   [":rouxian"] = "当你受到伤害后，你可以令伤害来源回复1点体力并弃置一张装备牌。",
+  ["#rouxian-invoke"] = "柔弦：你可以令 %src 回复1点体力并弃置一张装备牌",
   ["hexian"] = "和弦",
   [":hexian"] = "当你回复体力后，你可以令一名其他角色回复1点体力并弃置一张装备牌。",
-  ["#skilltosb"] = "你可以对 %dest 发动“%arg”",
-  ["#skillchooseother"] = "你可以对一名其他角色发动“%arg”",  --FIXME: 这两个prompt名不好，要改掉
+  ["#hexian-choose"] = "和弦：可以令一名其他角色回复1点体力并弃置一张装备牌",
 
   ["$qingxian1"] = "抚琴拨弦，悠然自得。",
   ["$qingxian2"] = "寄情于琴，合于天地。",
