@@ -882,7 +882,7 @@ local taoluan = fk.CreateViewAsSkill{
   prompt = "#taoluan-prompt",
   interaction = function()
     local all_names = U.getAllCardNames("bt")
-    local names = U.getViewAsCardNames(Self, "taoluan", all_names, nil, U.getMark(Self, "@$taoluan"))
+    local names = U.getViewAsCardNames(Self, "taoluan", all_names, nil, Self:getTableMark("@$taoluan"))
     if #names > 0 then
       return U.CardNameBox { choices = names, all_choices = all_names }
     end
@@ -910,7 +910,7 @@ local taoluan = fk.CreateViewAsSkill{
   enabled_at_response = function(self, player, response)
     if not response and not player:isNude() and player:getMark("@@taoluan-turn") == 0 and Fk.currentResponsePattern
     and table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end) then
-      local mark = U.getMark(Self, "@$taoluan")
+      local mark = Self:getTableMark("@$taoluan")
       for _, id in ipairs(Fk:getAllCardIds()) do
         local card = Fk:getCardById(id)
         if (card.type == Card.TypeBasic or card:isCommonTrick()) and not card.is_derived and

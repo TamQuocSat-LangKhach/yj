@@ -720,7 +720,7 @@ local wengua_active = fk.CreateActiveSkill{
   target_num = 1,
   prompt = "#wengua&",
   can_use = function(self, player)
-    local targetRecorded = U.getMark(player, "wengua_targets-phase")
+    local targetRecorded = player:getTableMark("wengua_targets-phase")
     return table.find(Fk:currentRoom().alive_players, function(p)
       return p ~= player and p:hasSkill(wengua, true) and not table.contains(targetRecorded, p.id)
     end)
@@ -730,13 +730,13 @@ local wengua_active = fk.CreateActiveSkill{
   end,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):hasSkill(wengua) and
-    not table.contains(U.getMark(Self, "wengua_targets-phase"), to_select)
+    not table.contains(Self:getTableMark("wengua_targets-phase"), to_select)
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     target:broadcastSkillInvoke("wengua")
-    local targetRecorded = U.getMark(player, "wengua_targets-phase")
+    local targetRecorded = player:getTableMark("wengua_targets-phase")
     table.insertIfNeed(targetRecorded, target.id)
     room:setPlayerMark(player, "wengua_targets-phase", targetRecorded)
     local id = effect.cards[1]

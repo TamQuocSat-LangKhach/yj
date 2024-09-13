@@ -650,7 +650,7 @@ local anjian = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and
-      not data.to:inMyAttackRange(player) and U.damageByCardEffect(player.room)
+      not data.to:inMyAttackRange(player) and player.room.logic:damageByCardEffect()
   end,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1

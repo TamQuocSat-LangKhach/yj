@@ -162,9 +162,9 @@ local nos__taoxi = fk.CreateViewAsSkill{
   name = "nos__taoxi",
   pattern = ".",
   anim_type = "special",
-  expand_pile = function() return U.getMark(Self, "@$nos__taoxi-turn") end,
+  expand_pile = function() return Self:getTableMark("@$nos__taoxi-turn") end,
   card_filter = function(self, to_select, selected)
-    if #selected == 0 and table.contains(U.getMark(Self, "@$nos__taoxi-turn"), to_select) then
+    if #selected == 0 and table.contains(Self:getTableMark("@$nos__taoxi-turn"), to_select) then
       local card = Fk:getCardById(to_select)
       if Fk.currentResponsePattern == nil then
         return Self:canUse(card) and not Self:prohibitUse(card)
@@ -221,7 +221,7 @@ local nos__taoxi_trigger = fk.CreateTriggerSkill{
       local card = room:askForCardChosen(player, to, "h", nos__taoxi.name, "#nos__taoxi-choose::"..data.to)
       to:showCards(card)
       if room:getCardOwner(card) ~= to or room:getCardArea(card) ~= Card.PlayerHand then return end
-      local mark = U.getMark(player, "@$nos__taoxi-turn")
+      local mark = player:getTableMark("@$nos__taoxi-turn")
       table.insertIfNeed(mark, card)
       room:setPlayerMark(player, "@$nos__taoxi-turn", mark)
     else
@@ -333,7 +333,7 @@ local huomo = fk.CreateViewAsSkill{
   end,
   interaction = function()
     local names = {}
-    local mark = U.getMark(Self, "huomo-turn")
+    local mark = Self:getTableMark("huomo-turn")
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
       if ((Fk.currentResponsePattern == nil and Self:canUse(card)) or
@@ -392,7 +392,7 @@ local huomo_trigger = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     if event == fk.AfterCardUseDeclared then
-      local mark = U.getMark(player, "huomo-turn")
+      local mark = player:getTableMark("huomo-turn")
       table.insert(mark, data.card.trueName)
       room:setPlayerMark(player, "huomo-turn", mark)
     else

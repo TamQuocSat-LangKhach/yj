@@ -79,21 +79,21 @@ local pindi = fk.CreateActiveSkill{
   end,
   card_filter = function(self, to_select, selected)
     if #selected == 0 and not Self:prohibitDiscard(Fk:getCardById(to_select)) then
-      local mark = U.getMark(Self, "pindi_types-turn")
+      local mark = Self:getTableMark("pindi_types-turn")
       return not table.contains(mark, Fk:getCardById(to_select):getTypeString())
     end
   end,
   target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id and not table.contains(U.getMark(Self, "pindi_targets-turn"), to_select)
+    return #selected == 0 and to_select ~= Self.id and not table.contains(Self:getTableMark("pindi_targets-turn"), to_select)
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
 
-    local mark = U.getMark(player, "pindi_types-turn")
+    local mark = player:getTableMark("pindi_types-turn")
     table.insert(mark, Fk:getCardById(effect.cards[1]):getTypeString())
     room:setPlayerMark(player, "pindi_types-turn", mark)
-    mark = U.getMark(player, "pindi_targets-turn")
+    mark = player:getTableMark("pindi_targets-turn")
     table.insert(mark, target.id)
     room:setPlayerMark(player, "pindi_targets-turn", mark)
 
@@ -339,7 +339,7 @@ local shenduan = fk.CreateTriggerSkill{
 }
 local shenduan_active = fk.CreateViewAsSkill{
   name = "shenduan_active",
-  expand_pile = function () return U.getMark(Self, "shenduan") end,
+  expand_pile = function () return Self:getTableMark("shenduan") end,
   card_filter = function(self, to_select, selected)
     if #selected == 0 then
       local ids = Self:getMark("shenduan")

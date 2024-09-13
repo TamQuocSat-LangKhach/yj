@@ -285,7 +285,7 @@ local nos__qianxi = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and player:distanceTo(data.to) == 1 and
-    data.card and data.card.trueName == "slash" and U.damageByCardEffect(player.room)
+    data.card and data.card.trueName == "slash" and player.room.logic:damageByCardEffect()
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -690,7 +690,6 @@ Fk:loadTranslationTable{
   ["chengpu_chun"] = "醇",
   ["#chunlao-cost"] = "醇醪：你可以将任意张【杀】置为“醇”",
   ["#chunlao-invoke"] = "醇醪：你可以将一张“醇”置入弃牌堆，视为 %dest 使用一张【酒】",
-  ["#AddTargetsBySkill"] = "用于 %arg 的效果，%from 使用的 %arg2 增加了目标 %to",
 
   ["$lihuo1"] = "将士们，引火对敌！",
   ["$lihuo2"] = "和我同归于尽吧！",
