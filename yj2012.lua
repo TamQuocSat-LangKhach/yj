@@ -19,7 +19,7 @@ local qice = fk.CreateViewAsSkill{
         end
       end
     end
-    return UI.ComboBox {choices = names, all_choices = all_names}
+    return U.CardNameBox {choices = names, all_choices = all_names}
   end,
   card_filter = Util.FalseFunc,
   view_as = function(self, cards)

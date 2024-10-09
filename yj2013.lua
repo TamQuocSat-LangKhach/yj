@@ -395,7 +395,7 @@ local qiaoshui_delay = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:setPlayerMark(player, "@@qiaoshui-turn", 0)
-    local targets = U.getUseExtraTargets(room, data)
+    local targets = room:getUseExtraTargets(data)
     table.insertTableIfNeed(targets, TargetGroup:getRealTargets(data.tos))
     if #targets == 0 then return false end
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#qiaoshui-choose:::"..data.card:toLogString(), self.name, true)

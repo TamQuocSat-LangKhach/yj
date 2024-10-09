@@ -402,7 +402,7 @@ local fumian_trigger = fk.CreateTriggerSkill{
         return player:getMark("@fumian1-turn") > 0
       else
         return player:getMark("@fumian2-turn") > 0 and data.card.color == Card.Red and data.tos and
-          #U.getUseExtraTargets(player.room, data, false) > 0
+          #player.room:getUseExtraTargets(data) > 0
       end
     end
   end,
@@ -410,7 +410,7 @@ local fumian_trigger = fk.CreateTriggerSkill{
     if event == fk.DrawNCards then
       return true
     else
-      local tos = player.room:askForChoosePlayers(player, U.getUseExtraTargets(player.room, data, false), 1, player:getMark("@fumian2-turn"),
+      local tos = player.room:askForChoosePlayers(player, player.room:getUseExtraTargets(data), 1, player:getMark("@fumian2-turn"),
         "#fumian-choose:::"..data.card:toLogString()..":"..player:getMark("@fumian2-turn"), "fumian", true)
       if #tos > 0 then
         self.cost_data = tos
@@ -500,6 +500,7 @@ Fk:loadTranslationTable{
   ["fumian2"] = "使用红色牌目标数+%arg",
   ["@fumian1-turn"] = "福绵 摸牌数+",
   ["@fumian2-turn"] = "福绵 目标数+",
+  ["#fumian_trigger"] = "福绵",
   ["#fumian-choose"] = "福绵：你可以为%arg额外指定%arg2个目标",
   ["#daiyan-choose"] = "怠宴：你可以令一名其他角色摸一张<font color='red'>♥</font>基本牌，若为上回合选择的角色，其失去1点体力",
   ["@@daiyan-tmp"] = "上次怠宴目标",

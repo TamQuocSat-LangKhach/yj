@@ -162,6 +162,7 @@ local nos__taoxi = fk.CreateViewAsSkill{
   name = "nos__taoxi",
   pattern = ".",
   anim_type = "special",
+  prompt = "#nos__taoxi",
   expand_pile = function() return Self:getTableMark("@$nos__taoxi-turn") end,
   card_filter = function(self, to_select, selected)
     if #selected == 0 and table.contains(Self:getTableMark("@$nos__taoxi-turn"), to_select) then
@@ -198,7 +199,7 @@ local nos__taoxi_trigger = fk.CreateTriggerSkill{
         return player:hasSkill(nos__taoxi) and player.phase == Player.Play and data.to ~= player.id and
           U.isOnlyTarget(player.room:getPlayerById(data.to), data, event) and
           not player.room:getPlayerById(data.to):isKongcheng() and
-          player:usedSkillTimes(nos__taoxi.name, Player.HistoryPhase) == 0
+          player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
       else
         return player:getMark("@$nos__taoxi-turn") ~= 0
       end
@@ -269,6 +270,7 @@ Fk:loadTranslationTable{
   ["#nos__taoxi-choose"] = "讨袭：展示%dest一张手牌",
   ["@$nos__taoxi-turn"] = "讨袭",
   ["#nos__taoxi_trigger"] = "讨袭",
+  ["#nos__taoxi"] = "讨袭：你可以使用“讨袭”牌！",
 
   ["$nos__taoxi1"] = "策马疾如电，溃敌一瞬间。",
   ["$nos__taoxi2"] = "虎豹骑岂能徒有虚名？杀！",
@@ -312,6 +314,8 @@ Fk:loadTranslationTable{
   ["caoxiu"] = "曹休",
   ["#caoxiu"] = "千里骐骥",
   ["illustrator:caoxiu"] = "NOVAR", -- 皮肤 下辩扬威
+  ["designer:caoxiu"] = "Roc",
+
   ["qianju"] = "千驹",
   [":qianju"] = "锁定技，你计算与其他角色的距离-X。（X为你已损失的体力值）",
   ["qingxi"] = "倾袭",
@@ -328,23 +332,12 @@ local zhongyao = General(extension, "zhongyao", "wei", 3)
 local huomo = fk.CreateViewAsSkill{
   name = "huomo",
   pattern = ".|.|.|.|.|basic",
-  prompt = function ()
-    return "#huomo-card"
-  end,
-  interaction = function()
-    local names = {}
-    local mark = Self:getTableMark("huomo-turn")
-    for _, id in ipairs(Fk:getAllCardIds()) do
-      local card = Fk:getCardById(id)
-      if ((Fk.currentResponsePattern == nil and Self:canUse(card)) or
-      (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(card))) then
-        if card.type == Card.TypeBasic and not table.contains(mark, card.trueName) then
-          table.insertIfNeed(names, card.name)
-        end
-      end
-    end
-    if #names == 0 then return false end
-    return UI.ComboBox {choices = names}
+  prompt = "#huomo",
+  interaction = function(self)
+    local all_names = U.getAllCardNames("b")
+    local names = U.getViewAsCardNames(Self, self.name, all_names, nil, Self:getTableMark("huomo-turn"))
+    if #names == 0 then return end
+    return U.CardNameBox {choices = names, all_names = all_names}
   end,
   card_filter = function (self, to_select, selected)
     local card = Fk:getCardById(to_select)
@@ -420,7 +413,7 @@ local zuoding = fk.CreateTriggerSkill{
     if player:hasSkill(self) and target ~= player and target.phase == Player.Play and data.firstTarget
     and data.card.suit == Card.Spade
     and table.find(AimGroup:getAllTargets(data.tos), function(pid) return not player.room:getPlayerById(pid).dead end) then
-      return #U.getActualDamageEvents(player.room, 1, nil, Player.HistoryPhase) == 0
+      return #player.room.logic:getActualDamageEvents(1, Util.TrueFunc, Player.HistoryPhase) == 0
     end
   end,
   on_cost = function(self, event, target, player, data)
@@ -445,7 +438,7 @@ Fk:loadTranslationTable{
   [":huomo"] = "当你需要使用基本牌时（你本回合使用过的基本牌除外），你可以将一张黑色非基本牌置于牌堆顶，视为使用此基本牌。",
   ["zuoding"] = "佐定",
   [":zuoding"] = "当其他角色于其出牌阶段内使用♠牌指定目标后，若本阶段没有角色受到过伤害，你可以令其中一名目标角色摸一张牌。",
-  ["#huomo-card"] = "活墨：将一张黑色非基本牌置于牌堆顶",
+  ["#huomo"] = "活墨：将一张黑色非基本牌置于牌堆顶，视为使用一张基本牌",
   ["#zuoding-choose"] = "佐定：你可以令一名目标角色摸一张牌",
 
   ["$huomo1"] = "笔墨写春秋，挥毫退万敌！",
@@ -704,7 +697,6 @@ local wurong = fk.CreateActiveSkill{
 local shizhi = fk.CreateFilterSkill{
   name = "shizhi",
   card_filter = function(self, to_select, player)
-    --FIXME: filter skill isn't status skill, can't filter card which exists before hp change
     return player:hasSkill(self) and player.hp == 1 and to_select.name == "jink" and
     table.contains(player.player_cards[Player.Hand], to_select.id)
   end,
@@ -714,7 +706,7 @@ local shizhi = fk.CreateFilterSkill{
 }
 local shizhi_trigger = fk.CreateTriggerSkill{
   name = "#shizhi_trigger",
-  refresh_events = {fk.HpChanged},
+  refresh_events = {fk.HpChanged, fk.MaxHpChanged},
   can_refresh = function(self, event, target, player, data)
     return player == target and player:hasSkill(shizhi, true)
   end,
@@ -746,15 +738,11 @@ local quancong = General(extension, "quancong", "wu", 4)
 local zhenshan = fk.CreateViewAsSkill{
   name = "zhenshan",
   pattern = ".|.|.|.|.|basic",
-  interaction = function()
-    local names = {}
-    for _, id in ipairs(Fk:getAllCardIds()) do
-      local card = Fk:getCardById(id)
-      if card.type == Card.TypeBasic then
-        table.insertIfNeed(names, card.name)
-      end
-    end
-    return UI.ComboBox {choices = names}
+  interaction = function(self)
+    local all_names = U.getAllCardNames("b")
+    local names = U.getViewAsCardNames(Self, self.name, all_names)
+    if #names == 0 then return end
+    return U.CardNameBox {choices = names, all_names = all_names}
   end,
   card_filter = Util.FalseFunc,
   view_as = function(self, cards)
@@ -785,6 +773,8 @@ Fk:loadTranslationTable{
   ["quancong"] = "全琮",
   ["#quancong"] = "慕势耀族",
   ["illustrator:quancong"] = "小小鸡仔",
+  ["designer:quancong"] = "凌风自舞",
+
   ["zhenshan"] = "振赡",
   [":zhenshan"] = "每回合限一次，当你需要使用或打出一张基本牌时，你可以与一名手牌数少于你的角色交换手牌，若如此做，视为你使用或打出此牌。",
   ["#zhenshan-choose"] = "振赡：与一名手牌数少于你的角色交换手牌",

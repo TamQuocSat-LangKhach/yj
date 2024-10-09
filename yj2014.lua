@@ -1077,7 +1077,8 @@ local shibei = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if U.getActualDamageEvents(room, 1, function(e) return e.data[1].to == player end)[1].data[1] == data then
+    if room.logic:getActualDamageEvents(1, function(e)
+      return e.data[1].to == player end)[1].data[1] == data then
       player:broadcastSkillInvoke(self.name, 1)
       room:notifySkillInvoked(player, self.name)
       if player:isWounded() then

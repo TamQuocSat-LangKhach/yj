@@ -492,7 +492,7 @@ masu:addSkill(xinzhan)
 masu:addSkill(huilei)
 Fk:loadTranslationTable{
   ["masu"] = "马谡",
-  ["#masu"] = "军略之才器",
+  ["#masu"] = "怀才自负",
   ["designer:masu"] = "点点",
   ["illustrator:masu"] = "张帅",
 
@@ -811,77 +811,10 @@ local ganlu = fk.CreateActiveSkill{
     end
   end,
   on_use = function(self, room, effect)
-    local target1 = Fk:currentRoom():getPlayerById(effect.tos[1])
-    local target2 = Fk:currentRoom():getPlayerById(effect.tos[2])
-    local cards1 = table.clone(target1.player_cards[Player.Equip])
-    local cards2 = table.clone(target2.player_cards[Player.Equip])
-    local moveInfos = {}
-    if #cards1 > 0 then
-      table.insert(moveInfos, {
-        from = effect.tos[1],
-        ids = cards1,
-        toArea = Card.Processing,
-        moveReason = fk.ReasonExchange,
-        proposer = effect.from,
-        skillName = self.name,
-      })
-    end
-    if #cards2 > 0 then
-      table.insert(moveInfos, {
-        from = effect.tos[2],
-        ids = cards2,
-        toArea = Card.Processing,
-        moveReason = fk.ReasonExchange,
-        proposer = effect.from,
-        skillName = self.name,
-      })
-    end
-    if #moveInfos > 0 then
-      room:moveCards(table.unpack(moveInfos))
-    end
-    moveInfos = {}
-    if not target2.dead then
-      local to_ex_cards1 = table.filter(cards1, function (id)
-        return room:getCardArea(id) == Card.Processing and target2:getEquipment(Fk:getCardById(id).sub_type) == nil
-      end)
-      if #to_ex_cards1 > 0 then
-        table.insert(moveInfos, {
-          ids = to_ex_cards1,
-          fromArea = Card.Processing,
-          to = effect.tos[2],
-          toArea = Card.PlayerEquip,
-          moveReason = fk.ReasonExchange,
-          proposer = effect.from,
-          skillName = self.name,
-        })
-      end
-    end
-    if not target1.dead then
-      local to_ex_cards = table.filter(cards2, function (id)
-        return room:getCardArea(id) == Card.Processing and target1:getEquipment(Fk:getCardById(id).sub_type) == nil
-      end)
-      if #to_ex_cards > 0 then
-        table.insert(moveInfos, {
-          ids = to_ex_cards,
-          fromArea = Card.Processing,
-          to = effect.tos[1],
-          toArea = Card.PlayerEquip,
-          moveReason = fk.ReasonExchange,
-          proposer = effect.from,
-          skillName = self.name,
-        })
-      end
-    end
-    if #moveInfos > 0 then
-      room:moveCards(table.unpack(moveInfos))
-    end
-    table.insertTable(cards1, cards2)
-    local dis_cards = table.filter(cards1, function (id)
-      return room:getCardArea(id) == Card.Processing
-    end)
-    if #dis_cards > 0 then
-      room:moveCardTo(dis_cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
-    end
+    local player = room:getPlayerById(effect.from)
+    local target1 = room:getPlayerById(effect.tos[1])
+    local target2 = room:getPlayerById(effect.tos[2])
+    U.swapCards(room, player, target1, target2, target1:getCardIds("e"), target2:getCardIds("e"), self.name, Card.PlayerEquip)
   end,
 }
 local buyi = fk.CreateTriggerSkill{
@@ -1080,7 +1013,7 @@ local mingce = fk.CreateActiveSkill{
   target_num = 1,
   prompt = "#mingce",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = function(self, to_select, selected)
     return #selected == 0 and (Fk:getCardById(to_select).trueName == "slash" or Fk:getCardById(to_select).type == Card.TypeEquip)
@@ -1098,19 +1031,14 @@ local mingce = fk.CreateActiveSkill{
     if #targets == 0 then
       target:drawCards(1, self.name)
     else
-      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#mingce-choose::"..target.id, self.name, false, true)
-      local to
-      if #tos > 0 then
-        to = tos[1]
-      else
-        to = table.random(targets)
-      end
-      room:doIndicate(target.id, {to})
-      local choice = room:askForChoice(target, {"mingce_slash::"..to, "draw1"}, self.name)
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#mingce-choose::"..target.id, self.name, false, true)
+      to = room:getPlayerById(to[1])
+      room:doIndicate(target.id, {to.id})
+      local choice = room:askForChoice(target, {"mingce_slash::"..to.id, "draw1"}, self.name)
       if choice == "draw1" then
         target:drawCards(1, self.name)
       else
-        room:useVirtualCard("slash", nil, target, room:getPlayerById(to), self.name, true)
+        room:useVirtualCard("slash", nil, target, to, self.name, true)
       end
     end
   end,
@@ -1125,7 +1053,7 @@ local zhichi = fk.CreateTriggerSkill{
       if event == fk.Damaged then
         return target == player and player:hasSkill(self)
       else
-        return player.id == data.to and player:getMark("@@zhichi-turn") > 0 and
+        return player.id == data.to and player:usedSkillTimes(self.name, Player.HistoryTurn) > 0 and
           (data.card.trueName == "slash" or data.card:isCommonTrick())
       end
     end
