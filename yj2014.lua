@@ -759,7 +759,7 @@ local jiaojin = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.from and data.from.gender == General.Male and not player:isNude()
+    return target == player and player:hasSkill(self) and data.from and data.from:isMale() and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
     return #player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#jiaojin-cost") > 0

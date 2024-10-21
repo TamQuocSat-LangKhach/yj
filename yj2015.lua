@@ -623,7 +623,7 @@ local yanyu_record = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askForChoosePlayers(player, table.map(table.filter(room:getAlivePlayers(), function(p)
-      return p.gender == General.Male end), Util.IdMapper), 1, 1, "#yanyu-draw", self.name, true)
+      return p:isMale() end), Util.IdMapper), 1, 1, "#yanyu-draw", self.name, true)
     if #to > 0 then
       self.cost_data = room:getPlayerById(to[1])
       return true

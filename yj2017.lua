@@ -794,7 +794,7 @@ local fuzhu = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(self) and target ~= player and target.phase == Player.Finish and
-      (target.gender == General.Male or target.gender == General.Bigender)
+      (target:isMale())
       and #player.room.draw_pile <= 10 * player.hp
   end,
   on_cost = function(self, event, target, player, data)
