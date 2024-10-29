@@ -253,7 +253,7 @@ local miji = fk.CreateTriggerSkill{
     local n = player:getLostHp()
     player:drawCards(n, self.name)
     if player:getHandcardNum() >= n and room:askForSkillInvoke(player, self.name, nil, "#miji-invoke:::"..n) then
-      U.askForDistribution(player, player:getCardIds("h"), room:getOtherPlayers(player), self.name, n, n)
+      room:askForYiji(player, player:getCardIds("h"), room:getOtherPlayers(player), self.name, n, n)
     end
   end,
 }

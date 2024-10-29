@@ -1149,7 +1149,7 @@ local tongbo = fk.CreateTriggerSkill{
       table.removeOne(suits, Fk:getCardById(id).suit)
     end
     if #suits > 0 then return false end
-    U.askForDistribution(player, books, targets, self.name, #books, #books, "#tongbo-give", "caiyong_book")
+    room:askForYiji(player, books, targets, self.name, #books, #books, "#tongbo-give", "caiyong_book")
   end,
 }
 pizhuan:addRelatedSkill(pizhuan_maxcards)
