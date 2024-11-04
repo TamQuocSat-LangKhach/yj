@@ -701,27 +701,21 @@ local wengua = fk.CreateActiveSkill{
       room:drawCards(player, 1, self.name, fromPlace)
     end
   end,
-}
-local wengua_trigger = fk.CreateTriggerSkill{
-  name = "#wengua_trigger",
 
-  refresh_events = {fk.EventAcquireSkill, fk.EventLoseSkill, fk.BuryVictim},
-  can_refresh = function(self, event, target, player, data)
-    if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
-      return data == self
-    elseif event == fk.BuryVictim then
-      return player:hasSkill(self, true, true)
+  on_acquire = function(self, player)
+    for _, p in ipairs(player.room.alive_players) do
+      if p ~= player and not p:hasSkill("wengua&", true, true) then
+        player.room:handleAddLoseSkills(p, "wengua&", nil, false, true)
+      end
     end
   end,
-  on_refresh = function(self, event, target, player, data)
+  on_lose = function(self, player)
     local room = player.room
-    if table.every(room.alive_players, function(p) return not p:hasSkill(wengua, true) or p == player end) then
-      if player:hasSkill("wengua&", true, true) then
-        room:handleAddLoseSkills(player, "-wengua&", nil, false, true)
-      end
-    else
-      if not player:hasSkill("wengua&", true, true) then
-        room:handleAddLoseSkills(player, "wengua&", nil, false, true)
+    if table.every(room.alive_players, function(p) return not p:hasSkill(self, true) or p == player end) then
+      for _, p in ipairs(room.alive_players) do
+        if p:hasSkill("wengua&", true, true) then
+          room:handleAddLoseSkills(p, "-wengua&", nil, false, true)
+        end
       end
     end
   end,
@@ -827,7 +821,6 @@ local fuzhu = fk.CreateTriggerSkill{
   end,
 }
 Fk:addSkill(wengua_active)
-wengua:addRelatedSkill(wengua_trigger)
 xushi:addSkill(wengua)
 xushi:addSkill(fuzhu)
 Fk:loadTranslationTable{
