@@ -938,6 +938,18 @@ local jiefan = fk.CreateActiveSkill{
   target_filter = function(self, to_select, selected)
     return #selected == 0
   end,
+  target_tip = function (self, to_select, selected, selected_cards, card, selectable, extra_data)
+    if #selected == 0 then return end
+    if to_select == selected[1] then
+      return "jiefan_target"
+    else
+      local p = Fk:currentRoom():getPlayerById(to_select)
+      local target = Fk:currentRoom():getPlayerById(selected[1])
+      if p:inMyAttackRange(target) then
+        return { {content = "jiefaned", type = "warning"} }
+      end
+    end
+  end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
     for _, p in ipairs(room:getOtherPlayers(target)) do
@@ -962,6 +974,9 @@ Fk:loadTranslationTable{
   [":jiefan"] = "限定技，出牌阶段，你可以选择一名角色，然后令攻击范围内有该角色的所有角色各选择一项：1.弃置一张武器牌；2.令其摸一张牌。",
   ["#gongqi-choose"] = "弓骑：你可以弃置一名其他角色的一张牌",
   ["#jiefan-discard"] = "解烦：弃置一张武器牌，否则 %dest 摸一张牌",
+
+  ["jiefan_target"] = "解烦目标",
+  ["jiefaned"] = "被解烦",
 
   ["$gongqi1"] = "看我箭弩弓张，取你性命！",
   ["$gongqi2"] = "龙驹陷阵，神弓破敌！",
