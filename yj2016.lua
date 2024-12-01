@@ -883,34 +883,45 @@ local taoluan = fk.CreateViewAsSkill{
   prompt = "#taoluan-prompt",
   interaction = function()
     local all_names = U.getAllCardNames("bt")
-    local names = U.getViewAsCardNames(Self, "taoluan", all_names, nil, Self:getTableMark("@$taoluan"))
-    if #names > 0 then
-      return U.CardNameBox { choices = names, all_choices = all_names }
-    end
+    return U.CardNameBox {
+      choices = U.getViewAsCardNames(Self, "taoluan", all_names, nil, Self:getTableMark("@$taoluan")),
+      all_choices = all_names,
+      default_choice = "taoluan"
+    }
   end,
   card_filter = function(self, to_select, selected)
-    return #selected == 0
+    return #selected == 0 and Fk.all_card_types[self.interaction.data] ~= nil
   end,
   view_as = function(self, cards)
-    if #cards ~= 1 or not self.interaction.data then return end
+    if #cards ~= 1 or Fk.all_card_types[self.interaction.data] == nil then return end
     local card = Fk:cloneCard(self.interaction.data)
     card:addSubcard(cards[1])
     card.skillName = self.name
     return card
   end,
   before_use = function(self, player, use)
-    local mark = player:getMark("@$taoluan")
-    if mark == 0 then mark = {} end
-    table.insert(mark, use.card.trueName)
-    player.room:setPlayerMark(player, "@$taoluan", mark)
+    player.room:addTableMark(player, "@$taoluan", use.card.trueName)
+  end,
+  after_use = function(self, player, use)
+    local room = player.room
+    local targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper)
+    local type = use.card:getTypeString()
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#taoluan-choose:::"..type, "taoluan", false)
+    local to = room:getPlayerById(tos[1])
+    local card = room:askForCard(to, 1, 1, true, "taoluan", true, ".|.|.|.|.|^"..type, "#taoluan-card:"..player.id.."::"..type)
+    if #card > 0 then
+      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id)
+    else
+      room:invalidateSkill(player, self.name, "-turn")
+      room:loseHp(player, 1, "taoluan")
+    end
   end,
   enabled_at_play = function(self, player)
-    return not player:isNude() and player:getMark("@@taoluan-turn") == 0 and
-      table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end)
+    return table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end)
   end,
   enabled_at_response = function(self, player, response)
-    if not response and not player:isNude() and player:getMark("@@taoluan-turn") == 0 and Fk.currentResponsePattern
-    and table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end) then
+    if not response and Fk.currentResponsePattern and
+    table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end) then
       local mark = Self:getTableMark("@$taoluan")
       for _, id in ipairs(Fk:getAllCardIds()) do
         local card = Fk:getCardById(id)
@@ -923,31 +934,11 @@ local taoluan = fk.CreateViewAsSkill{
       end
     end
   end,
-}
-local taoluan_trigger = fk.CreateTriggerSkill{
-  name = "#taoluan_trigger",
-  mute = true,
-  events = {fk.CardUseFinished},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and table.contains(data.card.skillNames, "taoluan")
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
-    local type = data.card:getTypeString()
-    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#taoluan-choose:::"..type, "taoluan", false)
-    local to = room:getPlayerById(tos[1])
-    local card = room:askForCard(to, 1, 1, true, "taoluan", true, ".|.|.|.|.|^"..type, "#taoluan-card:"..player.id.."::"..type)
-    if #card > 0 then
-      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id)
-    else
-      room:setPlayerMark(player, "@@taoluan-turn", 1)
-      room:loseHp(player, 1, "taoluan")
-    end
+
+  on_lose = function (self, player)
+    player.room:setPlayerMark(player, "@$taoluan", 0)
   end,
 }
-taoluan:addRelatedSkill(taoluan_trigger)
 zhangrang:addSkill(taoluan)
 Fk:loadTranslationTable{
   ["zhangrang"] = "张让",
@@ -956,8 +947,8 @@ Fk:loadTranslationTable{
   ["illustrator:zhangrang"] = "蚂蚁君",
 
   ["taoluan"] = "滔乱",
-  [":taoluan"] = "当你需要使用一张基本牌或普通锦囊牌时，若没有角色处于濒死状态，你可以将一张牌当任意一张基本牌或普通锦囊牌使用（每种牌名每局游戏限一次），"..
-  "然后你令一名其他角色选择一项：1.交给你一张与你以此法使用的牌类别不同的牌；2.令你失去1点体力，且你本回合〖滔乱〗失效。",
+  [":taoluan"] = "每个牌名限一次，当你需要使用基本牌/普通锦囊牌时，若没有角色处于濒死状态，你可以将一张牌当此基本牌/普通锦囊牌使用，"..
+  "然后你令一名其他角色选择：1.将一张不为基本牌/锦囊牌的牌交给你；2.令你失去1点体力，此技能于当前回合内无效。",
   ["@$taoluan"] = "滔乱",
   ["#taoluan-choose"] = "滔乱：令一名其他角色交给你一张非%arg，或你失去1点体力且本回合〖滔乱〗失效",
   ["#taoluan-card"] = "滔乱：你需交给 %src 一张非%arg，否则其失去1点体力且本回合〖滔乱〗失效",
