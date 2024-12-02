@@ -8,21 +8,18 @@ local U = require "packages/utility/utility"
 local xunyou = General(extension, "xunyou", "wei", 3)
 local qice = fk.CreateViewAsSkill{
   name = "qice",
+  prompt = "#qice-card",
   interaction = function()
-    local names, all_names = {} , {}
-    for _, id in ipairs(Fk:getAllCardIds()) do
-      local card = Fk:getCardById(id)
-      if card:isCommonTrick() and not card.is_derived then
-        table.insertIfNeed(all_names, card.name)
-        if Self:canUse(card) and not Self:prohibitUse(card) then
-          table.insertIfNeed(names, card.name)
-        end
-      end
-    end
-    return U.CardNameBox {choices = names, all_choices = all_names}
+    local all_names = U.getAllCardNames("t")
+    return U.CardNameBox {
+      choices = U.getViewAsCardNames(Self, "qice", all_names),
+      all_choices = all_names,
+      default_choice = "AskForCardsChosen"
+    }
   end,
   card_filter = Util.FalseFunc,
   view_as = function(self, cards)
+    if Fk.all_card_types[self.interaction.data] == nil then return end
     local card = Fk:cloneCard(self.interaction.data)
     card:addSubcards(Self:getCardIds(Player.Hand))
     card.skillName = self.name
@@ -58,9 +55,11 @@ Fk:loadTranslationTable{
   ["designer:xunyou"] = "淬毒",
   ["illustrator:xunyou"] = "魔鬼鱼",
   ["qice"] = "奇策",
-  [":qice"] = "出牌阶段限一次，你可以将所有的手牌当任意一张非延时类锦囊牌使用。",
+  [":qice"] = "出牌阶段限一次，你可以将所有的手牌当任意普通锦囊牌使用。",
   ["zhiyu"] = "智愚",
-  [":zhiyu"] = "每当你受到一次伤害后，你可以摸一张牌，然后展示所有手牌，若颜色均相同，伤害来源弃置一张手牌。",
+  [":zhiyu"] = "当你受到伤害后，你可以摸一张牌，然后展示所有手牌，若颜色均相同，来源弃置一张手牌。",
+
+  ["#qice-card"] = "发动 奇策，将所有手牌当任意普通锦囊牌使用",
 
   ["$qice1"] = "倾力为国，算无遗策。",
   ["$qice2"] = "奇策在此，谁与争锋？",
