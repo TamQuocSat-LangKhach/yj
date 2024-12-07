@@ -429,7 +429,6 @@ local duliang = fk.CreateActiveSkill{
       for i = #cards, 1, -1 do
         local id = cards[i]
         if Fk:getCardById(id).type ~= Card.TypeBasic then
-          table.insert(room.draw_pile, 1, id)
           table.remove(cards, i)
         end
       end
