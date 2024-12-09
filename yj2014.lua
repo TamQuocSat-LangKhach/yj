@@ -456,49 +456,58 @@ local benxi = fk.CreateTriggerSkill{
   name = "benxi",
   anim_type = "offensive",
   frequency = Skill.Compulsory,
-  events = {fk.CardUsing},
+  events = {fk.CardUsing, fk.AfterCardTargetDeclared},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase ~= Player.NotActive
+    return target == player and player:hasSkill(self) and player.room.current == player and
+    (event == fk.CardUsing or (data.card and data.card.trueName == "slash" and
+    table.every(player.room.alive_players, function (p) return player:distanceTo(p) < 2 end) and
+    #player.room:getUseExtraTargets(data, false) > 0))
   end,
   on_use = function(self, event, target, player, data)
-    player.room:addPlayerMark(player, "@benxi-turn", 1)
-  end,
-
-  refresh_events = {fk.TargetSpecifying, fk.CardUseFinished},
-  can_refresh = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self) and player.phase ~= Player.NotActive then
-      for _, p in ipairs(player.room:getOtherPlayers(player)) do
-        if player:distanceTo(p) > 1 then return end
-      end
-      if event == fk.TargetSpecifying then
-        return data.firstTarget and data.card.trueName == "slash"
-      else
-        return true
-      end
-    end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.TargetSpecifying then
-      local targets = {}
-      for _, p in ipairs(room:getOtherPlayers(player)) do
-        room:addPlayerMark(p, fk.MarkArmorNullified)
-        if not table.contains(AimGroup:getAllTargets(data.tos), p.id) and not player:isProhibited(p, data.card) then
-          table.insertIfNeed(targets, p.id)
-        end
-      end
-      if #targets > 0 then
-        local tos = room:askForChoosePlayers(player, targets, 1, 1, "#benxi-choose", self.name, true)
-        if #tos > 0 then
-          TargetGroup:pushTargets(data.targetGroup, tos)
-        end
-      end
+    if event == fk.CardUsing then
+      player.room:addPlayerMark(player, "@benxi-turn", 1)
     else
-      for _, p in ipairs(room:getOtherPlayers(player)) do
-        room:setPlayerMark(p, fk.MarkArmorNullified, 0)
+      local room = player.room
+      local targets = room:getUseExtraTargets(data, false)
+      if #targets == 0 then return false end
+      targets = room:askForChoosePlayers(player, targets, 1, 1, "#benxi-choose", self.name, true)
+      if #targets > 0 then
+        table.insert(data.tos, targets)
       end
     end
   end,
+}
+local benxi_armorInvalidity = fk.CreateInvaliditySkill {
+  name = "#benxi_invalidity",
+  invalidity_func = function(self, player, skill)
+    if skill.attached_equip and Fk:cloneCard(skill.attached_equip).sub_type == Card.SubtypeArmor then
+
+      --无视防具（规则集版）！
+      if RoomInstance then
+        local skill_owner = RoomInstance.current
+        if not (skill_owner:hasSkill(benxi) and table.every(RoomInstance.alive_players, function (p)
+          return skill_owner:distanceTo(p) < 2
+        end)) then return false end
+
+        local logic = RoomInstance.logic
+        local event = logic:getCurrentEvent()
+        repeat
+          if event.event == GameEvent.SkillEffect then
+            if not event.data[3].cardSkill then
+              return event.data[2] == skill_owner
+            end
+          elseif event.event == GameEvent.Damage then
+            local damage = event.data[1]
+            return damage.to == player and damage.from == skill_owner
+          elseif event.event == GameEvent.UseCard then
+            local use = event.data[1]
+            return use.from == skill_owner.id and table.contains(TargetGroup:getRealTargets(use.tos), player.id)
+          end
+          event = event.parent
+        until event == nil
+      end
+    end
+  end
 }
 local benxi_distance = fk.CreateDistanceSkill{
   name = "#benxi_distance",
@@ -506,6 +515,7 @@ local benxi_distance = fk.CreateDistanceSkill{
     return -from:getMark("@benxi-turn")
   end,
 }
+benxi:addRelatedSkill(benxi_armorInvalidity)
 benxi:addRelatedSkill(benxi_distance)
 wuyi:addSkill(benxi)
 Fk:loadTranslationTable{

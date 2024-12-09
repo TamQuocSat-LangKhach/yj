@@ -913,52 +913,21 @@ local xianzhen = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local pindian = player:pindian({target}, self.name)
     if pindian.results[target.id].winner == player then
-      room:setPlayerMark(target, "xianzhen_win-turn", 1)
+      room:addPlayerMark(target, "@@xianzhen-turn")
+      room:addTableMark(player, "xianzhen_target-turn", target.id)
+      room:addTableMark(player, fk.MarkArmorInvalidTo .. "-turn", target.id)
     else
       room:setPlayerMark(player, "xianzhen_lose-turn", 1)
     end
   end,
 }
-local xianzhen_trigger = fk.CreateTriggerSkill{
-  name = "#xianzhen_trigger",
-  mute = true,
-  events = {fk.TargetSpecified},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes("xianzhen", Player.HistoryTurn) > 0 and data.card and data.card.trueName == "slash" and
-      player.room:getPlayerById(data.to):getMark("xianzhen_win-turn") > 0
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:addPlayerMark(room:getPlayerById(data.to), fk.MarkArmorNullified)
-    data.extra_data = data.extra_data or {}
-    data.extra_data.xianzhen = data.extra_data.xianzhen or {}
-    data.extra_data.xianzhen[tostring(data.to)] = (data.extra_data.xianzhen[tostring(data.to)] or 0) + 1
-  end,
-
-  refresh_events = {fk.CardUseFinished},
-  can_refresh = function(self, event, target, player, data)
-    return data.extra_data and data.extra_data.xianzhen
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    for key, num in pairs(data.extra_data.xianzhen) do
-      local p = room:getPlayerById(tonumber(key))
-      if p:getMark(fk.MarkArmorNullified) > 0 then
-        room:removePlayerMark(p, fk.MarkArmorNullified, num)
-      end
-    end
-    data.extra_data.xianzhen = nil
-  end,
-}
 local xianzhen_targetmod = fk.CreateTargetModSkill{
   name = "#xianzhen_targetmod",
   bypass_times = function(self, player, skill, scope, card, to)
-    return player:usedSkillTimes("xianzhen", Player.HistoryTurn) > 0 and skill.trueName == "slash_skill" and scope == Player.HistoryPhase and
-      to:getMark("xianzhen_win-turn") > 0
+    return card and to and table.contains(player:getTableMark("xianzhen_target-turn"), to.id)
   end,
-  bypass_distances =  function(self, player, skill, card, to)
-    return player:usedSkillTimes("xianzhen", Player.HistoryTurn) > 0 and to:getMark("xianzhen_win-turn") > 0
+  bypass_distances = function(self, player, skill, card, to)
+    return card and to and table.contains(player:getTableMark("xianzhen_target-turn"), to.id)
   end,
 }
 local xianzhen_prohibit = fk.CreateProhibitSkill{
@@ -977,7 +946,6 @@ local jinjiu = fk.CreateFilterSkill{
     return Fk:cloneCard("slash", card.suit, card.number)
   end,
 }
-xianzhen:addRelatedSkill(xianzhen_trigger)
 xianzhen:addRelatedSkill(xianzhen_targetmod)
 xianzhen:addRelatedSkill(xianzhen_prohibit)
 gaoshun:addSkill(xianzhen)
@@ -992,8 +960,10 @@ Fk:loadTranslationTable{
   [":xianzhen"] = "出牌阶段限一次，你可以与一名角色拼点：若你赢，直到回合结束，你对该角色使用牌无距离限制且无视其防具牌，使用【杀】无次数限制；"..
   "若你没赢，你不能使用【杀】直到回合结束。",
   ["jinjiu"] = "禁酒",
-  [":jinjiu"] = "锁定技，你的【酒】均视为【杀】。",
+  [":jinjiu"] = "锁定技，你的【酒】及作为你的判定牌的【酒】的牌名视为【杀】且此【杀】为普【杀】。",
+
   ["#xianzhen"] = "陷阵：与一名角色拼点，若赢，你对其使用牌无距离限制且无视防具，对其使用【杀】无次数限制",
+  ["@@xianzhen-turn"] = "陷阵",
 
   ["$xianzhen1"] = "攻无不克，战无不胜！",
   ["$xianzhen2"] = "破阵斩将，易如反掌！",
