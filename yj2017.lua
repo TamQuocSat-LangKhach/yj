@@ -669,6 +669,7 @@ local xushi = General(extension, "xushi", "wu", 3, 3, General.Female)
 local wengua = fk.CreateActiveSkill{
   name = "wengua",
   anim_type = "support",
+  attached_skill_name = "wengua&",
   card_num = 1,
   target_num = 0,
   prompt = "#wengua",
@@ -699,24 +700,6 @@ local wengua = fk.CreateActiveSkill{
     })
     if not player.dead then
       room:drawCards(player, 1, self.name, fromPlace)
-    end
-  end,
-
-  on_acquire = function(self, player)
-    for _, p in ipairs(player.room.alive_players) do
-      if p ~= player and not p:hasSkill("wengua&", true, true) then
-        player.room:handleAddLoseSkills(p, "wengua&", nil, false, true)
-      end
-    end
-  end,
-  on_lose = function(self, player)
-    local room = player.room
-    if table.every(room.alive_players, function(p) return not p:hasSkill(self, true) or p == player end) then
-      for _, p in ipairs(room.alive_players) do
-        if p:hasSkill("wengua&", true, true) then
-          room:handleAddLoseSkills(p, "-wengua&", nil, false, true)
-        end
-      end
     end
   end,
 }

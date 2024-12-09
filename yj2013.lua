@@ -484,6 +484,7 @@ local liufeng = General(extension, "liufeng", "shu", 4)
 local xiansi = fk.CreateTriggerSkill{
   name = "xiansi",
   anim_type = "control",
+  attached_skill_name = "xiansi&",
   derived_piles = "liufeng_ni",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
@@ -510,35 +511,6 @@ local xiansi = fk.CreateTriggerSkill{
       if not p:isNude() then
         local id = room:askForCardChosen(player, p, "he", self.name)
         player:addToPile("liufeng_ni", id, true, self.name)
-      end
-    end
-  end,
-
-  refresh_events = {fk.GameStart, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed},
-  can_refresh = function(self, event, target, player, data)
-    if event == fk.GameStart then
-      return player:hasSkill(self, true)
-    elseif event == fk.EventAcquireSkill then
-      return data == self and target == player and player.room:getTag("RoundCount")
-    elseif not table.find(player.room.alive_players, function (p) return p:hasSkill(self, true) end) then
-      if event == fk.EventLoseSkill then
-        return data == self and target == player
-      else
-        return target == player and player:hasSkill(self, true, true)
-      end
-    end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.GameStart or event == fk.EventAcquireSkill then
-      if player:hasSkill(self, true) then
-        for _, p in ipairs(room:getOtherPlayers(player)) do
-          room:handleAddLoseSkills(p, "xiansi&", nil, false, true)
-        end
-      end
-    elseif event == fk.EventLoseSkill or event == fk.Deathed then
-      for _, p in ipairs(room.players) do
-        room:handleAddLoseSkills(p, "-xiansi&", nil, false, true)
       end
     end
   end,
