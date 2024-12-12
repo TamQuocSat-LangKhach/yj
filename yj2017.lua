@@ -251,9 +251,6 @@ jikang:addRelatedSkill(jixiann)
 local liexian = fk.CreateTriggerSkill{
   name = "liexian",
   events = {fk.HpRecover},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target == player
-  end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
     local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
@@ -288,9 +285,6 @@ jikang:addRelatedSkill(rouxian)
 local hexian = fk.CreateTriggerSkill{
   name = "hexian",
   events = {fk.HpRecover},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target == player
-  end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
     local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,

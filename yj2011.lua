@@ -161,9 +161,6 @@ local jueqing = fk.CreateTriggerSkill{
   anim_type = "offensive",
   frequency = Skill.Compulsory,
   events = {fk.PreDamage},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_use = function(self, event, target, player, data)
     player.room:loseHp(data.to, data.damage, self.name)
     return true

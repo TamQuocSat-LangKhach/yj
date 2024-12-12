@@ -33,9 +33,6 @@ local zhiyu = fk.CreateTriggerSkill{
   name = "zhiyu",
   anim_type = "masochism",
   events = {fk.Damaged},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:drawCards(1, self.name)
@@ -73,9 +70,6 @@ local jiangchi = fk.CreateTriggerSkill{
   name = "jiangchi",
   mute = true,
   events = {fk.DrawNCards},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_use = function(self, event, target, player, data)
     local choices = {"jiangchi+1"}
     if data.n > 0 then
@@ -141,9 +135,6 @@ local nos__zhenlie = fk.CreateTriggerSkill{
   name = "nos__zhenlie",
   anim_type = "control",
   events = {fk.AskForRetrial},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local move1 = {

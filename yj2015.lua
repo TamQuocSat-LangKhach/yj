@@ -12,9 +12,6 @@ local huituo = fk.CreateTriggerSkill{
   name = "huituo",
   anim_type = "masochism",
   events = {fk.Damaged},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_cost = function(self, event, target, player, data)
     local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper),
       1, 1, "#huituo-choose", self.name, true)
