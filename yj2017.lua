@@ -846,7 +846,7 @@ local funan = fk.CreateTriggerSkill{
     local room = player.room
     local card = data.responseToEvent.card
     room:obtainCard(target, card, false, fk.ReasonPrey)
-    local cards = type(target:getMark("funan-turn")) == "table" and target:getMark("funan-turn") or {}
+    local cards = target:getTableMark("funan-turn")
     table.insertTable(cards, card:isVirtual() and card.subcards or {card.id})
     room:setPlayerMark(target, "funan-turn", cards)
     if room:getCardArea(data.card) == Card.Processing then
@@ -973,7 +973,7 @@ local shouxi = fk.CreateTriggerSkill{
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
-    local mark = type(player:getMark("@$shouxi")) == "table" and player:getMark("@$shouxi") or {}
+    local mark = player:getTableMark("@$shouxi")
     local names = {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
@@ -992,9 +992,7 @@ local shouxi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local name = self.cost_data
-    local mark = type(player:getMark("@$shouxi")) == "table" and player:getMark("@$shouxi") or {}
-    table.insert(mark, name)
-    room:setPlayerMark(player, "@$shouxi", mark)
+    room:addTableMark(player, "@$shouxi", name)
     local from = room:getPlayerById(data.from)
     if #room:askForDiscard(from, 1, 1, false, self.name, true, name, "#shouxi-discard::"..player.id..":"..name) == 0 then
       table.insertIfNeed(data.nullifiedTargets, player.id)

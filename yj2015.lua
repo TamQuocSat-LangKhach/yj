@@ -382,9 +382,7 @@ local huomo_trigger = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     if event == fk.AfterCardUseDeclared then
-      local mark = player:getTableMark("huomo-turn")
-      table.insert(mark, data.card.trueName)
-      room:setPlayerMark(player, "huomo-turn", mark)
+      room:addTableMark(player, "huomo-turn", data.card.trueName)
     else
       if room.logic:getCurrentEvent() then
         local names = {}
