@@ -219,9 +219,7 @@ local nos__taoxi_trigger = fk.CreateTriggerSkill{
       local card = room:askForCardChosen(player, to, "h", nos__taoxi.name, "#nos__taoxi-choose::"..data.to)
       to:showCards(card)
       if room:getCardOwner(card) ~= to or room:getCardArea(card) ~= Card.PlayerHand then return end
-      local mark = player:getTableMark("@$nos__taoxi-turn")
-      table.insertIfNeed(mark, card)
-      room:setPlayerMark(player, "@$nos__taoxi-turn", mark)
+      room:addTableMarkIfNeed(player, "@$nos__taoxi-turn", card)
     else
       room:notifySkillInvoked(player, nos__taoxi.name, "negative")
       room:loseHp(player, 1, nos__taoxi.name)

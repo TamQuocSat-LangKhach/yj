@@ -720,9 +720,7 @@ local wengua_active = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     target:broadcastSkillInvoke("wengua")
-    local targetRecorded = player:getTableMark("wengua_targets-phase")
-    table.insertIfNeed(targetRecorded, target.id)
-    room:setPlayerMark(player, "wengua_targets-phase", targetRecorded)
+    room:addTableMarkIfNeed(player, "wengua_targets-phase", target.id)
     local id = effect.cards[1]
     room:obtainCard(target.id, id, false, fk.ReasonGive, player.id)
     if target.dead or room:getCardOwner(id) ~= target or room:getCardArea(id) ~= Card.PlayerHand then return end
