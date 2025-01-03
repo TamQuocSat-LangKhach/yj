@@ -420,7 +420,7 @@ local duliang = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     local card = room:askForCardChosen(player, target, "he", self.name)
-    room:obtainCard(player.id, card, false, fk.ReasonPrey)
+    room:obtainCard(player.id, card, false, fk.ReasonPrey, player.id, self.name)
     if player.dead or target.dead then return end
     local choice = room:askForChoice(player, {"duliang_view", "duliang_draw"}, self.name, "#duliang-choice::"..target.id)
     if choice == "duliang_view" then
@@ -577,9 +577,9 @@ local qinqing = fk.CreateTriggerSkill{
     end
     local lord = room:getLord()
     if not lord then
-      lord = table.filter(room.players, function(p) return p.seat == 1 end)[1]
+      lord = table.find(room.players, function(p) return p.seat == 1 end)
     end
-    if lord.dead then return end
+    if not lord or lord.dead then return end
     local n = #table.filter(tos, function(p) return p:getHandcardNum() > lord:getHandcardNum() end)
     if not player.dead and n > 0 then
       player:drawCards(n, self.name)
@@ -592,7 +592,7 @@ local huisheng = fk.CreateTriggerSkill{
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and not player:isNude() and data.from and data.from ~= player
-      and not data.from.dead and (player:getMark(self.name) == 0 or not table.contains(player:getMark(self.name), data.from.id))
+      and not data.from.dead and not table.contains(player:getTableMark(self.name), data.from.id)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -609,11 +609,8 @@ local huisheng = fk.CreateTriggerSkill{
     local get = room:askForCardChosen(data.from, player, {card_data = {{player.general, cards}}}, self.name)
     if #room:askForDiscard(data.from, n, n, true, self.name, true, ".",
       "#huisheng-discard::"..player.id..":"..n..":"..Fk:getCardById(get,true):toLogString()) ~= n then
-      local mark = player:getMark(self.name)
-      if mark == 0 then mark = {} end
-      table.insert(mark, data.from.id)
-      room:setPlayerMark(player, self.name, mark)
-      room:obtainCard(data.from, get, false, fk.ReasonPrey)
+      room:addTableMark(player, self.name, data.from.id)
+      room:obtainCard(data.from, get, false, fk.ReasonPrey, data.from.id, self.name)
       return true
     end
   end,
@@ -709,17 +706,16 @@ local jishe = fk.CreateActiveSkill{
   anim_type = "drawcard",
   card_num = 0,
   target_num = 0,
+  prompt = "#jishe",
   can_use = function(self, player)
     return player:getMaxCards() > 0
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     player:drawCards(1, self.name)
+    if player.dead then return end
     room:addPlayerMark(player, "@jishe-turn", 1)
-    room:broadcastProperty(player, "MaxCards")
   end,
 }
 local jishe_maxcards = fk.CreateMaxCardsSkill{
@@ -731,27 +727,31 @@ local jishe_maxcards = fk.CreateMaxCardsSkill{
 local jishe_trigger = fk.CreateTriggerSkill{
   name = "#jishe_trigger",
   anim_type = "control",
+  main_skill = jishe,
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill("jishe") and player.phase == Player.Finish and player:isKongcheng()
+    return target == player and player:hasSkill(jishe) and player.phase == Player.Finish and player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.map(table.filter(room:getAlivePlayers(), function(p)
+    local targets = table.map(table.filter(room.alive_players, function(p)
       return not p.chained end), Util.IdMapper)
     if #targets == 0 then return end
     local n = player.hp
     local tos = room:askForChoosePlayers(player, targets, 1, n, "#jishe-choose:::"..tostring(n), self.name, true)
     if #tos > 0 then
-      self.cost_data = tos
+      room:sortPlayersByAction(tos)
+      self.cost_data = {tos = tos}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for _, id in ipairs(self.cost_data) do
+    for _, id in ipairs(self.cost_data.tos) do
       local to = room:getPlayerById(id)
-      to:setChainState(true)
+      if not to.dead then
+        to:setChainState(true)
+      end
     end
   end,
 }
@@ -782,6 +782,7 @@ Fk:loadTranslationTable{
   [":jishe"] = "出牌阶段，若你的手牌上限大于0，你可以摸一张牌，然后本回合你的手牌上限-1；结束阶段，若你没有手牌，你可以横置至多X名角色（X为你的体力值）。",
   ["lianhuo"] = "链祸",
   [":lianhuo"] = "锁定技，当你受到火焰伤害时，若你处于连环状态且你是传导伤害的起点，则此伤害+1。",
+  ["#jishe"] = "极奢：摸一张牌，本回合你的手牌上限-1",
   ["@jishe-turn"] = "极奢",
   ["#jishe_trigger"] = "极奢",
   ["#jishe-choose"] = "极奢：你可以横置至多%arg名角色",
@@ -902,14 +903,16 @@ local taoluan = fk.CreateViewAsSkill{
     player.room:addTableMark(player, "@$taoluan", use.card.trueName)
   end,
   after_use = function(self, player, use)
+    if player.dead then return end
     local room = player.room
     local targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper)
+    if #targets == 0 then return end
     local type = use.card:getTypeString()
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#taoluan-choose:::"..type, "taoluan", false)
     local to = room:getPlayerById(tos[1])
     local card = room:askForCard(to, 1, 1, true, "taoluan", true, ".|.|.|.|.|^"..type, "#taoluan-card:"..player.id.."::"..type)
     if #card > 0 then
-      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id)
+      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id, self.name)
     else
       room:invalidateSkill(player, self.name, "-turn")
       room:loseHp(player, 1, "taoluan")
