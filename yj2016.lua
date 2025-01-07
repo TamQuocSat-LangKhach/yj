@@ -545,7 +545,7 @@ local qinqing = fk.CreateTriggerSkill{
     if target == player and player.phase == Player.Finish and player:hasSkill(self) then
       local lord = player.room:getLord()  --暂不考虑主公身份被变掉且没有主公的情况，以及多个主公的情况（3v3）
       if not lord then
-        lord = table.filter(player.room.players, function(p) return p.seat == 1 end)
+        lord = player.room:getPlayerBySeat(1)
       end
       return lord and not lord.dead and table.find(player.room.alive_players, function(p) return p:inMyAttackRange(lord) end)
     end
@@ -554,7 +554,7 @@ local qinqing = fk.CreateTriggerSkill{
     local room = player.room
     local lord = room:getLord()
     if not lord then
-      lord = table.filter(room.players, function(p) return p.seat == 1 end)[1]
+      lord = room:getPlayerBySeat(1)
     end
     local targets = table.filter(room.alive_players, function(p) return p:inMyAttackRange(lord) end)
     local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 999, "#qinqing-choose", self.name, true)
@@ -577,7 +577,7 @@ local qinqing = fk.CreateTriggerSkill{
     end
     local lord = room:getLord()
     if not lord then
-      lord = table.find(room.players, function(p) return p.seat == 1 end)
+      lord = room:getPlayerBySeat(1)
     end
     if not lord or lord.dead then return end
     local n = #table.filter(tos, function(p) return p:getHandcardNum() > lord:getHandcardNum() end)
