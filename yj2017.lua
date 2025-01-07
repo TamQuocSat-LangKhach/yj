@@ -546,13 +546,13 @@ local jianzhengq = fk.CreateTriggerSkill{
 local zhuandui = fk.CreateTriggerSkill{
   name = "zhuandui",
   mute = true,
-  events ={fk.TargetSpecified, fk.TargetConfirmed},
+  events = {fk.TargetSpecified, fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self) and data.card.trueName == "slash" and not player:isKongcheng() then
       if event == fk.TargetSpecified then
-        return data.to ~= player.id and not player.room:getPlayerById(data.to):isKongcheng()
+        return data.to ~= player.id and player:canPindian(player.room:getPlayerById(data.to))
       else
-        return data.from ~= player.id and not player.room:getPlayerById(data.from):isKongcheng()
+        return data.from ~= player.id and player:canPindian(player.room:getPlayerById(data.from))
       end
     end
   end,
@@ -589,7 +589,7 @@ local zhuandui = fk.CreateTriggerSkill{
 local tianbian = fk.CreateTriggerSkill{
   name = "tianbian",
   anim_type = "special",
-  events ={fk.StartPindian, fk.PindianCardsDisplayed},
+  events = {fk.StartPindian, fk.PindianCardsDisplayed},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) then
       if event == fk.StartPindian then

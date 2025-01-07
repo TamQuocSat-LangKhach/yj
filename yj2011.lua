@@ -241,7 +241,7 @@ local nos__enyuan = fk.CreateTriggerSkill{
       else
         local card = room:askForCard(data.from, 1, 1, false, self.name, true, ".|.|heart|hand|.|.", "#nos__enyuan-give:"..player.id)
         if #card > 0 then
-          room:obtainCard(player, card[1], true, fk.ReasonGive, data.from.id)
+          room:obtainCard(player, card[1], true, fk.ReasonGive, data.from.id, self.name)
         else
           room:loseHp(data.from, 1, self.name)
         end
@@ -267,10 +267,10 @@ local nos__xuanhuo = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
-    room:obtainCard(target.id, effect.cards[1], false, fk.ReasonGive, player.id)
+    room:obtainCard(target.id, effect.cards[1], false, fk.ReasonGive, player.id, self.name)
     if target:isNude() or player.dead or target.dead then return end
     local id = room:askForCardChosen(player, target, "he", self.name)
-    room:obtainCard(player.id, id, false, fk.ReasonPrey)
+    room:obtainCard(player.id, id, false, fk.ReasonPrey, player.id, self.name)
     if player.dead then return end
     local targets = table.map(room:getOtherPlayers(target), Util.IdMapper)
     if #targets == 0 or room:getCardOwner(id) ~= player or room:getCardArea(id) ~= Card.PlayerHand then return end

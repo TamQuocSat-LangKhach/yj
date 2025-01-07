@@ -365,23 +365,23 @@ local qiaoshui = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
       local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-        return not p:isKongcheng() end), Util.IdMapper)
+        return player:canPindian(p) end), Util.IdMapper)
       if #targets == 0 then return end
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiaoshui-invoke", self.name, true)
       if #to > 0 then
-        self.cost_data = to[1]
+        self.cost_data = {tos = to}
         return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-      local to = room:getPlayerById(self.cost_data)
-      local pindian = player:pindian({to}, self.name)
-      if pindian.results[to.id].winner == player then
-        room:addPlayerMark(player, "@@qiaoshui-turn", 1)
-      else
-      room:addPlayerMark(player, "@@qiaoshui_lose-turn", 1)
-      end
+    local to = room:getPlayerById(self.cost_data.tos[1])
+    local pindian = player:pindian({to}, self.name)
+    if pindian.results[to.id].winner == player then
+      room:addPlayerMark(player, "@@qiaoshui-turn", 1)
+    else
+    room:addPlayerMark(player, "@@qiaoshui_lose-turn", 1)
+    end
   end,
 }
 local qiaoshui_delay = fk.CreateTriggerSkill{
@@ -876,7 +876,7 @@ local zhuikong = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) and target ~= player and target.phase == Player.Start then
-      return player:isWounded() and not player:isKongcheng() and not target:isKongcheng()
+      return player:isWounded() and player:canPindian(target)
     end
   end,
   on_cost = function(self, event, target, player, data)
@@ -919,17 +919,16 @@ local qiuyuan = fk.CreateTriggerSkill{
       return p.id ~= data.from end), Util.IdMapper)
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#qiuyuan-choose", self.name, true)
     if #to > 0 then
-      self.cost_data = to[1]
+      self.cost_data = {tos = to}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = self.cost_data
-    room:doIndicate(player.id, {to})
+    local to = self.cost_data.tos[1]
     local card = room:askForCard(room:getPlayerById(to), 1, 1, false, self.name, true, "jink", "#qiuyuan-give::"..player.id)
     if #card > 0 then
-      room:obtainCard(player.id, Fk:getCardById(card[1]), true, fk.ReasonGive, to)
+      room:obtainCard(player.id, Fk:getCardById(card[1]), true, fk.ReasonGive, to, self.name)
     else
       TargetGroup:pushTargets(data.targetGroup, to)
     end
@@ -966,7 +965,7 @@ local nos__zhuikong = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) and target ~= player and target.phase == Player.Start then
-      return player:isWounded() and not player:isKongcheng() and not target:isKongcheng()
+      return player:isWounded() and player:canPindian(target)
     end
   end,
   on_cost = function(self, event, target, player, data)
