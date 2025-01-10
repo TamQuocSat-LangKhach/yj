@@ -170,7 +170,7 @@ local qingxian = fk.CreateTriggerSkill{
         return true
       end
     else
-      local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
+      local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1,
         "#qingxian-choose", self.name, true)
       if #tos > 0 then
         self.cost_data = {tos = tos}
@@ -198,7 +198,7 @@ local juexiang = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1,
       "#juexiang-choose", self.name, true, true)
     if #tos > 0 then
       self.cost_data = {tos = tos}
@@ -253,7 +253,7 @@ local liexian = fk.CreateTriggerSkill{
   events = {fk.HpRecover},
   on_cost = function (self, event, target, player, data)
     local room = player.room
-    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1,
       "#liexian-choose", self.name, true)
     if #tos > 0 then
       self.cost_data = {tos = tos}
@@ -287,7 +287,7 @@ local hexian = fk.CreateTriggerSkill{
   events = {fk.HpRecover},
   on_cost = function (self, event, target, player, data)
     local room = player.room
-    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper), 1, 1,
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1,
       "#hexian-choose", self.name, true, true)
     if #tos > 0 then
       self.cost_data = {tos = tos}
@@ -447,7 +447,7 @@ local daiyan = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper),
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper),
       1, 1, "#daiyan-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]

@@ -811,7 +811,7 @@ local youdi = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper),
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper),
       1, 1, "#youdi-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
@@ -889,7 +889,7 @@ local pingkou = fk.CreateTriggerSkill{
         n = n + 1
       end
     end
-    local targets = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player), Util.IdMapper),
+    local targets = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper),
       1, n, "#pingkou-choose:::"..n, self.name, true)
     if #targets > 0 then
       room:sortPlayersByAction(targets)

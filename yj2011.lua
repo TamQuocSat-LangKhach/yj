@@ -386,7 +386,7 @@ local xuanhuo = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Draw
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#xuanhuo-target", self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, "#xuanhuo-target", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -595,7 +595,7 @@ local jujian = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|.|.|.|^basic", "#jujian-choose", self.name, true)
+    local tos, id = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, ".|.|.|.|.|^basic", "#jujian-choose", self.name, true)
     if #tos > 0 then
       self.cost_data = {tos = tos, cards = {id}}
       return true
