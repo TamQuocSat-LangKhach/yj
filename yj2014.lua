@@ -1046,33 +1046,33 @@ local jianying = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.CardUsing},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Play and self.cost_data
+    return target == player and player:hasSkill(self) and data.extra_data and data.extra_data.jianyingCheck
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(1, self.name)
   end,
 
-  refresh_events = {fk.AfterCardUseDeclared},
+  refresh_events = {fk.CardUsing},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Play
+    return target == player and player:hasSkill(self, true) and player.phase == Player.Play
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    self.cost_data = false
     if data.card.suit == Card.NoSuit then
       room:setPlayerMark(player, "@jianying-phase", 0)
-      room:setPlayerMark(player, "jianying_suit-phase", 0)
-      room:setPlayerMark(player, "jianying_num-phase", 0)
-      self.cost_data = false
     else
-      if data.card:getSuitString() == player:getMark("jianying_suit-phase") or data.card.number == player:getMark("jianying_num-phase") then
-        self.cost_data = true
-      else
-        self.cost_data = false
+      local mark = player:getTableMark("@jianying-phase")
+      if data.card:getSuitString(true) == mark[1] or data.card.number == mark[2] then
+        data.extra_data = data.extra_data or {}
+        data.extra_data.jianyingCheck = true
       end
-      room:setPlayerMark(player, "@jianying-phase", string.format("%s-%d", Fk:translate(data.card:getSuitString()), data.card.number))
-      room:setPlayerMark(player, "jianying_suit-phase", data.card:getSuitString())
-      room:setPlayerMark(player, "jianying_num-phase", data.card.number)
+      room:setPlayerMark(player, "@jianying-phase", {data.card:getSuitString(true), data.card.number})
+    end
+  end,
+
+  on_lose = function (self, player)
+    if player:getMark("@jianying-phase") ~= 0 then
+      player.room:setPlayerMark(player, "@jianying-phase", 0)
     end
   end,
 }
@@ -1084,8 +1084,9 @@ local shibei = fk.CreateTriggerSkill{
   events = {fk.Damaged},
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if room.logic:getActualDamageEvents(1, function(e)
-      return e.data[1].to == player end)[1].data[1] == data then
+    if data.isVirtualDMG then return end -- 虚拟伤害别管了
+    local firstDamage = room.logic:getActualDamageEvents(1, function(e) return e.data[1].to == player end)[1]
+    if firstDamage and firstDamage.data[1] == data then
       player:broadcastSkillInvoke(self.name, 1)
       room:notifySkillInvoked(player, self.name)
       if player:isWounded() then
