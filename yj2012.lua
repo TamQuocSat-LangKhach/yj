@@ -541,7 +541,7 @@ local lihuo = fk.CreateTriggerSkill{
     if event == fk.AfterCardUseDeclared then
       return data.card.name == "slash"
     else
-      return data.card.name == "fire__slash"
+      return data.card.name == "fire__slash" and #player.room:getUseExtraTargets(data) > 0
     end
   end,
   on_cost = function(self, event, target, player, data)
@@ -549,16 +549,8 @@ local lihuo = fk.CreateTriggerSkill{
     if event == fk.AfterCardUseDeclared then
       return room:askForSkillInvoke(player, self.name, nil, "#lihuo-trans:::"..data.card:toLogString())
     else
-      local current_targets = TargetGroup:getRealTargets(data.tos)
-      local targets = {}
-      for _, p in ipairs(room.alive_players) do
-        if not table.contains(current_targets, p.id) and not player:isProhibited(p, data.card) and
-            data.card.skill:modTargetFilter(p.id, current_targets, data.from, data.card, true) then
-          table.insert(targets, p.id)
-        end
-      end
-      if #targets == 0 then return false end
-      local tos = player.room:askForChoosePlayers(player, targets, 1, 1, "#lihuo-choose:::"..data.card:toLogString(), self.name, true)
+      local tos = player.room:askForChoosePlayers(player, room:getUseExtraTargets(data), 1, 1,
+        "#lihuo-choose:::"..data.card:toLogString(), self.name, true)
       if #tos > 0 then
         self.cost_data = tos
         return true

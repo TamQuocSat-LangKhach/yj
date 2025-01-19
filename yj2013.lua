@@ -390,7 +390,8 @@ local qiaoshui_delay = fk.CreateTriggerSkill{
   mute = true,
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:getMark("@@qiaoshui-turn") > 0 and data.card.type ~= Card.TypeEquip and data.card.sub_type ~= Card.SubtypeDelayedTrick
+    return target == player and player:getMark("@@qiaoshui-turn") > 0 and
+      data.card.type ~= Card.TypeEquip and data.card.sub_type ~= Card.SubtypeDelayedTrick
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1116,32 +1117,23 @@ local nos__juece = fk.CreateTriggerSkill{
 local nos__mieji = fk.CreateTriggerSkill{
   name = "nos__mieji",
   anim_type = "offensive",
-  events = {fk.TargetSpecifying},
+  events = {fk.AfterCardTargetDeclared},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and
-      data.card.color == Card.Black and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and
-      data.targetGroup and #data.targetGroup == 1
+      data.card.color == Card.Black and data.card:isCommonTrick() and
+      #TargetGroup:getRealTargets(data.tos) == 1 and #player.room:getUseExtraTargets(data) > 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = {}
-    for _, p in ipairs(room:getOtherPlayers(player)) do
-      if not table.contains(AimGroup:getAllTargets(data.tos), p.id) and not player:isProhibited(p, data.card) then
-        table.insertIfNeed(targets, p.id)
-      end
-    end
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#nos__mieji-choose:::"..data.card:toLogString(), self.name, true)
+    local to = room:askForChoosePlayers(player, room:getUseExtraTargets(data), 1, 1,
+      "#nos__mieji-choose:::"..data.card:toLogString(), self.name, true)
     if #to > 0 then
-      self.cost_data = to[1]
+      self.cost_data = {tos = to}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    if data.card.name == "collateral" then  --TODO:
-
-    else
-      TargetGroup:pushTargets(data.targetGroup, self.cost_data)  --TODO: sort by action order
-    end
+    table.insert(data.tos, self.cost_data.tos)
   end,
 }
 local nos__fencheng = fk.CreateActiveSkill{

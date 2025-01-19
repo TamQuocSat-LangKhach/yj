@@ -155,102 +155,65 @@ Fk:loadTranslationTable{
 }
 
 local nos__caoxiu = General(extension, "nos__caoxiu", "wei", 4)
-local nos__taoxi = fk.CreateViewAsSkill{
+local nos__taoxi = fk.CreateTriggerSkill{
   name = "nos__taoxi",
-  pattern = ".",
-  anim_type = "special",
-  prompt = "#nos__taoxi",
-  expand_pile = function() return Self:getTableMark("@$nos__taoxi-turn") end,
-  card_filter = function(self, to_select, selected)
-    if #selected == 0 and table.contains(Self:getTableMark("@$nos__taoxi-turn"), to_select) then
-      local card = Fk:getCardById(to_select)
-      if Fk.currentResponsePattern == nil then
-        return Self:canUse(card) and not Self:prohibitUse(card)
-      else
-        return Exppattern:Parse(Fk.currentResponsePattern):match(card)
-      end
-    end
-  end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then return end
-    return Fk:getCardById(cards[1])
-  end,
-  enabled_at_play = function(self, player)
-    return player:getMark("@$nos__taoxi-turn") ~= 0
-  end,
-  enabled_at_response = function(self, player, response)
-    if player:getMark("@$nos__taoxi-turn") ~= 0 and not response and Fk.currentResponsePattern then
-      return table.find(player:getMark("@$nos__taoxi-turn"), function (id)
-        return Exppattern:Parse(Fk.currentResponsePattern):match(Fk:getCardById(id))
-      end)
-    end
-  end,
-}
-local nos__taoxi_trigger = fk.CreateTriggerSkill{
-  name = "#nos__taoxi_trigger",
-  mute = true,
-  events = {fk.TargetSpecified, fk.TurnEnd},
+  anim_type = "offensive",
+  events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    if target == player then
-      if event == fk.TargetSpecified then
-        return player:hasSkill(nos__taoxi) and player.phase == Player.Play and data.to ~= player.id and
-          U.isOnlyTarget(player.room:getPlayerById(data.to), data, event) and
-          not player.room:getPlayerById(data.to):isKongcheng() and
-          player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-      else
-        return player:getMark("@$nos__taoxi-turn") ~= 0
-      end
-    end
+    return target == player and player:hasSkill(self) and player.phase == Player.Play and data.to ~= player.id and
+      #AimGroup:getAllTargets(data.tos) == 1 and
+      not player.room:getPlayerById(data.to):isKongcheng() and
+      player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   on_cost = function(self, event, target, player, data)
-    if event == fk.TargetSpecified then
-      return player.room:askForSkillInvoke(player, nos__taoxi.name, nil, "#nos__taoxi-invoke::"..data.to)
-    else
+    if player.room:askForSkillInvoke(player, self.name, nil, "#nos__taoxi-invoke::"..data.to) then
+      self.cost_data = {tos = {data.to}}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    player:broadcastSkillInvoke(nos__taoxi.name)
-    if event == fk.TargetSpecified then
-      room:notifySkillInvoked(player, nos__taoxi.name, "offensive")
-      room:doIndicate(player.id, {data.to})
-      local to = room:getPlayerById(data.to)
-      local card = room:askForCardChosen(player, to, "h", nos__taoxi.name, "#nos__taoxi-choose::"..data.to)
-      to:showCards(card)
-      if room:getCardOwner(card) ~= to or room:getCardArea(card) ~= Card.PlayerHand then return end
-      room:addTableMarkIfNeed(player, "@$nos__taoxi-turn", card)
-    else
-      room:notifySkillInvoked(player, nos__taoxi.name, "negative")
-      room:loseHp(player, 1, nos__taoxi.name)
-    end
+    local to = room:getPlayerById(data.to)
+    local card = room:askForCardChosen(player, to, "h", self.name, "#nos__taoxi-choose::"..data.to)
+    room:setCardMark(Fk:getCardById(card), "@@nos__taoxi-inhand-turn", 1)
+    to:showCards(card)
   end,
-
-  refresh_events = {fk.AfterCardsMove},
-  can_refresh = function(self, event, target, player, data)
-    if player:getMark("@$nos__taoxi-turn") ~= 0 then
-      for _, move in ipairs(data) do
-        for _, info in ipairs(move.moveInfo) do
-          if table.contains(player:getMark("@$nos__taoxi-turn"), info.cardId) then
-            return true
+}
+local nos__taoxi_delay = fk.CreateTriggerSkill{
+  name = "#nos__taoxi_delay",
+  anim_type = "negative",
+  events = {fk.TurnEnd},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:usedSkillTimes("nos__taoxi", Player.HistoryTurn) > 0 and not player.dead and
+      table.find(player.room:getOtherPlayers(player), function (p)
+        return table.find(p:getCardIds("h"), function (id)
+          return Fk:getCardById(id):getMark("@@nos__taoxi-inhand-turn") > 0
+        end) ~= nil
+      end)
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    player.room:loseHp(player, 1, "nos__taoxi")
+  end,
+}
+local nos__taoxi_filter = fk.CreateFilterSkill{
+  name = "#nos__taoxi_filter",
+  handly_cards = function (self, player)
+    if player:usedSkillTimes("nos__taoxi", Player.HistoryTurn) > 0 then
+      local ids = {}
+      for _, p in ipairs(Fk:currentRoom().alive_players) do
+        for _, id in ipairs(p:getCardIds("h")) do
+          if Fk:getCardById(id):getMark("@@nos__taoxi-inhand-turn") > 0 then
+            table.insertIfNeed(ids, id)
           end
         end
       end
+      return ids
     end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local mark = player:getMark("@$nos__taoxi-turn")
-    for _, move in ipairs(data) do
-      for _, info in ipairs(move.moveInfo) do
-        if table.contains(mark, info.cardId) then
-          table.removeOne(mark, info.cardId)
-        end
-      end
-    end
-    player.room:setPlayerMark(player, "@$nos__taoxi-turn", #mark > 0 and mark or 0)
   end,
 }
-nos__taoxi:addRelatedSkill(nos__taoxi_trigger)
+nos__taoxi:addRelatedSkill(nos__taoxi_delay)
+nos__taoxi:addRelatedSkill(nos__taoxi_filter)
 nos__caoxiu:addSkill(nos__taoxi)
 Fk:loadTranslationTable{
   ["nos__caoxiu"] = "曹休",
@@ -259,13 +222,13 @@ Fk:loadTranslationTable{
   ["illustrator:nos__caoxiu"] = "eshao111",
 
   ["nos__taoxi"] = "讨袭",
-  [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用。"..
-  "回合结束时，若该角色未失去此手牌，则你失去1点体力。",
-  ["#nos__taoxi-invoke"] = "讨袭：你可以亮出 %dest 一张手牌，直到回合结束前你可以使用此牌",
+  [":nos__taoxi"] = "出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌"..
+  "如手牌般使用或打出。回合结束时，若该角色未失去此手牌，则你失去1点体力。",
+  ["#nos__taoxi-invoke"] = "讨袭：你可以亮出 %dest 一张手牌，本回合你可以使用或打出此牌",
   ["#nos__taoxi-choose"] = "讨袭：展示%dest一张手牌",
-  ["@$nos__taoxi-turn"] = "讨袭",
-  ["#nos__taoxi_trigger"] = "讨袭",
-  ["#nos__taoxi"] = "讨袭：你可以使用“讨袭”牌！",
+  ["@@nos__taoxi-inhand-turn"] = "讨袭",
+  ["#nos__taoxi_delay"] = "讨袭",
+  ["#nos__taoxi_filter"] = "讨袭",
 
   ["$nos__taoxi1"] = "策马疾如电，溃敌一瞬间。",
   ["$nos__taoxi2"] = "虎豹骑岂能徒有虚名？杀！",
@@ -366,34 +329,30 @@ local huomo = fk.CreateViewAsSkill{
   enabled_at_response = function(self, player, response)
     return not response and not player:isNude()
   end,
+
+  on_acquire = function (self, player, is_start)
+    if not is_start then
+      local room = player.room
+      local names = {}
+      room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
+        local use = e.data[1]
+        if use.from == player.id and use.card.type == Card.TypeBasic then
+          table.insertIfNeed(names, use.card.trueName)
+        end
+      end, Player.HistoryTurn)
+      room:setPlayerMark(player, "huomo-turn", names)
+    end
+  end,
 }
 local huomo_trigger = fk.CreateTriggerSkill{
   name = "#huomo_trigger",
-  refresh_events = {fk.AfterCardUseDeclared, fk.EventAcquireSkill},
+
+  refresh_events = {fk.AfterCardUseDeclared},
   can_refresh = function(self, event, target, player, data)
-    if event == fk.AfterCardUseDeclared then
-      return target == player and player:hasSkill("huomo", true)
-    else
-      return target == player and data == huomo and player.room:getTag("RoundCount")
-    end
+    return target == player and player:hasSkill("huomo", true)
   end,
   on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.AfterCardUseDeclared then
-      room:addTableMark(player, "huomo-turn", data.card.trueName)
-    else
-      if room.logic:getCurrentEvent() then
-        local names = {}
-        room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
-          local use = e.data[1]
-          if use.from == player.id then
-            table.insertIfNeed(names, use.card.trueName)
-          end
-          return false
-        end, Player.HistoryTurn)
-        room:setPlayerMark(player, "huomo-turn", names)
-      end
-    end
+    player.room:addTableMark(player, "huomo-turn", data.card.trueName)
   end,
 }
 huomo:addRelatedSkill(huomo_trigger)
