@@ -724,46 +724,67 @@ local xuanfeng = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.AfterCardsMove, fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self) or table.every(player.room:getOtherPlayers(player), function (p) return p:isNude() end) then return end
-    if event == fk.AfterCardsMove then
-      for _, move in ipairs(data) do
-        if move.from == player.id then
-          for _, info in ipairs(move.moveInfo) do
-            if info.fromArea == Card.PlayerEquip then
-              return true
+    if player:hasSkill(self) then
+      if event == fk.AfterCardsMove then
+        for _, move in ipairs(data) do
+          if move.from == player.id then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.PlayerEquip then
+                return not table.every(player.room.alive_players, function (p)
+                  return p == player or p:isNude()
+                end)
+              end
             end
           end
         end
-      end
-    elseif target == player and player.phase == Player.Discard then
-      local n = 0
-      player.room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
-        for _, move in ipairs(e.data) do
-          if move.from == player.id and move.moveReason == fk.ReasonDiscard then
-            n = n + #move.moveInfo
-          end
+      elseif event == fk.EventPhaseEnd then
+        if target == player and player.phase == Player.Discard and not table.every(player.room.alive_players, function (p)
+          return p == player or p:isNude()
+        end) then
+          local x = 0
+          local logic = player.room.logic
+          logic:getEventsOfScope(GameEvent.MoveCards, 1, function (e)
+            for _, move in ipairs(e.data) do
+              if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.skillName == "phase_discard" then
+                x = x + #move.moveInfo
+                if x > 1 then return true end
+              end
+            end
+            return false
+          end, Player.HistoryTurn)
+          return x > 1
         end
-        return n > 1
-      end, Player.HistoryPhase)
-      return n > 1
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.filter(room.alive_players, function(p) return not p:isNude() and p ~= player end)
+    if #targets == 0 then return false end
+    local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#xuanfeng-choose", self.name, true, true)
+    if #tos > 0 then
+      self.cost_data = { tos = tos }
+      return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for _ = 1, 2, 1 do
-      if player.dead then return end
-      local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-        return not p:isNude() end), Util.IdMapper)
-      if #targets == 0 then return end
-      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#xuanfeng-choose", self.name, true)
-      if #tos == 0 then return end
-      local to = room:getPlayerById(tos[1])
-      room:doIndicate(player.id, tos)
-      local card = room:askForCardChosen(player, to, "he", self.name)
-      room:throwCard({card}, self.name, to, player)
+    local to = room:getPlayerById(self.cost_data.tos[1])
+    local card = room:askForCardChosen(player, to, "he", self.name)
+    room:throwCard({card}, self.name, to, player)
+    if player.dead then return false end
+    local targets = table.filter(room.alive_players, function(p) return not p:isNude() and p ~= player end)
+    if #targets > 0 then
+      local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#xuanfeng-choose", self.name, true)
+      if #tos > 0 then
+        to = room:getPlayerById(tos[1])
+        card = room:askForCardChosen(player, to, "he", self.name)
+        room:throwCard({card}, self.name, to, player)
+      end
     end
   end,
 }
+
 lingtong:addSkill(xuanfeng)
 Fk:loadTranslationTable{
   ["lingtong"] = "凌统",
