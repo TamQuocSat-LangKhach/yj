@@ -1,0 +1,71 @@
+local jiyu = fk.CreateSkill {
+  name = "jiyu"
+}
+
+Fk:loadTranslationTable{
+  ['jiyu'] = '讥谀',
+  ['#jiyu'] = '讥谀：令一名角色弃置一张手牌，若为♠，其失去1点体力，你翻面',
+  ['#jiyu-discard'] = '讥谀：请弃置一张手牌，若为♠，%src 失去1点体力，你翻面',
+  ['@jiyu-turn'] = '讥谀',
+  [':jiyu'] = '出牌阶段每名角色限一次，若你有可以使用的手牌，你可以令一名角色弃置一张手牌，然后本回合你不能使用与之相同花色的牌。若其以此法弃置的牌为♠，其失去1点体力，你翻面。',
+  ['$jiyu1'] = '陛下，此人不堪大用。',
+  ['$jiyu2'] = '尔等玩忽职守，依诏降职处置。',
+}
+
+jiyu:addEffect('active', {
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  prompt = "#jiyu",
+  can_use = function(skill, player)
+    return table.find(player:getCardIds("h"), function(id)
+      local card = Fk:getCardById(id)
+      return player:canUse(card) and not player:prohibitUse(card)
+    end)
+  end,
+  card_filter = function(skill, player, to_select, selected)
+    return false
+  end,
+  target_filter = function(skill, player, to_select, selected, selected_cards)
+    return #selected == 0 and (player:getMark("jiyu-phase") == 0 or not table.contains(player:getMark("jiyu-phase"), to_select)) and
+      not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+  end,
+  on_use = function(skill, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local mark = player:getMark("jiyu-phase")
+    if mark == 0 then mark = {} end
+    table.insert(mark, target.id)
+    room:setPlayerMark(player, "jiyu-phase", mark)
+    local card = room:askToDiscard(target, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = jiyu.name,
+      cancelable = false,
+      pattern = ".",
+      prompt = "#jiyu-discard:"..player.id
+    })
+    if Fk:getCardById(card[1]).suit == Card.NoSuit then return end
+    mark = player:getMark("@jiyu-turn")
+    if mark == 0 then mark = {} end
+    table.insertIfNeed(mark, Fk:getCardById(card[1]):getSuitString(true))
+    room:setPlayerMark(player, "@jiyu-turn", mark)
+    if Fk:getCardById(card[1]).suit == Card.Spade then
+      if not target.dead then
+        room:loseHp(target, 1, jiyu.name)
+      end
+      if not player.dead then
+        player:turnOver()
+      end
+    end
+  end,
+})
+
+jiyu:addEffect('prohibit', {
+  prohibit_use = function(skill, player, card)
+    return player:getMark("@jiyu-turn") ~= 0 and table.contains(player:getMark("@jiyu-turn"), card:getSuitString(true))
+  end,
+})
+
+return jiyu
