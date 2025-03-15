@@ -12,18 +12,18 @@ Fk:loadTranslationTable{
 }
 
 fuzhu:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(skill.name) and target ~= player and target.phase == Player.Finish
       and (target:isMale())
       and #player.room.draw_pile <= 10 * player.hp
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = skill.name,
       prompt = "#fuzhu-invoke::" .. target.id
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     room:doIndicate(player.id, {target.id})
     local n = 0

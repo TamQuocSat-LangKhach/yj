@@ -11,10 +11,10 @@ Fk:loadTranslationTable{
 
 zishou:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(zishou.name) and player.phase == Player.Draw and player:isWounded()
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     data.n = data.n + player:getLostHp()
     player:skip(Player.Play)
   end,

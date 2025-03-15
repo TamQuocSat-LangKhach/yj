@@ -17,13 +17,13 @@ yanyu:addEffect('active', {
   anim_type = "drawcard",
   card_num = 1,
   target_num = 0,
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return not player:isKongcheng()
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return #selected == 0 and Fk:getCardById(to_select).trueName == "slash"
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     room:recastCard(effect.cards, room:getPlayerById(effect.from), yanyu.name)
   end,
 })
@@ -31,11 +31,11 @@ yanyu:addEffect('active', {
 -- 触发技能部分
 yanyu:addEffect(fk.EventPhaseEnd, {
   anim_type = "support",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
   return target == player and player.phase == player.Play and player:usedSkillTimes(yanyu.name, Player.HistoryPhase) > 1 and
     not table.every(player.room:getOtherPlayers(player), function(p) return p.gender ~= General.Male end)
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
   local room = player.room
   local to = room:askToChoosePlayers(player, {
     targets = table.map(table.filter(room:getAlivePlayers(), function(p)
@@ -51,7 +51,7 @@ yanyu:addEffect(fk.EventPhaseEnd, {
     return true
   end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
   local cost_data = event:getCostData(skill)
   cost_data:drawCards(2, yanyu.name)
   end,

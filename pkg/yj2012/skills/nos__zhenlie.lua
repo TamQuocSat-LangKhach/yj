@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 
 nos__zhenlie:addEffect(fk.AskForRetrial, {
   anim_type = "control",
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local move1 = {
       ids = room:getNCards(1),

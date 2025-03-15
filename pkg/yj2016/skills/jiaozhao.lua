@@ -20,13 +20,13 @@ jiaozhao:addEffect('active', {
   card_num = 1,
   target_num = 1,
   prompt = "#jiaozhao",
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return not player:isKongcheng() and table.every(jiaozhaoSkills, function(s) return player:usedSkillTimes(s, Player.HistoryPhase) == 0 end)
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
   end,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
     if #selected == 0 then
       local n = 999
       for _, p in ipairs(Fk:currentRoom().alive_players) do
@@ -37,7 +37,7 @@ jiaozhao:addEffect('active', {
       return player:distanceTo(Fk:currentRoom():getPlayerById(to_select)) == n
     end
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     player:showCards(effect.cards)
@@ -66,20 +66,20 @@ jiaozhao:addEffect('active', {
 
 -- 触发技能部分
 jiaozhao:addEffect(fk.GameStart, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     return player:hasSkill(jiaozhao.name)
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     local room = player.room
     room:setPlayerMark(player, "jiaozhao_status", 1)
   end,
 })
 
 jiaozhao:addEffect(fk.EventAcquireSkill, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     return target == player and data.name == jiaozhao.name
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     local room = player.room
     if player:getMark("jiaozhao_status") == 0 then
       room:setPlayerMark(player, "jiaozhao_status", 1)
@@ -89,10 +89,10 @@ jiaozhao:addEffect(fk.EventAcquireSkill, {
 })
 
 jiaozhao:addEffect(fk.TurnStart, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     return target == player and player:hasSkill("jiaozhaoVS", true)
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     local room = player.room
     if player:getMark("jiaozhao_status") == 0 then
       room:setPlayerMark(player, "jiaozhao_status", 1)
@@ -106,10 +106,10 @@ jiaozhao:addEffect(fk.TurnStart, {
 })
 
 jiaozhao:addEffect(fk.TurnEnd, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     return target == player and player:hasSkill("jiaozhaoVS", true)
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     local room = player.room
     if player:getMark("jiaozhao_status") == 0 then
       room:setPlayerMark(player, "jiaozhao_status", 1)

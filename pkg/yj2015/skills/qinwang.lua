@@ -13,10 +13,10 @@ qinwang:addEffect('viewas', {
   mute = true,
   anim_type = "defensive",
   pattern = "slash",
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return #selected == 0 and not player:prohibitDiscard(Fk:getCardById(to_select))
   end,
-  before_use = function(skill, player, use)
+  before_use = function(self, player, use)
     local room = player.room
     if use.card.extra_data and type(use.card.extra_data.qinwangCards) == "table" and #use.card.extra_data.qinwangCards > 0 then
       room:notifySkillInvoked(player, skill.name)
@@ -52,7 +52,7 @@ qinwang:addEffect('viewas', {
     end
     return skill.name
   end,
-  after_use = function(skill, player, use)
+  after_use = function(self, player, use)
     if use.extra_data and use.extra_data.qinwangUser then
       local p = player.room:getPlayerById(use.extra_data.qinwangUser)
       if p and not p.dead then
@@ -60,7 +60,7 @@ qinwang:addEffect('viewas', {
       end
     end
   end,
-  view_as = function(skill, player, cards)
+  view_as = function(self, player, cards)
     if #cards < 1 then return end
     local c = Fk:cloneCard("slash")
     c.skillName = skill.name
@@ -68,11 +68,11 @@ qinwang:addEffect('viewas', {
     c.extra_data.qinwangCards = cards
     return c
   end,
-  enabled_at_play = function(skill, player)
+  enabled_at_play = function(self, player)
     return player:getMark("qinwang-failed-phase") == 0 and not player:isNude() and
       table.find(Fk:currentRoom().alive_players, function(p) return p ~= player and p.kingdom == "shu" end)
   end,
-  enabled_at_response = function(skill, player)
+  enabled_at_response = function(self, player)
     return player:getMark("qinwang-failed-phase") == 0 and not player:isNude() and
       table.find(Fk:currentRoom().alive_players, function(p) return p ~= player and p.kingdom == "shu" end)
   end,

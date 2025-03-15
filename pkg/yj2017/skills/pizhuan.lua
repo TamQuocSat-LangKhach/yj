@@ -13,13 +13,13 @@ Fk:loadTranslationTable{
 pizhuan:addEffect(fk.CardUsing, {
   anim_type = "special",
   derived_piles = "caiyong_book",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(pizhuan) and data.card.suit == Card.Spade and
       #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra") then
       return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if room:askToChoice(player, {
       choices = {"yes", "no"},
@@ -34,13 +34,13 @@ pizhuan:addEffect(fk.CardUsing, {
 pizhuan:addEffect(fk.TargetConfirmed, {
   anim_type = "special",
   derived_piles = "caiyong_book",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(pizhuan) and data.card.suit == Card.Spade and
       #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra") then
       return data.from ~= player.id
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if room:askToChoice(player, {
       choices = {"yes", "no"},
@@ -53,7 +53,7 @@ pizhuan:addEffect(fk.TargetConfirmed, {
 })
 
 pizhuan:addEffect('maxcards', {
-  correct_func = function(skill, player)
+  correct_func = function(self, player)
   if player:hasSkill(pizhuan) then
     return #player:getPile("caiyong_book")
   end

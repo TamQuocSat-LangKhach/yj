@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 
 zhiyu:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:drawCards(1, zhiyu.name)
     local cards = player:getCardIds("h")

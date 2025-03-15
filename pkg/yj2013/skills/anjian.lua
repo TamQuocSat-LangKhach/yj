@@ -13,11 +13,11 @@ Fk:loadTranslationTable{
 anjian:addEffect(fk.DamageCaused, {
   anim_type = "offensive",
   frequency = Skill.Compulsory,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(anjian.name) and data.card and data.card.trueName == "slash" and
       not data.to:inMyAttackRange(player) and player.room.logic:damageByCardEffect()
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1
   end,
 })

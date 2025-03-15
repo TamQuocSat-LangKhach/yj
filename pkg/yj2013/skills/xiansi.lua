@@ -16,12 +16,12 @@ Fk:loadTranslationTable{
 
 xiansi:addEffect(fk.EventPhaseStart, {
   global = false,
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     if target == player and player:hasSkill(xiansi.name) and player.phase == Player.Start then
       return not table.every(player.room:getOtherPlayers(player), function (p) return p:isNude() end)
     end
   end,
-  on_cost = function(skill, event, target, player)
+  on_cost = function(self, event, target, player)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
       return not p:isNude()
@@ -39,7 +39,7 @@ xiansi:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     local room = player.room
     for _, pid in ipairs(event:getCostData(skill)) do
       if player.dead then break end

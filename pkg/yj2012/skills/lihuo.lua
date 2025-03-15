@@ -13,17 +13,17 @@ Fk:loadTranslationTable{
 
 lihuo:addEffect(fk.AfterCardUseDeclared, {
   anim_type = "offensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(skill.name) and data.card.name == "slash"
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     return room:askToSkillInvoke(player, {
       skill_name = skill.name,
       prompt = "#lihuo-trans:::"..data.card:toLogString()
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local card = Fk:cloneCard("fire__slash", data.card.suit, data.card.number)
     for k, v in pairs(data.card) do
       if card[k] == nil then
@@ -45,10 +45,10 @@ lihuo:addEffect(fk.AfterCardUseDeclared, {
 
 lihuo:addEffect(fk.AfterCardTargetDeclared, {
   anim_type = "offensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(skill.name) and data.card.name == "fire__slash" and #player.room:getUseExtraTargets(data) > 0
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local tos = room:askToChoosePlayers(player, {
       targets = room:getUseExtraTargets(data),
@@ -63,7 +63,7 @@ lihuo:addEffect(fk.AfterCardTargetDeclared, {
       return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local tos = event:getCostData(skill)
     player.room:sendLog{
       type = "#AddTargetsBySkill",
@@ -78,12 +78,12 @@ lihuo:addEffect(fk.AfterCardTargetDeclared, {
 
 lihuo:addEffect(fk.CardUseFinished, {
   mute = true,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return not player.dead and data.damageDealt and data.extra_data and data.extra_data.lihuo and
       table.contains(data.extra_data.lihuo, player.id)
   end,
   on_cost = Util.TrueFunc,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     player.room:loseHp(player, 1, skill.name)
   end,
 })

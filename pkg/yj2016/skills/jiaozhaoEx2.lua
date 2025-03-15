@@ -18,15 +18,15 @@ jiaozhaoEx2:addEffect('active', {
   card_num = 1,
   target_num = 0,
   prompt = "#jiaozhaoEx2",
-  can_use = function(skill, player)
+  can_use = function(self, player)
   return not player:isKongcheng() and
     table.every(jiaozhaoSkills, function(s) return player:usedSkillTimes(s, Player.HistoryPhase) == 0 end)
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
   return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
   end,
   target_filter = Util.FalseFunc,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
   local player = room:getPlayerById(effect.from)
   player:broadcastSkillInvoke("jiaozhao")
   room:notifySkillInvoked(player, "jiaozhao", "special")

@@ -11,24 +11,24 @@ Fk:loadTranslationTable{
 }
 
 sidi:addEffect(fk.CardUseFinished, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return data.card.name == "jink" and (target == player or player.phase ~= Player.NotActive)
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     return room:askToSkillInvoke(player, {skill_name = skill.name})
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:addToPile(skill.name, room:getNCards(1), true, skill.name)
   end,
 })
 
 sidi:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
   return target ~= player and target.phase == Player.Play and #player:getPile(skill.name) > 0
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local card = room:askToCards(player, {
     min_num = 1,
@@ -43,7 +43,7 @@ sidi:addEffect(fk.EventPhaseStart, {
     return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
   local room = player.room
   room:doIndicate(player.id, {target.id})
   room:moveCards({

@@ -11,10 +11,10 @@ Fk:loadTranslationTable{
 }
 
 miji:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     return target == player and player:hasSkill(skill.name) and player.phase == Player.Finish and player:isWounded()
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     local room = player.room
     local n = player:getLostHp()
     player:drawCards(n, miji.name)

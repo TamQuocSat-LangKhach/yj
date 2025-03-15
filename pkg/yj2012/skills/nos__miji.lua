@@ -12,11 +12,11 @@ Fk:loadTranslationTable{
 
 nos__miji:addEffect(fk.EventPhaseStart, {
   anim_type = "drawcard",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(nos__miji.name) and player:isWounded() and
       (player.phase == Player.Start or player.phase == Player.Finish)
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local judge = {
       who = player,

@@ -11,10 +11,10 @@ Fk:loadTranslationTable{
 
 jiaojin:addEffect(fk.DamageInflicted, {
   anim_type = "defensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jiaojin.name) and data.from and data.from:isMale() and not player:isNude()
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     return #player.room:askToDiscard(player, {
     min_num = 1,
     max_num = 1,
@@ -25,7 +25,7 @@ jiaojin:addEffect(fk.DamageInflicted, {
     prompt = "#jiaojin-cost"
     }) > 0
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     data.damage = data.damage - 1
   end,
 })

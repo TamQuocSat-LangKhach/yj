@@ -15,17 +15,17 @@ mieji:addEffect('active', {
   anim_type = "offensive",
   card_num = 1,
   target_num = 1,
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return player:usedSkillTimes(mieji.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     local card = Fk:getCardById(to_select)
     return #selected == 0 and card.type == Card.TypeTrick and card.color == Card.Black
   end,
-  target_filter = function(skill, player, to_select, selected, selected_cards)
+  target_filter = function(self, player, to_select, selected, selected_cards)
     return #selected == 0 and not Fk:currentRoom():getPlayerById(to_select):isNude()
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     room:moveCards({

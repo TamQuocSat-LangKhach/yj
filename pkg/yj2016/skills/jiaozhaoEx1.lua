@@ -17,14 +17,14 @@ jiaozhaoEx1:addEffect('active', {
   card_num = 1,
   target_num = 1,
   prompt = "#jiaozhaoEx1",
-  can_use = function(skill, player)
+  can_use = function(self, player)
   return not player:isKongcheng() and
     table.every(jiaozhaoSkills, function(s) return player:usedSkillTimes(s, Player.HistoryPhase) == 0 end)
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
   return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
   end,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
   if #selected == 0 then
     local n = 999
     for _, p in ipairs(Fk:currentRoom().alive_players) do
@@ -35,7 +35,7 @@ jiaozhaoEx1:addEffect('active', {
     return player:distanceTo(Fk:currentRoom():getPlayerById(to_select)) == n
   end
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
   local player = room:getPlayerById(effect.from)
   local target = room:getPlayerById(effect.tos[1])
   player:broadcastSkillInvoke("jiaozhao")

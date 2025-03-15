@@ -16,19 +16,19 @@ pindi:addEffect('active', {
   anim_type = "control",
   card_num = 1,
   target_num = 1,
-  prompt = function(skill, player)
+  prompt = function(self, player)
     return "#pindi-active:::" .. (player:usedSkillTimes(pindi.name, Player.HistoryTurn) + 1)
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     if #selected == 0 and not player:prohibitDiscard(Fk:getCardById(to_select)) then
       local mark = player:getTableMark("pindi_types-turn")
       return not table.contains(mark, Fk:getCardById(to_select):getTypeString())
     end
   end,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
     return #selected == 0 and to_select ~= player.id and not table.contains(player:getTableMark("pindi_targets-turn"), to_select)
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
 

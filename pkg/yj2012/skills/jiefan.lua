@@ -17,11 +17,11 @@ jiefan:addEffect('active', {
   card_num = 0,
   target_num = 1,
   frequency = Skill.Limited,
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return player:usedSkillTimes(jiefan.name, Player.HistoryGame) == 0
   end,
   card_filter = Util.FalseFunc,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
     return #selected == 0
   end,
   target_tip = function (skill, player, to_select, selected, selected_cards, card, selectable, extra_data)
@@ -36,7 +36,7 @@ jiefan:addEffect('active', {
     end
     end
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
     for _, p in ipairs(room:getOtherPlayers(target)) do
     if p:inMyAttackRange(target) then

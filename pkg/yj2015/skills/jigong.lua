@@ -11,19 +11,19 @@ Fk:loadTranslationTable{
 }
 
 jigong:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     return target == player and player:hasSkill(jigong.name) and player.phase == Player.Play
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     player:drawCards(2, jigong.name)
   end,
 })
 
 jigong:addEffect(fk.Damage, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     return target == player and player:usedSkillTimes(jigong.name, Player.HistoryPhase) > 0
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     player.room:addPlayerMark(player, "@jigong-turn", data.damage)
   end,
 })

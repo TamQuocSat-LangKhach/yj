@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 }
 
 fenli:addEffect(fk.EventPhaseChanging, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(fenli.name) then return false end
     if data.to == Player.Draw then
       return table.every(player.room:getOtherPlayers(player), function (p)
@@ -27,14 +27,14 @@ fenli:addEffect(fk.EventPhaseChanging, {
       end)
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local phases = {"phase_draw", "phase_play", "phase_discard"}
     return player.room:askToSkillInvoke(player, {
       skill_name = fenli.name,
       prompt = "#fenli-invoke:::"..phases[data.to - 3],
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     player:skip(data.to)
     return true
   end,

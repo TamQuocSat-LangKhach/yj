@@ -13,7 +13,7 @@ Fk:loadTranslationTable{
 
 shifei:addEffect('viewas', {
   anim_type = "defensive",
-  prompt = function(skill, player)
+  prompt = function(self, player)
     for _, p in ipairs(Fk:currentRoom().alive_players) do
     if p.phase ~= Player.NotActive then
       return "#shifei-viewas::" .. p.id
@@ -23,7 +23,7 @@ shifei:addEffect('viewas', {
   pattern = "jink",
   card_num = 0,
   card_filter = Util.FalseFunc,
-  before_use = function(skill, player)
+  before_use = function(self, player)
     local room = player.room
     local current = room.current
     if current:isAlive() then
@@ -64,7 +64,7 @@ shifei:addEffect('viewas', {
     end
     return skill.name
   end,
-  view_as = function(skill, player, cards)
+  view_as = function(self, player, cards)
     local c = Fk:cloneCard("jink")
     c.skillName = skill.name
     return c

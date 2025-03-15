@@ -11,12 +11,12 @@ Fk:loadTranslationTable{
 }
 
 faen:addEffect(fk.TurnedOver, {
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     if player:hasSkill(skill.name) and not target.dead then
       return target.faceup
     end
   end,
-  on_cost = function(skill, event, target, player)
+  on_cost = function(self, event, target, player)
     local room = player.room
     if room:askToSkillInvoke(player, {
         skill_name = skill.name,
@@ -26,18 +26,18 @@ faen:addEffect(fk.TurnedOver, {
       return true
     end
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     target:drawCards(1, faen.name)
   end,
 })
 
 faen:addEffect(fk.ChainStateChanged, {
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     if player:hasSkill(skill.name) and not target.dead then
       return target.chained
     end
   end,
-  on_cost = function(skill, event, target, player)
+  on_cost = function(self, event, target, player)
     local room = player.room
     if room:askToSkillInvoke(player, {
         skill_name = skill.name,
@@ -47,7 +47,7 @@ faen:addEffect(fk.ChainStateChanged, {
       return true
     end
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     target:drawCards(1, faen.name)
   end,
 })

@@ -14,13 +14,13 @@ Fk:loadTranslationTable{
 fulin:addEffect('maxcards', {
   name = "fulin",
   frequency = Skill.Compulsory,
-  exclude_from = function(skill, player, card)
+  exclude_from = function(self, player, card)
     return player:hasSkill(fulin) and card:getMark("@@fulin-inhand") > 0
   end,
 })
 
 fulin:addEffect(fk.AfterCardsMove, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     if player:hasShownSkill(fulin, true) then
       if event == fk.AfterCardsMove and player.phase ~= Player.NotActive then
         for _, move in ipairs(data) do
@@ -33,7 +33,7 @@ fulin:addEffect(fk.AfterCardsMove, {
       end
     end
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     local room = player.room
     if event == fk.AfterCardsMove then
       for _, move in ipairs(data) do
@@ -52,13 +52,13 @@ fulin:addEffect(fk.AfterCardsMove, {
 })
 
 fulin:addEffect(fk.EventPhaseStart, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
     return player == target and player:hasSkill(fulin) and player.phase == Player.Discard and not player:isFakeSkill(fulin)
       and player:getMaxCards() < player:getHandcardNum() and table.find(player:getCardIds("h"), function (id)
         return Fk:getCardById(id):getMark("@@fulin-inhand") > 0
       end)
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     player:broadcastSkillInvoke(fulin.name)
   end,
 })

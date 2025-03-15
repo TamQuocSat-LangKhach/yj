@@ -17,20 +17,20 @@ jiyu:addEffect('active', {
   card_num = 0,
   target_num = 1,
   prompt = "#jiyu",
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return table.find(player:getCardIds("h"), function(id)
       local card = Fk:getCardById(id)
       return player:canUse(card) and not player:prohibitUse(card)
     end)
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return false
   end,
-  target_filter = function(skill, player, to_select, selected, selected_cards)
+  target_filter = function(self, player, to_select, selected, selected_cards)
     return #selected == 0 and (player:getMark("jiyu-phase") == 0 or not table.contains(player:getMark("jiyu-phase"), to_select)) and
       not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     local mark = player:getMark("jiyu-phase")
@@ -63,7 +63,7 @@ jiyu:addEffect('active', {
 })
 
 jiyu:addEffect('prohibit', {
-  prohibit_use = function(skill, player, card)
+  prohibit_use = function(self, player, card)
     return player:getMark("@jiyu-turn") ~= 0 and table.contains(player:getMark("@jiyu-turn"), card:getSuitString(true))
   end,
 })

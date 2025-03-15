@@ -13,19 +13,19 @@ Fk:loadTranslationTable{
 
 funan:addEffect(fk.CardUseFinished, {
   anim_type = "control",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(skill.name) and target ~= player and
        data.responseToEvent and data.responseToEvent.from == player.id then
       return data.responseToEvent.card and player.room:getCardArea(data.responseToEvent.card) == Card.Processing
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = skill.name,
       prompt = "#funan-invoke::" .. target.id .. ":" .. data.responseToEvent.card:toLogString() .. ":" .. data.card:toLogString()
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local card = data.responseToEvent.card
     room:obtainCard(target, card, false, fk.ReasonPrey)
@@ -40,19 +40,19 @@ funan:addEffect(fk.CardUseFinished, {
 
 funan:addEffect(fk.CardRespondFinished, {
   anim_type = "control",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(skill.name) and target ~= player and
        data.responseToEvent and data.responseToEvent.from == player.id then
       return data.responseToEvent.card and player.room:getCardArea(data.responseToEvent.card) == Card.Processing
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = skill.name,
       prompt = "#funan-invoke::" .. target.id .. ":" .. data.responseToEvent.card:toLogString() .. ":" .. data.card:toLogString()
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local card = data.responseToEvent.card
     room:obtainCard(target, card, false, fk.ReasonPrey)
@@ -67,10 +67,10 @@ funan:addEffect(fk.CardRespondFinished, {
 
 funan:addEffect('prohibit', {
   name = "#funan_prohibit",
-  prohibit_use = function(skill, player, card)
+  prohibit_use = function(self, player, card)
   if type(player:getMark("funan-turn")) == "table" then return table.contains(player:getMark("funan-turn"), card.id) end
   end,
-  prohibit_response = function(skill, player, card)
+  prohibit_response = function(self, player, card)
   if type(player:getMark("funan-turn")) == "table" then return table.contains(player:getMark("funan-turn"), card.id) end
   end,
 })

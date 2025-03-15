@@ -14,21 +14,21 @@ Fk:loadTranslationTable{
 quanji:addEffect(fk.Damaged, {
   anim_type = "masochism",
   derived_piles = {"zhonghui_quan"},
-  on_trigger = function(skill, event, target, player, data)
+  on_trigger = function(self, event, target, player, data)
     skill.cancel_cost = false
     for i = 1, data.damage do
       if skill.cancel_cost or player.dead then break end
       skill:doCost(event, target, player, data)
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     if room:askToSkillInvoke(player, {skill_name = quanji.name, prompt = data}) then
       return true
     end
     skill.cancel_cost = true
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:drawCards(1, quanji.name)
     if player:isKongcheng() then return end
@@ -47,7 +47,7 @@ quanji:addEffect(fk.Damaged, {
 
 local quanji_maxcards = fk.CreateMaxCardsSkill{
   name = "#quanji_maxcards",
-  correct_func = function(skill, player)
+  correct_func = function(self, player)
     if player:hasSkill(quanji) then
       return #player:getPile("zhonghui_quan")
     else

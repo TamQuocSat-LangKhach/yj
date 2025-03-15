@@ -1,24 +1,26 @@
-```lua
+
 local jinjiu = fk.CreateSkill {
-  name = "jinjiu"
+  name = "jinjiu",
+  tags = { Skill.Compulsory },
 }
 
 Fk:loadTranslationTable{
-  ['jinjiu'] = '禁酒',
-  [':jinjiu'] = '锁定技，你的【酒】及作为你的判定牌的【酒】的牌名视为【杀】且此【杀】为普【杀】。',
-  ['$jinjiu1'] = '贬酒阙色，所以无污。',
-  ['$jinjiu2'] = '避嫌远疑，所以无误。',
+  ["jinjiu"] = "禁酒",
+  [":jinjiu"] = "锁定技，你的【酒】和你为【酒】的判定牌视为【杀】。",
+
+  ["$jinjiu1"] = "贬酒阙色，所以无污。",
+  ["$jinjiu2"] = "避嫌远疑，所以无误。",
 }
 
-jinjiu:addEffect('filter', {
-  card_filter = function(skill, player, card, isJudgeEvent)
+jinjiu:addEffect("filter", {
+  anim_type = "offensive",
+  card_filter = function(self, card, player, isJudgeEvent)
     return player:hasSkill(jinjiu.name) and card.name == "analeptic" and
-         (table.contains(player.player_cards[Player.Hand], card.id) or isJudgeEvent)
+      (table.contains(player:getCardIds("h"), card.id) or isJudgeEvent)
   end,
-  view_as = function(skill, player, card)
+  view_as = function(self, player, card)
     return Fk:cloneCard("slash", card.suit, card.number)
   end,
 })
 
 return jinjiu
-```

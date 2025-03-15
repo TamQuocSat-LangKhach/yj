@@ -18,14 +18,14 @@ kuangbi:addEffect('active', {
   card_num = 0,
   target_num = 1,
   prompt = "#kuangbi",
-  can_use = function(skill, player)
+  can_use = function(self, player)
   return player:usedSkillTimes(kuangbi.name, Player.HistoryPhase) == 0
   end,
   card_filter = Util.FalseFunc,
-  target_filter = function(skill, player, to_select, selected, selected_cards)
+  target_filter = function(self, player, to_select, selected, selected_cards)
   return #selected == 0 and to_select ~= player.id and not Fk:currentRoom():getPlayerById(to_select):isNude()
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
   local player = room:getPlayerById(effect.from)
   local target = room:getPlayerById(effect.tos[1])
   local cards = room:askToCards(target, {
@@ -45,11 +45,11 @@ kuangbi:addEffect('active', {
 -- 触发技能
 kuangbi:addEffect(fk.TurnStart, {
   mute = true,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
   return target == player and player:getMark("kuangbi") ~= 0 and #player:getPile("$kuangbi") ~= 0
   end,
   on_cost = Util.TrueFunc,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
   local room = player.room
   local to = room:getPlayerById(player:getMark("kuangbi"))
   room:setPlayerMark(player, "kuangbi", 0)

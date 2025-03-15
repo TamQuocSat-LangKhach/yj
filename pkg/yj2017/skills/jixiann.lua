@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 }
 
 jixiann:addEffect(fk.Damaged, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(skill.name) and target == player and data.from and not data.from.dead
   end,
   on_cost = function (skill, event, target, player, data)
@@ -21,7 +21,7 @@ jixiann:addEffect(fk.Damaged, {
     prompt = "#jixiann-invoke:"..data.from.id
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     doQingxian(room, data.from, player, "qingxian_losehp", skill.name)
   end,

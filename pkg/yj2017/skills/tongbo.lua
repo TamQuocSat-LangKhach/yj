@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 }
 
 tongbo:addEffect(fk.AfterDrawNCards, {
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     return target == player and player:hasSkill(tongbo.name) and #player:getPile("caiyong_book") > 0 and not player:isNude()
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     local room = player.room
     local books = player:getPile("caiyong_book")
     local piles = room:askToArrangeCards(player, {

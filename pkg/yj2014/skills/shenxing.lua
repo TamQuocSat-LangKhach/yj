@@ -16,10 +16,10 @@ shenxing:addEffect('active', {
   card_num = 2,
   target_num = 0,
   can_use = Util.TrueFunc,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return #selected < 2 and not player:prohibitDiscard(Fk:getCardById(to_select))
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     room:askToDiscard(player, {
       min_num = 2,

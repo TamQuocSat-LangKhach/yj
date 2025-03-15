@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 
 funanEx:addEffect(fk.CardUseFinished, {
   events = {fk.CardUseFinished, fk.CardRespondFinished},
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(skill.name) and target ~= player and
       data.responseToEvent and data.responseToEvent.from == player.id then
       if (event == fk.CardUseFinished and data.toCard) or event == fk.CardRespondFinished then
@@ -19,13 +19,13 @@ funanEx:addEffect(fk.CardUseFinished, {
       end
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = skill.name,
       prompt = "#funanEx-invoke::"..target.id..":"..data.card:toLogString()
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke("funan")
     room:notifySkillInvoked(player, "funan", "drawcard")

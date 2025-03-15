@@ -12,12 +12,12 @@ Fk:loadTranslationTable{
 
 nos__mieji:addEffect(fk.AfterCardTargetDeclared, {
   anim_type = "offensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(nos__mieji.name) and
     data.card.color == Card.Black and data.card:isCommonTrick() and
     #TargetGroup:getRealTargets(data.tos) == 1 and #player.room:getUseExtraTargets(data) > 0
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askToChoosePlayers(player, {
     targets = room:getUseExtraTargets(data),
@@ -31,7 +31,7 @@ nos__mieji:addEffect(fk.AfterCardTargetDeclared, {
     return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     table.insert(data.tos, event:getCostData(skill).tos[1])
   end,
 })

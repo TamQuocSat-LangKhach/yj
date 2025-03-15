@@ -16,10 +16,10 @@ fencheng:addEffect('active', {
   target_num = 0,
   card_filter = Util.FalseFunc,
   frequency = Skill.Limited,
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return player:usedSkillTimes(fencheng.name, Player.HistoryGame) == 0
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local targets = room:getOtherPlayers(player)
     local n = 0

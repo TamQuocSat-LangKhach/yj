@@ -12,7 +12,7 @@ Fk:loadTranslationTable{
 }
 
 shenduan:addEffect(fk.AfterCardsMove, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(skill.name) then
       for _, move in ipairs(data) do
         if move.from == player.id and move.moveReason == fk.ReasonDiscard then
@@ -28,7 +28,7 @@ shenduan:addEffect(fk.AfterCardsMove, {
       end
     end
   end,
-  on_trigger = function(skill, event, target, player, data)
+  on_trigger = function(self, event, target, player, data)
     local ids = {}
     for _, move in ipairs(data) do
       if move.from == player.id and move.moveReason == fk.ReasonDiscard then
@@ -54,7 +54,7 @@ shenduan:addEffect(fk.AfterCardsMove, {
       end
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     room:setPlayerMark(player, shenduan.name, data)
     local _, dat = room:askToUseRealCard(player, {
@@ -71,7 +71,7 @@ shenduan:addEffect(fk.AfterCardsMove, {
       skill.cancel_cost = true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     room:useVirtualCard("supply_shortage", event:getCostData(skill).cards, player, room:getPlayerById(event:getCostData(skill).targets[1]), shenduan.name)
   end,

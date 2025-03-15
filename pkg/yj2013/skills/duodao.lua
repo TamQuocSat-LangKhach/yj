@@ -12,10 +12,10 @@ Fk:loadTranslationTable{
 }
 
 duodao:addEffect(fk.Damaged, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(duodao.name) and data.card and data.card.trueName == "slash" and not player:isNude()
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local prompt
     if data.from and not data.from.dead then
       prompt = "#duodao-invoke::"..data.from.id
@@ -37,7 +37,7 @@ duodao:addEffect(fk.Damaged, {
       return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     room:throwCard(event:getCostData(skill), duodao.name, player, player)
     local from = data.from

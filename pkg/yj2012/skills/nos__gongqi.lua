@@ -1,4 +1,4 @@
-```lua
+
 local nos__gongqi = fk.CreateSkill {
   name = "nos__gongqi"
 }
@@ -13,11 +13,11 @@ Fk:loadTranslationTable{
 nos__gongqi:addEffect('viewas', {
   anim_type = "offensive",
   pattern = "slash",
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     if #selected == 1 then return false end
     return Fk:getCardById(to_select).type == Card.TypeEquip
   end,
-  view_as = function(skill, player, cards)
+  view_as = function(self, player, cards)
     if #cards ~= 1 then return nil end
     local card = Fk:cloneCard("slash")
     card:addSubcard(cards[1])
@@ -27,7 +27,7 @@ nos__gongqi:addEffect('viewas', {
 })
 
 nos__gongqi:addEffect('targetmod', {
-  distance_limit_func = function(skill, player, skill, card)
+  distance_limit_func = function(self, player, skill, card)
     if table.contains(card.skillNames, "nos__gongqi") then
       return 999
     end
@@ -35,4 +35,3 @@ nos__gongqi:addEffect('targetmod', {
 })
 
 return nos__gongqi
-```

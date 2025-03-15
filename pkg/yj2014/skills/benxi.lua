@@ -14,10 +14,10 @@ Fk:loadTranslationTable{
 
 benxi:addEffect(fk.CardUsing, {
   global = false,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(benxi) and player.room.current == player
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     if event == fk.CardUsing then
       player.room:addPlayerMark(player, "@benxi-turn", 1)
     end
@@ -26,13 +26,13 @@ benxi:addEffect(fk.CardUsing, {
 
 benxi:addEffect(fk.AfterCardTargetDeclared, {
   global = false,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(benxi) and player.room.current == player and 
          (data.card and data.card.trueName == "slash" and
         table.every(player.room.alive_players, function(p) return player:distanceTo(p) < 2 end) and
         #player.room:getUseExtraTargets(data, false) > 0)
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local targets = room:getUseExtraTargets(data, false)
     if #targets == 0 then return false end
@@ -55,7 +55,7 @@ local benxi_armorInvalidity = fk.CreateSkill {
 }
 
 benxi_armorInvalidity:addEffect('invalidity', {
-  invalidity_func = function(skill, player, skill_to_check)
+  invalidity_func = function(self, player, skill_to_check)
     if skill_to_check.attached_equip and Fk:cloneCard(skill_toCheck.attached_equip).sub_type == Card.SubtypeArmor then
       -- 无视防具（规则集版）！
       if RoomInstance then
@@ -90,7 +90,7 @@ local benxi_distance = fk.CreateSkill {
 }
 
 benxi_distance:addEffect('distance', {
-  correct_func = function(skill, from, to)
+  correct_func = function(self, from, to)
     return -from:getMark("@benxi-turn")
   end,
 })

@@ -12,10 +12,10 @@ Fk:loadTranslationTable{
 }
 
 qianxi:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     return target == player and player:hasSkill(skill.name) and player.phase == Player.Start
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     local room = player.room
     local judge = {
       who = player,
@@ -43,10 +43,10 @@ qianxi:addEffect(fk.EventPhaseStart, {
 })
 
 qianxi:addEffect('prohibit', {
-  prohibit_use = function(skill, player, card)
+  prohibit_use = function(self, player, card)
     return player:getMark("@qianxi-turn") ~= 0 and card:getColorString() == player:getMark("@qianxi-turn")
   end,
-  prohibit_response = function(skill, player, card)
+  prohibit_response = function(self, player, card)
     return player:getMark("@qianxi-turn") ~= 0 and card:getColorString() == player:getMark("@qianxi-turn")
   end,
 })

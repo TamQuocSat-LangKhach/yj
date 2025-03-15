@@ -13,15 +13,15 @@ Fk:loadTranslationTable{
 
 zili:addEffect(fk.EventPhaseStart, {
   frequency = Skill.Wake,
-  can_trigger = function(skill, event, target, player)
+  can_trigger = function(self, event, target, player)
     return target == player and player:hasSkill(zili.name) and
          player.phase == Player.Start and
          player:usedSkillTimes(zili.name, Player.HistoryGame) == 0
   end,
-  can_wake = function(skill, event, target, player)
+  can_wake = function(self, event, target, player)
     return #player:getPile("zhonghui_quan") > 2
   end,
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     local room = player.room
     room:changeMaxHp(player, -1)
     if player.dead then return end

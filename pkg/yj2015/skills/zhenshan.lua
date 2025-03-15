@@ -13,7 +13,7 @@ Fk:loadTranslationTable{
 
 zhenshan:addEffect('viewas', {
   pattern = ".|.|.|.|.|basic",
-  interaction = function(skill)
+  interaction = function(self)
     local all_names = U.getAllCardNames("b")
     local names = U.getViewAsCardNames(skill.player, zhenshan.name, all_names)
     if #names == 0 then return end
@@ -25,7 +25,7 @@ zhenshan:addEffect('viewas', {
     card.skillName = zhenshan.name
     return card
   end,
-  before_use = function(skill, player)
+  before_use = function(self, player)
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p)
       return (#p.player_cards[Player.Hand] < player:getHandcardNum()) end), Util.IdMapper)
@@ -41,11 +41,11 @@ zhenshan:addEffect('viewas', {
     local to = room:getPlayerById(tos[1])
     U.swapHandCards(room, player, player, to, zhenshan.name)
   end,
-  enabled_at_play = function(skill, player)
+  enabled_at_play = function(self, player)
     return player:usedSkillTimes(zhenshan.name, Player.HistoryTurn) == 0 and
       table.find(Fk:currentRoom().alive_players, function(p) return p:getHandcardNum() < player:getHandcardNum() end)
   end,
-  enabled_at_response = function(skill, player)
+  enabled_at_response = function(self, player)
     return player:usedSkillTimes(zhenshan.name, Player.HistoryTurn) == 0 and
       table.find(Fk:currentRoom().alive_players, function(p) return p:getHandcardNum() < player:getHandcardNum() end)
   end,

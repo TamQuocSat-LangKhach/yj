@@ -12,10 +12,10 @@ Fk:loadTranslationTable{
 
 nos__fuhun:addEffect(fk.EventPhaseStart, {
   anim_type = "offensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(nos__fuhun.name) and player.phase == Player.Draw
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local ids = room:getNCards(2)
     room:moveCards({

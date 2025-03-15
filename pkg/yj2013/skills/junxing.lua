@@ -16,16 +16,16 @@ junxing:addEffect('active', {
   min_card_num = 1,
   target_num = 1,
   prompt = "#junxing",
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return player:usedSkillTimes(junxing.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return Fk:currentRoom():getCardArea(to_select) ~= Player.Equip and not player:prohibitDiscard(Fk:getCardById(to_select))
   end,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
     return #selected == 0 and to_select.id ~= player.id
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     room:throwCard(effect.cards, junxing.name, player)

@@ -13,13 +13,13 @@ Fk:loadTranslationTable{
 
 nos__qiuyuan:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if not (target == player and player:hasSkill(nos__qiuyuan) and data.card.trueName == "slash") then return end
     local targets = table.map(table.filter(player.room:getOtherPlayers(player), function(p)
     return p.id ~= data.from and not p:isKongcheng() end), Util.IdMapper)
     return #targets > 0
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
     return p.id ~= data.from and not p:isKongcheng() end), Util.IdMapper)
@@ -35,7 +35,7 @@ nos__qiuyuan:addEffect(fk.TargetConfirming, {
     return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(event:getCostData(skill))
     room:doIndicate(player.id, {to})

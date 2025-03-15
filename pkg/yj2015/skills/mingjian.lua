@@ -15,14 +15,14 @@ mingjian:addEffect('active', {
   anim_type = "support",
   card_num = 0,
   target_num = 1,
-  can_use = function(skill, player)
+  can_use = function(self, player)
   return not player:isKongcheng() and player:usedSkillTimes(mingjian.name, Player.HistoryPhase) == 0
   end,
   card_filter = Util.FalseFunc,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
   return #selected == 0 and to_select ~= player.id
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
   local player = room:getPlayerById(effect.from)
   local target = room:getPlayerById(effect.tos[1])
   room:moveCardTo(player.player_cards[Player.Hand], Player.Hand, target, fk.ReasonGive, mingjian.name, nil, false, player.id)
@@ -31,10 +31,10 @@ mingjian:addEffect('active', {
 })
 
 mingjian:addEffect(fk.TurnStart, {
-  can_refresh = function(skill, event, target, player, data)
+  can_refresh = function(self, event, target, player, data)
   return player:getMark("@@mingjian") > 0 and target == player
   end,
-  on_refresh = function(skill, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
   local room = player.room
   room:addPlayerMark(player, "@@mingjian-turn", player:getMark("@@mingjian"))
   room:addPlayerMark(player, MarkEnum.AddMaxCardsInTurn, player:getMark("@@mingjian"))
@@ -43,7 +43,7 @@ mingjian:addEffect(fk.TurnStart, {
 })
 
 mingjian:addEffect('targetmod', {
-  residue_func = function(skill, player, skill, scope)
+  residue_func = function(self, player, skill, scope)
   if skill.trueName == "slash_skill" and player:getMark("@@mingjian-turn") > 0 and scope == Player.HistoryPhase then
     return player:getMark("@@mingjian-turn")
   end

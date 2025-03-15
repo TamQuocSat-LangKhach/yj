@@ -15,10 +15,10 @@ Fk:loadTranslationTable{
 fuhun:addEffect('viewas', {
   name = "fuhun",
   pattern = "slash",
-  card_filter = function(skill, player, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return #selected < 2 and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
   end,
-  view_as = function(skill, player, cards)
+  view_as = function(self, player, cards)
     if #cards ~= 2 then return end
     local c = Fk:cloneCard("slash")
     c.skillName = fuhun.name
@@ -29,11 +29,11 @@ fuhun:addEffect('viewas', {
 
 -- TriggerSkill 效果
 fuhun:addEffect(fk.Damage, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(fuhun.name) and target == player and data.card and table.contains(data.card.skillNames, fuhun.name) and player.phase == Player.Play
   end,
   on_cost = Util.TrueFunc,
-  on_trigger = function(skill, event, target, player, data)
+  on_trigger = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke("fuhun")
     local skills = {}

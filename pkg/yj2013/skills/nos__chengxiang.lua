@@ -12,7 +12,7 @@ Fk:loadTranslationTable{
 
 nos__chengxiang:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  on_use = function(skill, event, target, player)
+  on_use = function(self, event, target, player)
     local room = player.room
     local cards = room:getNCards(4)
     room:moveCards({

@@ -1,4 +1,4 @@
-```lua
+
 local qianju = fk.CreateSkill {
   name = "qianju"
 }
@@ -9,7 +9,7 @@ Fk:loadTranslationTable{
 }
 
 qianju:addEffect('distance', {
-  correct_func = function(skill, from, to)
+  correct_func = function(self, from, to)
   if from:hasSkill(qianju.name) then
     return -from:getLostHp()
   end
@@ -17,6 +17,3 @@ qianju:addEffect('distance', {
 })
 
 return qianju
-```
-
-在这个技能代码中，没有使用到任何 `askForXXX` 方法，因此不需要进行重构。所有内容保持不变。

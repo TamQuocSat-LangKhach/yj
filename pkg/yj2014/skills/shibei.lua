@@ -14,7 +14,7 @@ shibei:addEffect(fk.Damaged, {
   mute = true,
   anim_type = "defensive",
   frequency = Skill.Compulsory,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if data.isVirtualDMG then return end -- 虚拟伤害别管了
     local firstDamage = room.logic:getActualDamageEvents(1, function(e) return e.data[1].to == player end)[1]

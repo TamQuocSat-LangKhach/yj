@@ -15,11 +15,11 @@ huaiyi:addEffect('active', {
   anim_type = "control",
   card_num = 0,
   target_num = 0,
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return player:usedSkillTimes(huaiyi.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
   card_filter = Util.FalseFunc,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cards = player.player_cards[Player.Hand]
     player:showCards(cards)

@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 lianhuo:addEffect(fk.DamageInflicted, {
   anim_type = "negative",
   frequency = Skill.Compulsory,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(skill.name) and data.damageType == fk.FireDamage and player.chained and not data.chain
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     player.room:setEmotion(player, "./packages/maneuvering/image/anim/vineburn")
     data.damage = data.damage + 1
   end,

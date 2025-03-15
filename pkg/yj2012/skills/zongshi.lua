@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 }
 
 zongshi:addEffect('maxcards', {
-  correct_func = function(skill, player)
+  correct_func = function(self, player)
     if player:hasSkill(zongshi.name) then
       local kingdoms = {}
       for _, p in ipairs(Fk:currentRoom().alive_players) do

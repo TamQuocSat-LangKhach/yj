@@ -13,7 +13,7 @@ Fk:loadTranslationTable{
 shiyong:addEffect(fk.Damaged, {
   mute = true,
   frequency = Skill.Compulsory,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(shiyong.name) and data.card and data.card.trueName == "slash" then
     if data.card.color == Card.Red then
       return true
@@ -25,7 +25,7 @@ shiyong:addEffect(fk.Damaged, {
     end
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local audio = 0
     if target == player and player:hasSkill(shiyong.name) and data.card and data.card.trueName == "slash" then
     if data.card.color == Card.Red then

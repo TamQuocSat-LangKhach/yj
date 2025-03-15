@@ -11,16 +11,16 @@ Fk:loadTranslationTable{
 }
 
 tianbian:addEffect(fk.StartPindian, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(skill.name) and (player == data.from or table.contains(data.tos, player))
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
     skill_name = skill.name,
     prompt = "#tianbian-invoke"
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     if player == data.from then
     data.fromCard = Fk:getCardById(player.room.draw_pile[1])
     else
@@ -31,7 +31,7 @@ tianbian:addEffect(fk.StartPindian, {
 })
 
 tianbian:addEffect(fk.PindianCardsDisplayed, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
   if player:hasSkill(skill.name) then
     if player == data.from and data.fromCard.suit == Card.Heart then
     return true
@@ -40,7 +40,7 @@ tianbian:addEffect(fk.PindianCardsDisplayed, {
     end
   end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
   if player == data.from then
     data.fromCard.number = 13
   elseif data.results[player.id] then

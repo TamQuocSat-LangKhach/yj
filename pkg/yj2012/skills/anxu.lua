@@ -15,11 +15,11 @@ anxu:addEffect('active', {
   anim_type = "control",
   target_num = 2,
   card_num = 0,
-  can_use = function(skill, player)
+  can_use = function(self, player)
     return player:usedSkillTimes(anxu.name, Player.HistoryPhase) == 0
   end,
   card_filter = Util.FalseFunc,
-  target_filter = function(skill, player, to_select, selected)
+  target_filter = function(self, player, to_select, selected)
     if #selected > 1 or to_select == player.id then return false end
     if #selected == 0 then
       return true
@@ -31,7 +31,7 @@ anxu:addEffect('active', {
       return false
     end
   end,
-  on_use = function(skill, room, effect)
+  on_use = function(self, room, effect)
     local target1 = room:getPlayerById(effect.tos[1])
     local target2 = room:getPlayerById(effect.tos[2])
     local from, to

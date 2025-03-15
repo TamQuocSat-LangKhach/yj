@@ -16,19 +16,19 @@ Fk:loadTranslationTable{
 
 nos__taoxi:addEffect(fk.TargetSpecified, {
   anim_type = "offensive",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(nos__taoxi.name) and player.phase == Player.Play and data.to ~= player.id and
       #AimGroup:getAllTargets(data.tos) == 1 and
       not player.room:getPlayerById(data.to):isKongcheng() and
       player:usedSkillTimes(nos__taoxi.name, Player.HistoryPhase) == 0
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     if player.room:askToSkillInvoke(player, {skill_name = nos__taoxi.name, prompt = "#nos__taoxi-invoke::" .. data.to}) then
       event:setCostData(skill, {tos = {data.to}})
       return true
     end
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(data.to)
     local card = room:askToChooseCard(player, {
@@ -44,7 +44,7 @@ nos__taoxi:addEffect(fk.TargetSpecified, {
 
 nos__taoxi:addEffect(fk.TurnEnd, {
   anim_type = "negative",
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:usedSkillTimes(nos__taoxi.name, Player.HistoryTurn) > 0 and not player.dead and
       table.find(player.room:getOtherPlayers(player), function (p)
         return table.find(p:getCardIds("h"), function (id)
@@ -53,7 +53,7 @@ nos__taoxi:addEffect(fk.TurnEnd, {
       end)
   end,
   on_cost = Util.TrueFunc,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     player.room:loseHp(player, 1, "nos__taoxi")
   end,
 })

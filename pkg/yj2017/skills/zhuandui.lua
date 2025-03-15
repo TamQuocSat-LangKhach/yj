@@ -13,19 +13,19 @@ Fk:loadTranslationTable{
 
 zhuandui:addEffect(fk.TargetSpecified, {
   mute = true,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(zhuandui.name) and data.card.trueName == "slash" and not player:isKongcheng() then
     return data.to ~= player.id and player:canPindian(player.room:getPlayerById(data.to))
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local prompt = "zhuandui1-invoke::"..data.to..":"..data.card:toLogString()
     return player.room:askToSkillInvoke(player, {
     skill_name = zhuandui.name,
     prompt = prompt
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke(zhuandui.name)
     room:notifySkillInvoked(player, zhuandui.name, "offensive")
@@ -40,19 +40,19 @@ zhuandui:addEffect(fk.TargetSpecified, {
 
 zhuandui:addEffect(fk.TargetConfirmed, {
   mute = true,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(zhuandui.name) and data.card.trueName == "slash" and not player:isKongcheng() then
     return data.from ~= player.id and player:canPindian(player.room:getPlayerById(data.from))
     end
   end,
-  on_cost = function(skill, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
     local prompt = "zhuandui2-invoke::"..data.from..":"..data.card:toLogString()
     return player.room:askToSkillInvoke(player, {
     skill_name = zhuandui.name,
     prompt = prompt
     })
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke(zhuandui.name)
     room:notifySkillInvoked(player, zhuandui.name, "defensive")

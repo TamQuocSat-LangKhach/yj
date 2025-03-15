@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 fuli:addEffect(fk.AskForPeaches, {
   anim_type = "defensive",
   frequency = Skill.Limited,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(skill.name) and player.dying and player:usedSkillTimes(skill.name, Player.HistoryGame) == 0
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local kingdoms = {}
     for _, p in ipairs(room:getAlivePlayers()) do

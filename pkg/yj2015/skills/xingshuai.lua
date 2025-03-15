@@ -9,11 +9,11 @@ Fk:loadTranslationTable{
 xingshuai:addEffect(fk.EnterDying, {
   anim_type = "defensive",
   frequency = Skill.Limited,
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(xingshuai) and player:usedSkillTimes(xingshuai.name, Player.HistoryGame) == 0 and
       not table.every(player.room:getOtherPlayers(player), function(p) return p.kingdom ~= "wei" end)
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local targets = {}
     for _, p in ipairs(room:getOtherPlayers(player)) do

@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 }
 
 nos__danshou:addEffect(fk.Damage, {
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if room:askToSkillInvoke(player, { skill_name = "danshou" }) then
       player:broadcastSkillInvoke("danshou")

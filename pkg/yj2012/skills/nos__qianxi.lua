@@ -10,11 +10,11 @@ Fk:loadTranslationTable{
 }
 
 nos__qianxi:addEffect(fk.DamageCaused, {
-  can_trigger = function(skill, event, target, player, data)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(skill.name) and player:distanceTo(data.to) == 1 and
          data.card and data.card.trueName == "slash" and player.room.logic:damageByCardEffect()
   end,
-  on_use = function(skill, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local judge = {
       who = player,
