@@ -5,10 +5,10 @@ local enyuan = fk.CreateSkill {
 
 Fk:loadTranslationTable{
   ["nos__enyuan"] = "恩怨",
-  [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张<font color=>♥</font>手牌，"..
+  [":nos__enyuan"] = "锁定技，其他角色每令你回复1点体力，该角色摸一张牌；其他角色每对你造成一次伤害，须给你一张<font color='red'>♥</font>手牌，"..
   "否则该角色失去1点体力。",
 
-  ["#nos__enyuan-give"] = "恩怨：你需交给 %src 一张<font color=>♥</font>手牌，否则失去1点体力",
+  ["#nos__enyuan-give"] = "恩怨：你需交给 %src 一张<font color='red'>♥</font>手牌，否则失去1点体力",
 
   ["$nos__enyuan1"] = "得人恩果千年记。",
   ["$nos__enyuan2"] = "滴水之恩，涌泉相报。",
