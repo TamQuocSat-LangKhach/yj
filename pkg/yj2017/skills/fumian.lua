@@ -18,10 +18,10 @@ Fk:loadTranslationTable{
 
 fumian:addEffect(fk.EventPhaseStart, {
   anim_type = "support",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(fumian.name) and player.phase == Player.Start
   end,
-  on_trigger = function(self, event, target, player)
+  on_trigger = function(self, event, target, player, data)
     local room = player.room
     if player:getMark("fumian1_record") > 0 or player:getMark("fumian2_record") > 0 then
       for i = 1, 2 do
@@ -35,7 +35,7 @@ fumian:addEffect(fk.EventPhaseStart, {
     room:setPlayerMark(player, "fumian1-tmp", 0)
     room:setPlayerMark(player, "fumian2-tmp", 0)
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local choices = {"fumian1:::"..(player:getMark("fumian2-tmp") + 1), "fumian2:::"..(player:getMark("fumian1-tmp") + 1), "Cancel"}
     local choice = player.room:askToChoice(player, {
       choices = choices,
@@ -46,7 +46,7 @@ fumian:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local n = event:getCostData(self)[7]
     if n == "1" then
@@ -60,13 +60,13 @@ fumian:addEffect(fk.EventPhaseStart, {
 
 fumian:addEffect(fk.DrawNCards, {
   mute = true,
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:getMark("@fumian1-turn") > 0
   end,
-  on_cost = function (self, event, target, player)
+  on_cost = function (self, event, target, player, data)
     return true
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     data.n = data.n + player:getMark("@fumian1-turn")
     room:setPlayerMark(player, "@fumian1-turn", 0)
@@ -75,11 +75,11 @@ fumian:addEffect(fk.DrawNCards, {
 
 fumian:addEffect(fk.AfterCardTargetDeclared, {
   mute = true,
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:getMark("@fumian2-turn") > 0 and data.card.color == Card.Red and data.tos and
       #player.room:getUseExtraTargets(data) > 0
   end,
-  on_cost = function (self, event, target, player)
+  on_cost = function (self, event, target, player, data)
     local tos = player.room:askToChoosePlayers(player, {
       targets = player.room:getUseExtraTargets(data),
       min_num = 1,
@@ -93,7 +93,7 @@ fumian:addEffect(fk.AfterCardTargetDeclared, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     room:setPlayerMark(player, "@fumian2-turn", 0)
     for _, id in ipairs(event:getCostData(self)) do

@@ -12,7 +12,7 @@ Fk:loadTranslationTable{
 
 qinqing:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player.phase == Player.Finish and player:hasSkill(qinqing.name) then
       local lord = player.room:getLord()  --暂不考虑主公身份被变掉且没有主公的情况，以及多个主公的情况（3v3）
       if not lord then
@@ -21,7 +21,7 @@ qinqing:addEffect(fk.EventPhaseStart, {
       return lord and not lord.dead and table.find(player.room.alive_players, function(p) return p:inMyAttackRange(lord) end)
     end
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local lord = room:getLord()
     if not lord then
@@ -40,7 +40,7 @@ qinqing:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local tos = table.map(event:getCostData(qinqing), Util.Id2PlayerMapper)
     for _, p in ipairs(tos) do

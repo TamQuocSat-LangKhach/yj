@@ -17,11 +17,11 @@ Fk:loadTranslationTable{
 
 xuanhuo:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(xuanhuo.name) and player.phase == Player.Draw and
       #player.room:getOtherPlayers(player, false) > 0
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askToChoosePlayers(player, {
       targets = room:getOtherPlayers(player, false),
@@ -35,9 +35,9 @@ xuanhuo:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
-    player._phase_end = true
+    data.phase_end = true
     local to = event:getCostData(self).tos[1]
     to:drawCards(2, xuanhuo.name)
     if player.dead or to.dead then return end

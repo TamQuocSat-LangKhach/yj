@@ -11,10 +11,10 @@ Fk:loadTranslationTable{
 }
 
 qieting:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(qieting) and target ~= player and target.phase == Player.Finish and player:getMark("qieting-turn") == 0
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local choices = {"draw1"}
     if target:canMoveCardsInBoardTo(player, "e") then

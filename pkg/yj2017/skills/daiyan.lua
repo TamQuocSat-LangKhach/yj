@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 
 daiyan:addEffect(fk.EventPhaseStart, {
   anim_type = "support",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
   return target == player and player:hasSkill(daiyan.name) and player.phase == Player.Finish
   end,
-  on_trigger = function(self, event, target, player)
+  on_trigger = function(self, event, target, player, data)
   local room = player.room
   if player:getMark("daiyan_record") ~= 0 then
     local to = room:getPlayerById(player:getMark("daiyan_record"))
@@ -30,7 +30,7 @@ daiyan:addEffect(fk.EventPhaseStart, {
     room:setPlayerMark(p, "@@daiyan-tmp", 0)
   end
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
   local to = player.room:askToChoosePlayers(player, {
     targets = table.map(player.room:getOtherPlayers(player, false), Util.IdMapper),
     min_num = 1,
@@ -44,7 +44,7 @@ daiyan:addEffect(fk.EventPhaseStart, {
     return true
   end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
   local room = player.room
   room:setPlayerMark(player, "daiyan_record", event:getCostData(self).id)
   local to = room:getPlayerById(event:getCostData(self).id)

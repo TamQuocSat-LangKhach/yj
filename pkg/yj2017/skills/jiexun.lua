@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 }
 
 jiexun:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jiexun) and player.phase == Player.Finish
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local n1 = 0
     for _, p in ipairs(room.alive_players) do
@@ -35,7 +35,7 @@ jiexun:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     room:addPlayerMark(player, "@jiexun")
     local to = room:getPlayerById(event:getCostData(self)[1])
@@ -62,10 +62,10 @@ jiexun:addEffect(fk.EventPhaseStart, {
       end
     end
   end,
-  can_refresh = function(self, event, target, player)
+  can_refresh = function(self, event, target, player, data)
     return player == target and data == self
   end,
-  on_refresh = function(self, event, target, player)
+  on_refresh = function(self, event, target, player, data)
     player.room:setPlayerMark(player, "@jiexun", 0)
   end,
 })

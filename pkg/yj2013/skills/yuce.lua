@@ -12,10 +12,10 @@ Fk:loadTranslationTable{
 }
 
 yuce:addEffect(fk.Damaged, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(yuce.name) and not player:isKongcheng()
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local card = player.room:askToCards(player, {
       min_num = 1,
       max_num = 1,
@@ -29,7 +29,7 @@ yuce:addEffect(fk.Damaged, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local c = event:getCostData(self)
     player:showCards({c})

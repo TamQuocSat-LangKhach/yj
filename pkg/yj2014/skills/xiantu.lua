@@ -15,13 +15,13 @@ Fk:loadTranslationTable{
 xiantu:addEffect(fk.EventPhaseStart, {
   mute = true,
   anim_type = "support",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target ~= player and player:hasSkill(xiantu.name) and target.phase == Player.Play and not target.dead
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, { skill_name = xiantu.name, prompt = "#xiantu-invoke::" .. target.id })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke(xiantu.name, 1)
     room:notifySkillInvoked(player, xiantu.name)
@@ -48,7 +48,7 @@ xiantu:addEffect(fk.EventPhaseStart, {
 
 xiantu:addEffect(fk.EventPhaseEnd, {
   mute = true,
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     if target ~= player and target.phase == Player.Play and player:getMark("xiantu-phase") > 0 then
       return #player.room.logic:getEventsOfScope(GameEvent.Death, 1, function(e)
         local death = e.data[1]
@@ -57,7 +57,7 @@ xiantu:addEffect(fk.EventPhaseEnd, {
     end
   end,
   on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke("xiantu", 2)
     room:notifySkillInvoked(player, "xiantu", "negative")

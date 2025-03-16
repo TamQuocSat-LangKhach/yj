@@ -13,11 +13,11 @@ Fk:loadTranslationTable{
 zongzuo:addEffect(fk.GameStart, {
   mute = true,
   frequency = Skill.Compulsory,
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(zongzuo) and (event == fk.GameStart or
       (event == fk.Deathed and table.every(player.room:getAlivePlayers(), function(p) return p.kingdom ~= target.kingdom end)))
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.GameStart then
       player:broadcastSkillInvoke(zongzuo.name)
@@ -43,11 +43,11 @@ zongzuo:addEffect(fk.GameStart, {
 zongzuo:addEffect(fk.Deathed, {
   mute = true,
   frequency = Skill.Compulsory,
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(zongzuo) and (event == fk.GameStart or
       (event == fk.Death and table.every(player.room:getAlivePlayers(), function(p) return p.kingdom ~= target.kingdom end)))
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.GameStart then
       player:broadcastSkillInvoke(zongzuo.name)

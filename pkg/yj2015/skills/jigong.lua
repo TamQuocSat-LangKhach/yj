@@ -11,10 +11,10 @@ Fk:loadTranslationTable{
 }
 
 jigong:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jigong.name) and player.phase == Player.Play
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     player:drawCards(2, jigong.name)
   end,
 })

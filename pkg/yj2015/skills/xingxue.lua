@@ -12,10 +12,10 @@ Fk:loadTranslationTable{
 }
 
 xingxue:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(xingxue) and player.phase == Player.Finish
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local n = player:hasSkill(yanzhu, true) and player.hp or player.maxHp
     local tos = player.room:askToChoosePlayers(player, {
       targets = table.map(player.room.alive_players, Util.IdMapper),
@@ -29,7 +29,7 @@ xingxue:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local targets = table.simpleClone(event:getCostData(self))
     room:sortPlayersByAction(targets)

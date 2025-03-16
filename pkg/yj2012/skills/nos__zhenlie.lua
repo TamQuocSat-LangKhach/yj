@@ -1,41 +1,34 @@
-local nos__zhenlie = fk.CreateSkill {
-  name = "nos__zhenlie"
+local zhenlie = fk.CreateSkill {
+  name = "nos__zhenlie",
 }
 
 Fk:loadTranslationTable{
-  ['nos__zhenlie'] = '贞烈',
-  [':nos__zhenlie'] = '当你的判定牌生效前，你可以亮出牌堆顶的一张牌代替之。',
-  ['$nos__zhenlie1'] = '我，绝不屈服！',
-  ['$nos__zhenlie2'] = '休要小看妇人志气！'
+  ["nos__zhenlie"] = "贞烈",
+  [":nos__zhenlie"] = "当你的判定牌生效前，你可以亮出牌堆顶的一张牌代替之。",
+
+  ["#nos__zhenlie-invoke"] = "贞烈：是否亮出牌堆顶一张牌修改你的“%arg”判定？",
+
+  ["$nos__zhenlie1"] = "我，绝不屈服！",
+  ["$nos__zhenlie2"] = "休要小看妇人志气！"
 }
 
-nos__zhenlie:addEffect(fk.AskForRetrial, {
+zhenlie:addEffect(fk.AskForRetrial, {
   anim_type = "control",
+  on_cost = function (self, event, target, player, data)
+    return player.room:askToSkillInvoke(player, {
+      skill_name = zhenlie.name,
+      prompt = "#nos__zhenlie-invoke:::"..data.reason,
+    })
+  end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    local move1 = {
-      ids = room:getNCards(1),
-      toArea = Card.Processing,
-      moveReason = fk.ReasonJustMove,
-      skillName = nos__zhenlie.name,
-      proposer = player.id,
-    }
-    local move2 = {
-      ids = {data.card:getEffectiveId()},
-      toArea = Card.DiscardPile,
-      moveReason = fk.ReasonJustMove,
-      skillName = nos__zhenlie.name,
-    }
-    room:moveCards(move1, move2)
-    data.card = Fk:getCardById(move1.ids[1])
-    room:sendLog{
-      type = "#ChangedJudge",
-      from = player.id,
-      to = {player.id},
-      card = {move1.ids[1]},
-      arg = nos__zhenlie.name
+    player.room:ChangeJudge{
+      card = Fk:getCardById(player.room:getNCards(1)[1]),
+      player = player,
+      data = data,
+      skillName = zhenlie.name,
+      response = false,
     }
   end,
 })
 
-return nos__zhenlie
+return zhenlie

@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 }
 
 buyi:addEffect(fk.EnterDying, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(buyi.name) and not target:isKongcheng()
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     if room:askToSkillInvoke(player, {
       skill_name = buyi.name,
@@ -26,7 +26,7 @@ buyi:addEffect(fk.EnterDying, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local id = room:askToChooseCard(player, {
       target = target,

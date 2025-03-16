@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 }
 
 caishi:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(caishi.name) and player == target and player.phase == Player.Draw
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local choices = {"#caishi1","cancel"}
     if player:isWounded() then table.insert(choices,2, "#caishi2") end
@@ -29,7 +29,7 @@ caishi:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local choice = event:getCostData(self)
     if choice == "#caishi1" then

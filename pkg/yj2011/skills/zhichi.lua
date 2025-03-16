@@ -15,10 +15,10 @@ Fk:loadTranslationTable{
 
 zhichi:addEffect(fk.Damaged, {
   anim_type = "defensive",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(zhichi.name) and player.room.current ~= player
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     player.room:setPlayerMark(player, "@@zhichi-turn", 1)
   end,
 })

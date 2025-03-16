@@ -18,10 +18,10 @@ Fk:loadTranslationTable{
 -- 主技能
 qiaoshui:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(qiaoshui) and player.phase == Player.Play and not player:isKongcheng()
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
       return player:canPindian(p) 
@@ -43,7 +43,7 @@ qiaoshui:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local cost_data = event:getCostData(self)
     local to = room:getPlayerById(cost_data.tos[1])

@@ -11,18 +11,18 @@ Fk:loadTranslationTable{
 }
 
 nos__zhuikong:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(nos__zhuikong.name) and target ~= player and target.phase == Player.Start then
       return player:isWounded() and player:canPindian(target)
     end
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = nos__zhuikong.name,
       prompt = "#nos__zhuikong-invoke::" .. target.id
     })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local pindian = player:pindian({target}, nos__zhuikong.name)
     if pindian.results[target.id].winner == player then

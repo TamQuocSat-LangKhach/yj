@@ -14,11 +14,11 @@ Fk:loadTranslationTable{
 
 jujian:addEffect(fk.EventPhaseStart, {
   anim_type = "support",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jujian.name) and player.phase == Player.Finish and
       not player:isNude() and #player.room:getOtherPlayers(player, false) > 0
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local tos, card = room:askToChooseCardsAndPlayers(player, {
       skill_name = jujian.name,
@@ -38,7 +38,7 @@ jujian:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local to = event:getCostData(self).tos[1]
     room:throwCard(event:getCostData(self).cards, jujian.name, player, player)

@@ -11,10 +11,10 @@ Fk:loadTranslationTable{
 }
 
 bingyi:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(bingyi) and player.phase == Player.Finish and not player:isKongcheng()
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local cards = player.player_cards[Player.Hand]
     player:showCards(cards)

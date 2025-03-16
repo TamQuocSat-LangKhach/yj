@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 }
 
 hexian:addEffect(fk.HpRecover, {
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local tos = room:askToChoosePlayers(player, {
       targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper),
@@ -27,7 +27,7 @@ hexian:addEffect(fk.HpRecover, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     doQingxian(room, room:getPlayerById(event:getCostData(self).tos[1]), player, "qingxian_recover", hexian.name)
   end,

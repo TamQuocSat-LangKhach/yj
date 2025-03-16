@@ -11,16 +11,16 @@ Fk:loadTranslationTable{
 }
 
 yonglue:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
   return player:hasSkill(yonglue.name) and target.phase == Player.Judge and #target:getCardIds("j") > 0 and player:inMyAttackRange(target)
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
   return player.room:askToSkillInvoke(player, {
     skill_name = yonglue.name,
     prompt = "#yonglue-invoke::" .. target.id
   })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
   local room = player.room
   room:doIndicate(player.id, {target.id})
   local card = room:askToChooseCard(player, {

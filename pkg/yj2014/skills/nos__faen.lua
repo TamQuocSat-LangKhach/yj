@@ -11,38 +11,38 @@ Fk:loadTranslationTable{
 }
 
 nos__faen:addEffect(fk.TurnedOver, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(nos__faen) and not target.dead then
       return true
     end
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     event:setCostData(self, {tos = {target.id}})
     return player.room:askToSkillInvoke(player, {
       skill_name = nos__faen.name,
       prompt = "#nos__faen-invoke::"..target.id
     })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local cost_data = event:getCostData(self)
     target:drawCards(1, nos__faen.name)
   end,
 })
 
 nos__faen:addEffect(fk.ChainStateChanged, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     if player:hasSkill(nos__faen) and not target.dead then
       return target.chained
     end
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     event:setCostData(self, {tos = {target.id}})
     return player.room:askToSkillInvoke(player, {
       skill_name = nos__faen.name,
       prompt = "#nos__faen-invoke::"..target.id
     })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local cost_data = event:getCostData(self)
     target:drawCards(1, nos__faen.name)
   end,

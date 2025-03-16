@@ -1,59 +1,45 @@
 local quanji = fk.CreateSkill {
-  name = "quanji"
+  name = "quanji",
 }
 
 Fk:loadTranslationTable{
-  ['quanji'] = '权计',
-  ['zhonghui_quan'] = '权',
-  ['#quanji-card'] = '权计：将一张手牌置为“权”',
-  [':quanji'] = '每当你受到1点伤害后，你可以摸一张牌，然后将一张手牌置于武将牌上，称为“权”；每有一张“权”，你的手牌上限便+1。',
-  ['$quanji1'] = '这仇，我记下了。',
-  ['$quanji2'] = '先让你得意几天。',
+  ["quanji"] = "权计",
+  [":quanji"] = "当你受到1点伤害后，你可以摸一张牌，然后将一张手牌置于武将牌上，称为“权”；每有一张“权”，你的手牌上限便+1。",
+
+  ["zhonghui_quan"] = "权",
+  ["#quanji-ask"] = "权计：将一张手牌置为“权”",
+
+  ["$quanji1"] = "这仇，我记下了。",
+  ["$quanji2"] = "先让你得意几天。",
 }
 
 quanji:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  derived_piles = {"zhonghui_quan"},
-  on_trigger = function(self, event, target, player, data)
-    skill.cancel_cost = false
-    for i = 1, data.damage do
-      if skill.cancel_cost or player.dead then break end
-      skill:doCost(event, target, player, data)
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    if room:askToSkillInvoke(player, {skill_name = quanji.name, prompt = data}) then
-      return true
-    end
-    skill.cancel_cost = true
+  derived_piles = "zhonghui_quan",
+  trigger_times = function(self, event, target, player, data)
+    return data.damage
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:drawCards(1, quanji.name)
-    if player:isKongcheng() then return end
+    if player:isKongcheng() or player.dead then return end
     local card = room:askToCards(player, {
+      skill_name = quanji.name,
+      include_equip = false,
       min_num = 1,
       max_num = 1,
-      include_equip = false,
-      skill_name = quanji.name,
+      prompt = "#quanji-ask",
       cancelable = false,
-      pattern = ".",
-      prompt = "#quanji-card"
     })
-    player:addToPile("zhonghui_quan", card[1], true, quanji.name)
+    player:addToPile("zhonghui_quan", card, true, quanji.name)
   end,
 })
-
-local quanji_maxcards = fk.CreateMaxCardsSkill{
-  name = "#quanji_maxcards",
+quanji:addEffect("maxcards", {
   correct_func = function(self, player)
-    if player:hasSkill(quanji) then
+    if player:hasSkill(quanji.name) then
       return #player:getPile("zhonghui_quan")
-    else
-      return 0
     end
   end,
-}
+})
 
 return quanji

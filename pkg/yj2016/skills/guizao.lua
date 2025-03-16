@@ -11,7 +11,7 @@ Fk:loadTranslationTable{
 
 guizao:addEffect(fk.EventPhaseEnd, {
   anim_type = "defensive",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(guizao.name) and player.phase == Player.Discard then
     local yes, suits = true, {}
     player.room.logic:getEventsOfScope(GameEvent.MoveCards, 999, function(e)
@@ -32,7 +32,7 @@ guizao:addEffect(fk.EventPhaseEnd, {
     return yes and #suits > 1
     end
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local choices = {"Cancel", "draw1"}
     if player:isWounded() then
     table.insert(choices, "recover")
@@ -46,7 +46,7 @@ guizao:addEffect(fk.EventPhaseEnd, {
     return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local cost_data = event:getCostData(self)
     if cost_data == "draw1" then
     player:drawCards(1, guizao.name)

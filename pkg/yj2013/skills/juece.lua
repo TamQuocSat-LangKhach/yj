@@ -11,11 +11,11 @@ Fk:loadTranslationTable{
 }
 
 juece:addEffect(fk.EventPhaseStart, {
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(juece.name) and player.phase == Player.Finish and
       #table.filter(player.room:getOtherPlayers(player), function(p) return p:isKongcheng() end) > 0
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local kongcheng_players = table.map(table.filter(room:getOtherPlayers(player), function(p)
       return p:isKongcheng()
@@ -35,7 +35,7 @@ juece:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local cost_data = event:getCostData(self)
     player.room:damage{
       from = player,

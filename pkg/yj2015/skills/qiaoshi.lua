@@ -12,17 +12,17 @@ Fk:loadTranslationTable{
 
 qiaoshi:addEffect(fk.EventPhaseStart, {
   anim_type = "support",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target ~= player and player:hasSkill(qiaoshi.name) and target.phase == Player.Finish and not target.dead and
       player:getHandcardNum() == target:getHandcardNum()
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = qiaoshi.name,
       prompt = "#qiaoshi-invoke::" .. target.id
     })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     target:drawCards(1, qiaoshi.name)
     if not player.dead then
       player:drawCards(1, qiaoshi.name)

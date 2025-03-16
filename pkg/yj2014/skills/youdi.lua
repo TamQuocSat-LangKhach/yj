@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 youdi:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
   mute = true,
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(youdi.name) and player.phase == Player.Finish and not player:isNude()
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local to = player.room:askToChoosePlayers(player, {
       targets = table.map(player.room:getOtherPlayers(player, false), Util.IdMapper),
       min_num = 1,
@@ -30,7 +30,7 @@ youdi:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(event:getCostData(self))
     player:broadcastSkillInvoke(youdi.name, 1)

@@ -13,10 +13,10 @@ Fk:loadTranslationTable{
 
 local spec = {
   anim_type = "drawcard",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return player:hasSkill(shangshi.name) and player:getHandcardNum() < player:getLostHp()
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     player:drawCards(player:getLostHp() - player:getHandcardNum(), shangshi.name)
   end,
 }
