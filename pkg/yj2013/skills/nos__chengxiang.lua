@@ -1,57 +1,54 @@
-local nos__chengxiang = fk.CreateSkill {
-  name = "nos__chengxiang"
+local chengxiang = fk.CreateSkill {
+  name = "nos__chengxiang",
 }
 
 Fk:loadTranslationTable{
-  ['nos__chengxiang'] = '称象',
-  ['#nos__chengxiang-choose'] = '称象：获得任意点数之和小于13的牌',
-  [':nos__chengxiang'] = '每当你受到一次伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于13的牌。',
-  ['$nos__chengxiang1'] = '以船载象，以石易象，称石则可得象斤重。',
-  ['$nos__chengxiang2'] = '若以冲所言行事，则此象之重可称也。',
+  ["nos__chengxiang"] = "称象",
+  [":nos__chengxiang"] = "当你受到伤害后，你可以亮出牌堆顶的四张牌，然后获得其中任意数量点数之和小于13的牌。",
+
+  ["#nos__chengxiang-choose"] = "称象：获得任意点数之和小于13的牌",
+
+  ["$nos__chengxiang1"] = "以船载象，以石易象，称石则可得象斤重。",
+  ["$nos__chengxiang2"] = "若以冲所言行事，则此象之重可称也。",
 }
 
-nos__chengxiang:addEffect(fk.Damaged, {
+Fk:addPoxiMethod{
+  name = "nos__chengxiang",
+  card_filter = function(to_select, selected, data)
+    if table.contains(data[2], to_select) then return true end
+    local n = Fk:getCardById(to_select).number
+    for _, id in ipairs(data[2]) do
+      n = n + Fk:getCardById(id).number
+    end
+    return n < 13
+  end,
+  feasible = Util.TrueFunc,
+}
+
+chengxiang:addEffect(fk.Damaged, {
   anim_type = "masochism",
   on_use = function(self, event, target, player, data)
     local room = player.room
     local cards = room:getNCards(4)
-    room:moveCards({
-      ids = cards,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonPut,
-      proposer = player.id,
-      skillName = skill.name,
-    })
-    local get = {}
-    for _, id in ipairs(cards) do
-      if Fk:getCardById(id, true).number < 13 then
-        table.insert(get, id)
-        break
-      end
-    end
-    get = room:askToArrangeCards(player, {
-      skill_name = skill.name,
-      card_map = {cards},
-      prompt = "#nos__chengxiang-choose",
-      box_size = 0,
-      max_limit = {4, 4},
-      min_limit = {0, #get},
-      pattern = ".",
-      poxi_type = "nos__chengxiang_count",
-      default_choice = {{}, get}
-    })[2]
+    room:turnOverCardsFromDrawPile(player, cards, chengxiang.name)
+    local get = table.filter(cards, function (id)
+      return Fk:getCardById(id).number < 13
+    end)
     if #get > 0 then
-      room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, skill.name, "", true, player.id)
+      get = room:askToArrangeCards(player, {
+        skill_name = chengxiang.name,
+        card_map = {cards},
+        prompt = "#nos__chengxiang-choose",
+        box_size = 0,
+        max_limit = {4, 4},
+        min_limit = {0, #get},
+        poxi_type = "nos__chengxiang",
+        default_choice = {{}, {get[1]}}
+      })[2]
+      room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, chengxiang.name, nil, true, player)
     end
-    cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
-    if #cards > 0 then
-      room:moveCards({
-        ids = cards,
-        toArea = Card.DiscardPile,
-        moveReason = fk.ReasonPutIntoDiscardPile,
-      })
-    end
-  end
+    room:cleanProcessingArea(cards)
+  end,
 })
 
-return nos__chengxiang
+return chengxiang
