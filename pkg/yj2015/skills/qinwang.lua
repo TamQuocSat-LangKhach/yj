@@ -1,82 +1,79 @@
-```lua
+
 local qinwang = fk.CreateSkill {
-  name = "qinwang$"
+  name = "qinwang",
+  tags = { Skill.Lord },
 }
 
 Fk:loadTranslationTable{
-  ['#qinwang'] = '勤王：你可以弃置一张牌，然后令其他蜀势力角色选择是否打出一张【杀】（视为由你使用或打出）',
-  ['#qinwang-ask'] = '勤王: 你可打出一张【杀】，视为 %src 使用或打出，若如此做，你摸一张牌',
+  ["qinwang"] = "勤王",
+  [":qinwang"] = "主公技，当你需要使用或打出【杀】时，你可以弃置一张牌，然后令其他蜀势力角色选择是否打出一张【杀】（视为由你使用或打出）。"..
+  "若有角色响应，该角色摸一张牌。",
+
+  ["#qinwang"] = "勤王：你可以弃置一张牌发动“激将”",
+  ["#qinwang-ask"] = "勤王：你可以替 %src 打出一张【杀】，然后摸一张牌",
+
+  ["$qinwang1"] = "大厦倾危，谁堪栋梁！",
+  ["$qinwang2"] = "国有危难，哪位将军请战？",
 }
 
-qinwang:addEffect('viewas', {
-  prompt = "#qinwang",
-  mute = true,
+qinwang:addEffect("viewas", {
   anim_type = "defensive",
   pattern = "slash",
+  prompt = "#qinwang",
   card_filter = function(self, player, to_select, selected)
-    return #selected == 0 and not player:prohibitDiscard(Fk:getCardById(to_select))
+    return #selected == 0 and not player:prohibitDiscard(to_select)
+  end,
+  view_as = function(self, player, cards)
+    if #cards ~= 1 then return end
+    local c = Fk:cloneCard("slash")
+    c.skillName = qinwang.name
+    self.cost_data = cards
+    return c
   end,
   before_use = function(self, player, use)
     local room = player.room
-    if use.card.extra_data and type(use.card.extra_data.qinwangCards) == "table" and #use.card.extra_data.qinwangCards > 0 then
-      room:notifySkillInvoked(player, skill.name)
-      player:broadcastSkillInvoke(skill.name)
-      room:throwCard(use.card.extra_data.qinwangCards, skill.name, player, player)
-      if use.tos then
-        room:doIndicate(player.id, TargetGroup:getRealTargets(use.tos))
-      end
-
-      for _, p in ipairs(room:getOtherPlayers(player)) do
-        if p.kingdom == "shu" then
-          local cardResponded = room:askToResponse(p, {
-            pattern = "slash",
-            skill_name = "#qinwang-ask:" .. player.id,
-            cancelable = true
-          })
-          if cardResponded then
-            room:responseCard({
-              from = p.id,
-              card = cardResponded,
-              skipDrop = true,
-            })
-
-            use.card = cardResponded
-            use.extra_data = use.extra_data or {}
-            use.extra_data.qinwangUser = p.id
-            return
-          end
+    room:throwCard(self.cost_data, qinwang.name, player, player)
+    if use.tos then
+      room:doIndicate(player, use.tos)
+    end
+    for _, p in ipairs(room:getOtherPlayers(player)) do
+      if p.kingdom == "shu" then
+        local respond = room:askToResponse(p, {
+          skill_name = qinwang.name,
+          pattern = "slash",
+          prompt = "#qinwang-ask:"..player.id,
+          cancelable = true,
+        })
+        if respond then
+          respond.skipDrop = true
+          room:responseCard(respond)
+          use.card = respond.card
+          use.extra_data = use.extra_data or {}
+          use.extra_data.qinwang = p
         end
       end
-
-      room:setPlayerMark(player, "qinwang-failed-phase", 1)
     end
-    return skill.name
+    return qinwang.name
   end,
   after_use = function(self, player, use)
-    if use.extra_data and use.extra_data.qinwangUser then
-      local p = player.room:getPlayerById(use.extra_data.qinwangUser)
-      if p and not p.dead then
-        p:drawCards(1, skill.name)
+    if use.extra_data and use.extra_data.qinwang then
+      if not use.extra_data.qinwang.dead then
+        use.extra_data.qinwang:drawCards(1, qinwang.name)
       end
     end
   end,
-  view_as = function(self, player, cards)
-    if #cards < 1 then return end
-    local c = Fk:cloneCard("slash")
-    c.skillName = skill.name
-    c.extra_data = c.extra_data or {}
-    c.extra_data.qinwangCards = cards
-    return c
-  end,
   enabled_at_play = function(self, player)
-    return player:getMark("qinwang-failed-phase") == 0 and not player:isNude() and
-      table.find(Fk:currentRoom().alive_players, function(p) return p ~= player and p.kingdom == "shu" end)
+    return not player:isNude() and
+      table.find(Fk:currentRoom().alive_players, function(p)
+        return p ~= player and p.kingdom == "shu"
+      end)
   end,
   enabled_at_response = function(self, player)
-    return player:getMark("qinwang-failed-phase") == 0 and not player:isNude() and
-      table.find(Fk:currentRoom().alive_players, function(p) return p ~= player and p.kingdom == "shu" end)
+    return not player:isNude() and
+      table.find(Fk:currentRoom().alive_players, function(p)
+        return p ~= player and p.kingdom == "shu"
+      end)
   end,
 })
 
 return qinwang
-```

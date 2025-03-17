@@ -96,11 +96,6 @@ local caishi_prohibit = fk.CreateProhibitSkill{
 caishi:addRelatedSkill(caishi_prohibit)
 xinxianying:addSkill(caishi)
 Fk:loadTranslationTable{
-  ["xinxianying"] = "辛宪英",
-  ["#xinxianying"] = "名门智女",
-  ["designer:xinxianying"] = "如释帆飞",
-  ["cv:xinxianying"] = "小N",
-  ["illustrator:xinxianying"] = "玫芍之言",
 
   ["zhongjian"] = "忠鉴",
   [":zhongjian"] = "出牌阶段限一次，你可以展示一张手牌，然后展示手牌数大于体力值的一名其他角色X张手牌（X为其手牌数和体力值之差）。若其以此法"..
@@ -116,7 +111,6 @@ Fk:loadTranslationTable{
   ["$zhongjian2"] = "心中自有明镜，可鉴奸佞忠良。",
   ["$caishi1"] = "清识难尚，至德可师。",
   ["$caishi2"] = "知书达礼，博古通今。",
-  ["~xinxianying"] = "吾一生明鉴，竟错看于你。",
 }
 
 local jikang = General(extension, "jikang", "wei", 3)
@@ -301,10 +295,6 @@ local hexian = fk.CreateTriggerSkill{
 }
 jikang:addRelatedSkill(hexian)
 Fk:loadTranslationTable{
-  ["jikang"] = "嵇康",
-  ["#jikang"] = "峻峰孤松",
-  ["cv:jikang"] = "曹毅",
-  ["illustrator:jikang"] = "眉毛子",
 
   ["qingxian"] = "清弦",
   [":qingxian"] = "当你受到伤害/回复体力后，你可以选一项令伤害来源/一名其他角色执行：1.失去1点体力并随机使用牌堆一张装备牌；"..
@@ -321,28 +311,6 @@ Fk:loadTranslationTable{
   ["@@juexiang"] = "绝响",
   ["#juexiang_prohibit"] = "绝响",
 
-  ["jixiann"] = "激弦",
-  [":jixiann"] = "当你受到伤害后，你可以令伤害来源失去1点体力并随机使用牌堆一张装备牌。",
-  ["#jixiann-invoke"] = "激弦：你可以令 %src 失去1点体力并使用随机装备牌",
-  ["liexian"] = "烈弦",
-  [":liexian"] = "当你回复体力后，你可以令一名其他角色失去1点体力并随机使用牌堆一张装备牌。",
-  ["#liexian-choose"] = "烈弦：可以令一名其他角色失去1点体力并随机使用装备牌",
-  ["rouxian"] = "柔弦",
-  [":rouxian"] = "当你受到伤害后，你可以令伤害来源回复1点体力并弃置一张装备牌。",
-  ["#rouxian-invoke"] = "柔弦：你可以令 %src 回复1点体力并弃置一张装备牌",
-  ["hexian"] = "和弦",
-  [":hexian"] = "当你回复体力后，你可以令一名其他角色回复1点体力并弃置一张装备牌。",
-  ["#hexian-choose"] = "和弦：可以令一名其他角色回复1点体力并弃置一张装备牌",
-
-  ["$qingxian1"] = "抚琴拨弦，悠然自得。",
-  ["$qingxian2"] = "寄情于琴，合于天地。",
-  ["$juexiang1"] = "此曲不能绝矣！",
-  ["$juexiang2"] = "一曲琴音，为我送别。",
-  ["$jixiann"] = "一弹一拨，铿锵有力！",
-  ["$liexian"] = "一壶烈云烧，一曲人皆醉。",
-  ["$rouxian"] = "君子以琴会友，以瑟辅人。",
-  ["$hexian"] = "悠悠琴音，人人自醉。",
-  ["~jikang"] = "多少遗恨，俱随琴音去。",
 }
 
 local wuxian = General(extension, "wuxian", "shu", 3, 3, General.Female)
@@ -479,11 +447,6 @@ fumian:addRelatedSkill(fumian_trigger)
 wuxian:addSkill(fumian)
 wuxian:addSkill(daiyan)
 Fk:loadTranslationTable{
-  ["wuxian"] = "吴苋",
-  ["#wuxian"] = "穆皇后",
-  ["designer:wuxian"] = "wlf元首",
-  ["cv:wuxian"] = "冯骏骅",
-  ["illustrator:wuxian"] = "缨尧",
 
   ["fumian"] = "福绵",
   [":fumian"] = "准备阶段，你可以选择一项：1.本回合下个摸牌阶段摸牌数+1；2.本回合限一次，当你使用红色牌时，可以令此牌目标数+1。若你选择的选项"..
@@ -503,7 +466,6 @@ Fk:loadTranslationTable{
   ["$fumian2"] = "永理二子，当保大汉血脉长存。",
   ["$daiyan1"] = "汝可于宫中多留几日无妨。",
   ["$daiyan2"] = "胡氏受屈，吾亦心不安。",
-  ["~wuxian"] = "所幸伴君半生，善始终得善终。",
 }
 
 local qinmi = General(extension, "qinmi", "shu", 3)
@@ -631,11 +593,6 @@ qinmi:addSkill(jianzhengq)
 qinmi:addSkill(zhuandui)
 qinmi:addSkill(tianbian)
 Fk:loadTranslationTable{
-  ["qinmi"] = "秦宓",
-  ["#qinmi"] = "彻天之舌",
-  ["cv:qinmi"] = "曹真",
-  ["designer:qinmi"] = "凌天翼",
-  ["illustrator:qinmi"] = "Thinking",
 
   ["jianzhengq"] = "谏征",
   [":jianzhengq"] = "当其他角色使用【杀】指定目标时，若你在其攻击范围内且你不是目标，你可以将一张手牌置于牌堆顶，取消所有目标，然后若此【杀】"..
@@ -656,7 +613,6 @@ Fk:loadTranslationTable{
   ["$zhuandui2"] = "你已无话可说了吧！",
   ["$tianbian1"] = "当今天子为刘，天亦姓刘！",
   ["$tianbian2"] = "阁下知其然，而未知其所以然。",
-  ["~qinmi"] = "我竟然，也百口莫辩了……",
 }
 
 local xushi = General(extension, "xushi", "wu", 3, 3, General.Female)
@@ -799,10 +755,6 @@ Fk:addSkill(wengua_active)
 xushi:addSkill(wengua)
 xushi:addSkill(fuzhu)
 Fk:loadTranslationTable{
-  ["xushi"] = "徐氏",
-  ["#xushi"] = "节义双全",
-  ["designer:xushi"] = "追蛋格林",
-  ["illustrator:xushi"] = "懿肆琬兮",
 
   ["wengua"] = "问卦",
   [":wengua"] = "出牌阶段限一次，你可以将一张牌置于牌堆顶或牌堆底，然后从另一端摸一张牌。"..
@@ -937,10 +889,6 @@ funan:addRelatedSkill(funan_prohibit)
 xuezong:addSkill(funan)
 xuezong:addSkill(jiexun)
 Fk:loadTranslationTable{
-  ["xuezong"] = "薛综",
-  ["#xuezong"] = "彬彬之玊",
-  ["designer:xuezong"] = "韩旭",
-  ["illustrator:xuezong"] = "秋呆呆",
 
   ["funan"] = "复难",
   [":funan"] = "其他角色使用或打出牌响应你使用的牌时，你可以令其获得你使用的牌（其本回合不能使用或打出这张牌），然后你获得其使用或打出的牌。",
@@ -958,7 +906,6 @@ Fk:loadTranslationTable{
   ["$funan2"] = "以子之矛，攻子之盾。",
   ["$jiexun1"] = "帝王应以社稷为重，以大观为主。",
   ["$jiexun2"] = "吾冒昧进谏，只求陛下思虑。",
-  ["~xuezong"] = "尔等，竟做如此有辱斯文之事。",
 }
 
 local caojie = General(extension, "caojie", "qun", 3, 3, General.Female)
@@ -1040,11 +987,6 @@ local huimin = fk.CreateTriggerSkill{
 }
 caojie:addSkill(huimin)
 Fk:loadTranslationTable{
-  ["caojie"] = "曹节",
-  ["#caojie"] = "献穆皇后",
-  ["designer:caojie"] = "会智迟的沮授",
-  ["cv:caojie"] = "醋醋", -- 文晓依
-  ["illustrator:caojie"] = "小小鸡仔",
 
   ["shouxi"] = "守玺",
   [":shouxi"] = "当你成为【杀】的目标后，你可声明一种未以此法声明过的基本牌或锦囊牌的牌名，然后使用者选择一项：弃置一张你声明的牌，然后"..
@@ -1062,7 +1004,6 @@ Fk:loadTranslationTable{
   ["$shouxi2"] = "吾父功盖寰区，然且不敢篡窃神器。",
   ["$huimin1"] = "悬壶济世，施医救民。",
   ["$huimin2"] = "心系百姓，惠布山阳。",
-  ["~caojie"] = "皇天必不祚尔。",
 }
 
 local caiyong = General(extension, "caiyong", "qun", 3, 3)
@@ -1123,10 +1064,6 @@ caiyong:addSkill(pizhuan)
 caiyong:addSkill(tongbo)
 
 Fk:loadTranslationTable{
-  ["caiyong"] = "蔡邕",
-  ["#caiyong"] = "大鸿儒",
-  ["designer:caiyong"] = "千幻",
-  ["illustrator:caiyong"] = "Town",
 
   ["pizhuan"] = "辟撰",
   [":pizhuan"] = "当你使用♠牌时，或你成为其他角色使用♠牌的目标后，你可以将牌堆顶的一张牌置于武将牌上，称为“书”；你至多拥有四张“书”，你的手牌上限+X"..
@@ -1142,7 +1079,6 @@ Fk:loadTranslationTable{
   ["$pizhuan2"] = "笔可抒情，亦可诛心。",
   ["$tongbo1"] = "读万卷书，行万里路。",
   ["$tongbo2"] = "博学而不穷，笃行而不倦。",
-  ["~caiyong"] = "感叹世事，何罪之有？",
 }
 
 return extension

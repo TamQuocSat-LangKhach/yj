@@ -1,65 +1,127 @@
-```lua
-local qingxian = fk.CreateSkill {
-  name = "qingxian"
+local qingxian = fk.CreateSkill{
+  name = "qingxian",
 }
 
 Fk:loadTranslationTable{
-  ['qingxian'] = '清弦',
-  ['#qingxian-invoke'] = '清弦：你可以令 %src 失去体力并使用装备牌/回复体力并弃装备牌',
-  ['#qingxian-choose'] = '清弦：选择一名其他角色，令其失去体力并使用装备牌/回复体力并弃装备牌',
-  ['qingxian_losehp'] = '失去1点体力并随机使用牌堆一张装备牌',
-  ['qingxian_recover'] = '回复1点体力并弃置一张装备牌',
-  [':qingxian'] = '当你受到伤害/回复体力后，你可以选一项令伤害来源/一名其他角色执行：1.失去1点体力并随机使用牌堆一张装备牌；2.回复1点体力并弃置一张装备牌。若其使用或弃置的牌的花色为♣，你回复1点体力。',
-  ['$qingxian1'] = '抚琴拨弦，悠然自得。',
-  ['$qingxian2'] = '寄情于琴，合于天地。',
+  ["qingxian"] = "清弦",
+  [":qingxian"] = "当你受到伤害/回复体力后，你可以选择一项令伤害来源/一名其他角色执行：1.失去1点体力并"..
+  "随机使用牌堆一张装备牌；2.回复1点体力并弃置一张装备牌。若其使用或弃置的牌花色为♣，你回复1点体力。",
+
+  ["#qingxian-invoke"] = "清弦：你可以令 %dest 执行一项",
+  ["#qingxian-choose"] = "清弦：你可以令一名角色执行一项",
+  ["qingxian_losehp"] = "失去1点体力，使用随机装备",
+  ["qingxian_recover"] = "回复1点体力，弃置一张装备",
+
+  ["$qingxian1"] = "抚琴拨弦，悠然自得。",
+  ["$qingxian2"] = "寄情于琴，合于天地。",
 }
 
-qingxian:addEffect({ fk.Damaged, fk.HpRecover }, {
-  global = false,
-  can_trigger = function(self, event, target, player, data)
-  if player:hasSkill(qingxian.name) and target == player then
-    if event == fk.Damaged then
-    return data.from and not data.from.dead
+local spec = {
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local to = event:getCostData(self).tos[1]
+    local choice = event:getCostData(self).choice
+    local yes = false
+    if choice == "qingxian_losehp" then
+      room:loseHp(to, 1, qingxian.name)
+      if to.dead then return end
+      local cards = table.filter(room.draw_pile, function (id)
+        local card = Fk:getCardById(id)
+        return card.type == Card.TypeEquip and to:canUseTo(card, to)
+      end)
+      if #cards > 0 then
+        local card = Fk:getCardById(table.random(cards))
+        yes = card.suit == Card.Club
+        room:useCard{
+          from = to,
+          tos = {to},
+          card = card,
+        }
+      end
     else
-    return true
+      if to:isWounded() then
+        room:recover{
+          who = to,
+          num = 1,
+          recoverBy = player,
+          skillName = qingxian.name,
+        }
+      end
+      if not to.dead and not to:isNude() then
+        local card = room:askToDiscard(to, {
+          min_num = 1,
+          max_num = 1,
+          include_equip = true,
+          skill_name = qingxian.name,
+          cancelable = false,
+          pattern = ".|.|.|.|.|equip",
+          skip = true,
+        })
+        if #card > 0 then
+          yes = Fk:getCardById(card[1]).suit == Card.Club
+          room:throwCard(card, qingxian.name, to, to)
+        end
+      end
     end
-  end
+    if yes and not player.dead and player:isWounded() then
+      room:recover{
+        who = player,
+        num = 1,
+        recoverBy = player,
+        skillName = qingxian.name,
+      }
+    end
+  end,
+}
+
+qingxian:addEffect(fk.Damaged, {
+  anim_type = "masochism",
+  can_trigger = function (self, event, target, player, data)
+    return target == player and player:hasSkill(qingxian.name) and
+      data.from and not data.from.dead and
+      not table.find(player.room.alive_players, function(p)
+        return p.dying
+      end)
   end,
   on_cost = function (self, event, target, player, data)
-  local room = player.room
-  if event == fk.Damaged then
-    if room:askToSkillInvoke(player, { skill_name = qingxian.name, prompt = "#qingxian-invoke:"..data.from.id }) then
-    event:setCostData(self, {tos = {data.from.id}})
-    return true
-    end
-  else
-    local tos = room:askToChoosePlayers(player, {
-      targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper),
-      min_num = 1,
-      max_num = 1,
-      prompt = "#qingxian-choose",
-      skill_name = qingxian.name
+    local room = player.room
+    local success, dat = room:askToUseActiveSkill(player, {
+      skill_name = "qingxian_active",
+      prompt = "#qingxian-invoke::"..data.from.id,
+      cancelable = true,
+      extra_data = {
+        qingxian = true,
+      }
     })
-    if #tos > 0 then
-    event:setCostData(self, {tos = tos})
-    return true
+    if success and dat then
+      event:setCostData(self, {tos = {data.from}, choice = dat.interaction})
+      return true
     end
-  end
   end,
-  on_use = function(self, event, target, player, data)
-  local room = player.room
-  local cost_data = event:getCostData(self)
-  local to = room:getPlayerById(cost_data.tos[1])
-  local choice = room:askToChoice(player, {
-    choices = {"qingxian_losehp", "qingxian_recover"},
-    skill_name = qingxian.name
-  })
-  local card = doQingxian(room, to, player, choice, qingxian.name)
-  if card and card.suit == Card.Club and player:isWounded() and not player.dead then
-    room:recover({ who = player, num = 1, recoverBy = player, skillName = qingxian.name })
-  end
+  on_use = spec.on_use,
+})
+qingxian:addEffect(fk.HpRecover, {
+  anim_type = "control",
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(qingxian.name) and
+      not table.find(player.room.alive_players, function(p)
+        return p.dying
+      end) and
+      #player.room:getOtherPlayers(player, false) > 0
   end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    local success, dat = room:askToUseActiveSkill(player, {
+      skill_name = "qingxian_active",
+      prompt = "#qingxian-choose",
+      cancelable = true,
+    })
+    if success and dat then
+      event:setCostData(self, {tos = dat.targets, choice = dat.interaction})
+      return true
+    end
+  end,
+  on_use = spec.on_use,
 })
 
 return qingxian
-```

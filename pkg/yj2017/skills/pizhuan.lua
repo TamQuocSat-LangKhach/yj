@@ -3,60 +3,48 @@ local pizhuan = fk.CreateSkill {
 }
 
 Fk:loadTranslationTable{
-  ['pizhuan'] = '辟撰',
-  ['caiyong_book'] = '书',
-  [':pizhuan'] = '当你使用♠牌时，或你成为其他角色使用♠牌的目标后，你可以将牌堆顶的一张牌置于武将牌上，称为“书”；你至多拥有四张“书”，你的手牌上限+X（X为“书”的数量）。',
-  ['$pizhuan1'] = '无墨不成书，无识不成才。',
-  ['$pizhuan2'] = '笔可抒情，亦可诛心。',
+  ["pizhuan"] = "辟撰",
+  [":pizhuan"] = "当你使用♠牌时，或你成为其他角色使用♠牌的目标后，你可以将牌堆顶的一张牌置于武将牌上，称为“书”；你至多拥有四张“书”，"..
+  "你的手牌上限+X（X为“书”的数量）。",
+
+  ["caiyong_book"] = "书",
+
+  ["$pizhuan1"] = "无墨不成书，无识不成才。",
+  ["$pizhuan2"] = "笔可抒情，亦可诛心。",
+}
+
+local spec = {
+  on_use = function(self, event, target, player, data)
+    player:addToPile("caiyong_book", player.room:getNCards(1), true, pizhuan.name)
+  end,
 }
 
 pizhuan:addEffect(fk.CardUsing, {
   anim_type = "special",
   derived_piles = "caiyong_book",
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(pizhuan) and data.card.suit == Card.Spade and
-      #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra") then
-      return true
-    end
+    return target == player and player:hasSkill(pizhuan.name) and data.card.suit == Card.Spade and
+      #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra")
   end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    if room:askToChoice(player, {
-      choices = {"yes", "no"},
-      skill_name = pizhuan.name,
-      prompt = "是否将牌堆顶的一张牌置于武将牌上？"
-    }) == "yes" then
-      player:addToPile("caiyong_book", room:getNCards(1), true, pizhuan.name)
-    end
-  end,
+  on_use = spec.on_use,
 })
 
 pizhuan:addEffect(fk.TargetConfirmed, {
   anim_type = "special",
   derived_piles = "caiyong_book",
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(pizhuan) and data.card.suit == Card.Spade and
-      #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra") then
-      return data.from ~= player.id
-    end
+    return target == player and player:hasSkill(pizhuan.name) and
+      data.card.suit == Card.Spade and data.from ~= player and
+      #player:getPile("caiyong_book") < 4 + player:getMark("pizhuan_extra")
   end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    if room:askToChoice(player, {
-      choices = {"yes", "no"},
-      skill_name = pizhuan.name,
-      prompt = "是否将牌堆顶的一张牌置于武将牌上？"
-    }) == "yes" then
-      player:addToPile("caiyong_book", room:getNCards(1), true, pizhuan.name)
-    end
-  end,
+  on_use = spec.on_use,
 })
 
-pizhuan:addEffect('maxcards', {
+pizhuan:addEffect("maxcards", {
   correct_func = function(self, player)
-  if player:hasSkill(pizhuan) then
-    return #player:getPile("caiyong_book")
-  end
+    if player:hasSkill(pizhuan.name) then
+      return #player:getPile("caiyong_book")
+    end
   end,
 })
 

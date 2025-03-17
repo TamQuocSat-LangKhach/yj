@@ -1,66 +1,69 @@
-local nos__taoxi = fk.CreateSkill {
-  name = "nos__taoxi"
+local taoxi = fk.CreateSkill {
+  name = "nos__taoxi",
 }
 
 Fk:loadTranslationTable{
-  ['nos__taoxi'] = '讨袭',
-  ['#nos__taoxi-invoke'] = '讨袭：你可以亮出 %dest 一张手牌，本回合你可以使用或打出此牌',
-  ['#nos__taoxi-choose'] = '讨袭：展示%dest一张手牌',
-  ['@@nos__taoxi-inhand-turn'] = '讨袭',
-  ['#nos__taoxi_delay'] = '讨袭',
-  ['#nos__taoxi_filter'] = '讨袭',
-  [':nos__taoxi'] = '出牌阶段限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内将此牌如手牌般使用或打出。回合结束时，若该角色未失去此手牌，则你失去1点体力。',
-  ['$nos__taoxi1'] = '策马疾如电，溃敌一瞬间。',
-  ['$nos__taoxi2'] = '虎豹骑岂能徒有虚名？杀！',
+  ["nos__taoxi"] = "讨袭",
+  [":nos__taoxi"] = "你的出牌阶段内限一次，当你使用牌仅指定一名其他角色为目标后，你可以亮出其一张手牌直到回合结束，并且你可以于此回合内"..
+  "将此牌如手牌般使用或打出。回合结束时，若该角色未失去此手牌，则你失去1点体力。",
+
+  ["#nos__taoxi-invoke"] = "讨袭：你可以亮出 %dest 一张手牌，本回合你可以使用或打出此牌",
+  ["#nos__taoxi-choose"] = "讨袭：亮出 %dest 一张手牌",
+  ["@@nos__taoxi-inhand-turn"] = "讨袭",
+
+  ["$nos__taoxi1"] = "策马疾如电，溃敌一瞬间。",
+  ["$nos__taoxi2"] = "虎豹骑岂能徒有虚名？杀！",
 }
 
-nos__taoxi:addEffect(fk.TargetSpecified, {
+taoxi:addEffect(fk.TargetSpecified, {
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(nos__taoxi.name) and player.phase == Player.Play and data.to ~= player.id and
-      #AimGroup:getAllTargets(data.tos) == 1 and
-      not player.room:getPlayerById(data.to):isKongcheng() and
-      player:usedSkillTimes(nos__taoxi.name, Player.HistoryPhase) == 0
+    return target == player and player:hasSkill(taoxi.name) and player.phase == Player.Play and
+      data.to ~= player and #data.use.tos == 1 and
+      not data.to:isKongcheng() and
+      player:usedSkillTimes(taoxi.name, Player.HistoryPhase) == 0
   end,
   on_cost = function(self, event, target, player, data)
-    if player.room:askToSkillInvoke(player, {skill_name = nos__taoxi.name, prompt = "#nos__taoxi-invoke::" .. data.to}) then
-      event:setCostData(skill, {tos = {data.to}})
+    local room = player.room
+    if room:askToSkillInvoke(player, {
+      skill_name = taoxi.name,
+      prompt = "#nos__taoxi-invoke::"..data.to.id,
+    }) then
+      event:setCostData(self, {tos = {data.to}})
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = room:getPlayerById(data.to)
     local card = room:askToChooseCard(player, {
-      target = to,
+      target = data.to,
       flag = "h",
-      skill_name = nos__taoxi.name,
-      prompt = "#nos__taoxi-choose::" .. data.to
+      skill_name = taoxi.name,
+      prompt = "#nos__taoxi-choose::"..data.to.id
     })
     room:setCardMark(Fk:getCardById(card), "@@nos__taoxi-inhand-turn", 1)
-    to:showCards(card)
   end,
 })
 
-nos__taoxi:addEffect(fk.TurnEnd, {
+taoxi:addEffect(fk.TurnEnd, {
   anim_type = "negative",
+  is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes(nos__taoxi.name, Player.HistoryTurn) > 0 and not player.dead and
-      table.find(player.room:getOtherPlayers(player), function (p)
+    return target == player and player:usedSkillTimes(taoxi.name, Player.HistoryTurn) > 0 and not player.dead and
+      table.find(player.room:getOtherPlayers(player, false), function (p)
         return table.find(p:getCardIds("h"), function (id)
           return Fk:getCardById(id):getMark("@@nos__taoxi-inhand-turn") > 0
         end) ~= nil
       end)
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    player.room:loseHp(player, 1, "nos__taoxi")
+    player.room:loseHp(player, 1, taoxi.name)
   end,
 })
 
-nos__taoxi:addEffect('filter', {
+taoxi:addEffect("filter", {
   handly_cards = function (skill, player)
-    if player:usedSkillTimes(nos__taoxi.name, Player.HistoryTurn) > 0 then
+    if player:usedSkillTimes(taoxi.name, Player.HistoryTurn) > 0 then
       local ids = {}
       for _, p in ipairs(Fk:currentRoom().alive_players) do
         for _, id in ipairs(p:getCardIds("h")) do
@@ -74,4 +77,12 @@ nos__taoxi:addEffect('filter', {
   end,
 })
 
-return nos__taoxi
+taoxi:addEffect("visibility", {
+  card_visible = function (self, player, card)
+    if card:getMark("@@nos__taoxi-inhand-turn") > 0 then
+      return true
+    end
+  end,
+})
+
+return taoxi
