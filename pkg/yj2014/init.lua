@@ -115,17 +115,7 @@ Fk:loadTranslationTable{
   ["~zhuhuan"] = "我不要死在这病榻之上……",
 }
 
-General:new(extension, "caifuren", "qun", 3, 3, General.Female):addSkills { "zhuikong", "qiuyuan" }
-Fk:loadTranslationTable{
-  ["fuhuanghou"] = "伏皇后",
-  ["#fuhuanghou"] = "孤注一掷",
-  ["designer:fuhuanghou"] = "萌D",
-  ["illustrator:fuhuanghou"] = "小莘",
-
-  ["~fuhuanghou"] = "陛下为何不救臣妾……",
-}
-
-General:new(extension, "nos__fuhuanghou", "qun", 3, 3, General.Female):addSkills { "qieting", "xianzhou" }
+General:new(extension, "caifuren", "qun", 3, 3, General.Female):addSkills { "qieting", "xianzhou" }
 Fk:loadTranslationTable{
   ["caifuren"] = "蔡夫人",
   ["#caifuren"] = "襄江的蒲苇",

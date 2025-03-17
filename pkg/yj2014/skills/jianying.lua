@@ -1,15 +1,21 @@
-```lua
+
 local jianying = fk.CreateSkill {
-  name = "jianying"
+  name = "jianying",
 }
 
 Fk:loadTranslationTable{
-  ['jianying'] = '渐营',
-  ['@jianying-phase'] = '渐营',
-  [':jianying'] = '每当你于出牌阶段内使用的牌与此阶段你使用的上一张牌点数或花色相同时，你可以摸一张牌。',
-  ['$jianying1'] = '由缓至急，循循而进。',
-  ['$jianying2'] = '事需缓图，欲速不达也。',
+  ["jianying"] = "渐营",
+  [":jianying"] = "当你于出牌阶段内使用牌时，若此牌与本阶段你使用的上一张牌点数或花色相同，你可以摸一张牌。",
+
+  ["@jianying-phase"] = "渐营",
+
+  ["$jianying1"] = "由缓至急，循循而进。",
+  ["$jianying2"] = "事需缓图，欲速不达也。",
 }
+
+jianying:addLoseEffect(function(self, player)
+  player.room:setPlayerMark(player, "@jianying-phase", 0)
+end)
 
 jianying:addEffect(fk.CardUsing, {
   anim_type = "drawcard",
@@ -25,26 +31,13 @@ jianying:addEffect(fk.CardUsing, {
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    if data.card.suit == Card.NoSuit then
-      room:setPlayerMark(player, "@jianying-phase", 0)
-    else
-      local mark = player:getTableMark("@jianying-phase")
-      if data.card:getSuitString(true) == mark[1] or data.card.number == mark[2] then
-        data.extra_data = data.extra_data or {}
-        data.extra_data.jianyingCheck = true
-      end
-      room:setPlayerMark(player, "@jianying-phase", {data.card:getSuitString(true), data.card.number})
+    local suit, number = data.card:getSuitString(true), data.card.number
+    if suit == player:getTableMark("@jianying-phase")[1] or number == player:getTableMark("@jianying-phase")[2] then
+      data.extra_data = data.extra_data or {}
+      data.extra_data.jianyingCheck = true
     end
-  end,
-})
-
-jianying:addEffect(fk.LoseSkill, {
-  on_lose = function(self, player)
-    if player:getMark("@jianying-phase") ~= 0 then
-      player.room:setPlayerMark(player, "@jianying-phase", 0)
-    end
+    room:setPlayerMark(player, "@jianying-phase", {suit, number})
   end,
 })
 
 return jianying
-```

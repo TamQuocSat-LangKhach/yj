@@ -1,14 +1,14 @@
 local zhongyong = fk.CreateSkill {
-  name = "zhongyong"
+  name = "zhongyong",
 }
 
 Fk:loadTranslationTable{
-  ['zhongyong'] = '忠勇',
-  ['#zhongyong-choose'] = '忠勇：将此【闪】交给除 %dest 以外的一名角色，若不是你，你可以对其再使用一张【杀】',
-  ['#zhongyong-slash'] = '忠勇：你可以对 %dest 再使用一张【杀】',
-  [':zhongyong'] = '当你于出牌阶段内使用的【杀】被目标角色使用的【闪】抵消时，你可以将此【闪】交给除该角色外的一名角色，若获得此【闪】的角色不是你，你可以对相同的目标再使用一张【杀】。',
-  ['$zhongyong1'] = '驱刀飞血，直取寇首！',
-  ['$zhongyong2'] = '为将军提刀携马，万死不辞！'
+  ["zhongyong"] = "忠勇",
+  ["#zhongyong-choose"] = "忠勇：将此【闪】交给除 %dest 以外的一名角色，若不是你，你可以对其再使用一张【杀】",
+  ["#zhongyong-slash"] = "忠勇：你可以对 %dest 再使用一张【杀】",
+  [":zhongyong"] = "当你于出牌阶段内使用的【杀】被目标角色使用的【闪】抵消时，你可以将此【闪】交给除该角色外的一名角色，若获得此【闪】的角色不是你，你可以对相同的目标再使用一张【杀】。",
+  ["$zhongyong1"] = "驱刀飞血，直取寇首！",
+  ["$zhongyong2"] = "为将军提刀携马，万死不辞！"
 }
 
 zhongyong:addEffect(fk.CardUseFinished, {
