@@ -1,6 +1,11 @@
 
 local funan = fk.CreateSkill {
   name = "funan",
+  dynamic_desc = function (self, player)
+    if player:getMark("jiexun") > 0 then
+      return "funan_update"
+    end
+  end
 }
 
 Fk:loadTranslationTable{
@@ -15,12 +20,6 @@ Fk:loadTranslationTable{
   ["$funan1"] = "礼尚往来，乃君子风范。",
   ["$funan2"] = "以子之矛，攻子之盾。",
 }
-
-funan.dynamicDesc = function (self, player)
-  if player:getMark("jiexun") > 0 then
-    return "funan_update"
-  end
-end
 
 local spec = {
   anim_type = "control",

@@ -1,5 +1,10 @@
 local xingxue = fk.CreateSkill {
   name = "xingxue",
+  dynamic_desc = function (self, player)
+    if player:getMark("yanzhu") > 0 then
+      return "xingxue_update"
+    end
+  end,
 }
 
 Fk:loadTranslationTable{
@@ -14,12 +19,6 @@ Fk:loadTranslationTable{
   ["$xingxue1"] = "汝等都是国之栋梁。",
   ["$xingxue2"] = "文修武备，才是兴国之道。",
 }
-
-xingxue.dynamicDesc = function (self, player)
-  if player:getMark("yanzhu") > 0 then
-    return "xingxue_update"
-  end
-end
 
 xingxue:addEffect(fk.EventPhaseStart, {
   anim_type = "support",
