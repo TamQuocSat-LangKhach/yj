@@ -1,30 +1,40 @@
-```lua
+
 local taoluan = fk.CreateSkill {
-  name = "taoluan"
+  name = "taoluan",
 }
 
 Fk:loadTranslationTable{
-  ['taoluan'] = '滔乱',
-  ['#taoluan-prompt'] = '滔乱：每牌名限一次，你可将一张牌当任意一张基本牌或普通锦囊牌使用',
-  ['@$taoluan'] = '滔乱',
-  ['#taoluan-choose'] = '滔乱：令一名其他角色交给你一张非%arg，或你失去1点体力且本回合〖滔乱〗失效',
-  ['#taoluan-card'] = '滔乱：你需交给 %src 一张非%arg，否则其失去1点体力且本回合〖滔乱〗失效',
-  [':taoluan'] = '每种牌名限一次，当你需要使用基本牌/普通锦囊牌时，若没有角色处于濒死状态，你可以将一张牌当此基本牌/普通锦囊牌使用，然后你令一名其他角色选择：1.将一张不为基本牌/锦囊牌的牌交给你；2.令你失去1点体力，此技能于当前回合内无效。',
-  ['$taoluan1'] = '国家承平，神器稳固，陛下勿忧。',
-  ['$taoluan2'] = '睁开你的眼睛看看，现在是谁说了算？'
+  ["taoluan"] = "滔乱",
+  [":taoluan"] = "每种牌名限一次，当你需要使用基本牌或普通锦囊牌时，若没有角色处于濒死状态，你可以将一张牌当此牌使用，然后你令一名其他角色"..
+  "选择一项：1.交给你一张类别不同的牌；2.令你失去1点体力，此技能本回合失效。",
+
+  ["#taoluan"] = "滔乱：将一张牌当任意基本牌或普通锦囊牌使用",
+  ["@$taoluan"] = "滔乱",
+  ["#taoluan-choose"] = "滔乱：令一名其他角色交给你一张非%arg，或你失去1点体力且本回合“滔乱”失效",
+  ["#taoluan-ask"] = "滔乱：你需交给 %src 一张非%arg，否则其失去1点体力且本回合“滔乱”失效",
+
+  ["$taoluan1"] = "国家承平，神器稳固，陛下勿忧。",
+  ["$taoluan2"] = "睁开你的眼睛看看，现在是谁说了算？"
 }
 
-taoluan:addEffect('viewas', {
+local U = require "packages/utility/utility"
+
+taoluan:addLoseEffect(function (self, player, is_death)
+  player.room:setPlayerMark(player, "@$taoluan", 0)
+end)
+
+taoluan:addEffect("viewas", {
   pattern = ".",
-  prompt = "#taoluan-prompt",
-  interaction = function()
-    local all_names = U.getAllCardNames("bt")
+  prompt = "#taoluan",
+  interaction = function(self, player)
+    local all_names = Fk:getAllCardNames("bt")
     return U.CardNameBox {
-      choices = U.getViewAsCardNames(Self, "taoluan", all_names, nil, Self:getTableMark("@$taoluan")),
+      choices = player:getViewAsCardNames(taoluan.name, all_names, nil, player:getTableMark("@$taoluan")),
       all_choices = all_names,
-      default_choice = "taoluan"
+      default_choice = "AskForCardsChosen",
     }
   end,
+  handly_pile = true,
   card_filter = function(self, player, to_select, selected)
     return #selected == 0 and Fk.all_card_types[self.interaction.data] ~= nil
   end,
@@ -39,58 +49,45 @@ taoluan:addEffect('viewas', {
     player.room:addTableMark(player, "@$taoluan", use.card.trueName)
   end,
   after_use = function(self, player, use)
-    if player.dead then return end
+    if player.dead or #player.room:getOtherPlayers(player, false) == 0 then return end
     local room = player.room
-    local targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper)
-    if #targets == 0 then return end
     local type = use.card:getTypeString()
-    local tos = room:askToChoosePlayers(player, {
-      targets = targets,
+    local to = room:askToChoosePlayers(player, {
+      skill_name = taoluan.name,
       min_num = 1,
       max_num = 1,
+      targets = room:getOtherPlayers(player, false),
       prompt = "#taoluan-choose:::"..type,
-      skill_name = "taoluan",
-      cancelable = false
-    })
-    local to = room:getPlayerById(tos[1])
+      cancelable = false,
+    })[1]
     local card = room:askToCards(to, {
+      skill_name = taoluan.name,
+      include_equip = true,
       min_num = 1,
       max_num = 1,
-      include_equip = true,
-      skill_name = "taoluan",
-      cancelable = true,
       pattern = ".|.|.|.|.|^"..type,
-      prompt = "#taoluan-card:"..player.id.."::"..type
+      prompt = "#taoluan-ask:"..player.id.."::"..type,
+      cancelable = true,
     })
     if #card > 0 then
-      room:obtainCard(player, card[1], false, fk.ReasonGive, to.id, taoluan.name)
+      room:obtainCard(player, card, false, fk.ReasonGive, to, taoluan.name)
     else
       room:invalidateSkill(player, taoluan.name, "-turn")
-      room:loseHp(player, 1, "taoluan")
+      room:loseHp(player, 1, taoluan.name)
     end
   end,
   enabled_at_play = function(self, player)
-    return table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end)
+    return table.every(Fk:currentRoom().alive_players, function(p)
+      return not p.dying
+    end)
   end,
   enabled_at_response = function(self, player, response)
-    if not response and Fk.currentResponsePattern and
-       table.every(Fk:currentRoom().alive_players, function(p) return not p.dying end) then
-      local mark = Self:getTableMark("@$taoluan")
-      for _, id in ipairs(Fk:getAllCardIds()) do
-        local card = Fk:getCardById(id)
-        if (card.type == Card.TypeBasic or card:isCommonTrick()) and not card.is_derived and
-           Exppattern:Parse(Fk.currentResponsePattern):match(card) then
-          if not table.contains(mark, card.trueName) then
-            return true
-          end
-        end
-      end
-    end
-  end,
-  on_lose = function (self, player)
-    player.room:setPlayerMark(player, "@$taoluan", 0)
+    return not response and
+       table.every(Fk:currentRoom().alive_players, function(p)
+        return not p.dying
+      end) and
+      #player:getViewAsCardNames(taoluan.name, Fk:getAllCardNames("bt"), nil, player:getTableMark("@$taoluan")) > 0
   end,
 })
 
 return taoluan
-```
