@@ -18,7 +18,7 @@ Fk:loadTranslationTable{
 General:new(extension, "tw__maliang", "shu", 3):addSkills { "tw__rangyi", "tw__baimei" }
 Fk:loadTranslationTable{
   ["tw__maliang"] = "马良",
-  ["#tw__maliang"] = "棄魏投蜀",
+  ["#tw__maliang"] = "白眉令士",
   ["illustrator:tw__maliang"] = "廖昌翊",
   ["designer:tw__maliang"] = "MC工读",
 }

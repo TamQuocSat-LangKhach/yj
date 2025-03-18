@@ -12,13 +12,13 @@ Fk:loadTranslationTable{
 
 liancai:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(liancai.name) and player.phase == Player.Finish and
       table.find(player.room.alive_players, function(p)
         return #p:getCardIds("e") > 0
       end)
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.filter(room.alive_players, function(p)
       return #p:getCardIds("e") > 0
@@ -36,7 +36,7 @@ liancai:addEffect(fk.EventPhaseStart, {
       return true
     end
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     player:turnOver()
     local to = event:getCostData(self).tos[1]
@@ -53,16 +53,16 @@ liancai:addEffect(fk.EventPhaseStart, {
 
 liancai:addEffect(fk.TurnedOver, {
   anim_type = "drawcard",
-  can_trigger = function(self, event, target, player)
+  can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(liancai.name) and player:getHandcardNum() < player.hp
   end,
-  on_cost = function(self, event, target, player)
+  on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = liancai.name,
       prompt = "#tw__liancai-invoke",
     })
   end,
-  on_use = function(self, event, target, player)
+  on_use = function(self, event, target, player, data)
     player:drawCards(player.hp - player:getHandcardNum(), liancai.name)
   end,
 })
