@@ -15,8 +15,6 @@ Fk:loadTranslationTable{
   ["$wurong2"] = "从则安之，犯则诛之。",
 }
 
-local U = require "packages/utility/utility"
-
 wurong:addEffect("active", {
   anim_type = "offensive",
   prompt = "#wurong",
@@ -32,7 +30,14 @@ wurong:addEffect("active", {
   on_use = function(self, room, effect)
     local player = effect.from
     local target = effect.tos[1]
-    local result = U.askForJointCard({player, target}, 1, 1, false, wurong.name, false, nil, "#wurong-show")
+    local result = room:askToJointCards(player, {
+      players = {player, target},
+      min_num = 1,
+      max_num = 1,
+      cancelable = false,
+      skill_name = wurong.name,
+      prompt = "#wurong-show",
+    })
     local fromCard, toCard = result[player][1], result[target][1]
     player:showCards(result[player])
     target:showCards(result[target])

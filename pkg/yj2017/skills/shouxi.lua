@@ -24,7 +24,7 @@ shouxi:addEffect(fk.TargetConfirmed, {
       data.card.trueName == "slash" and not data.from.dead and
       #player:getTableMark("@$shouxi") < #Fk:getAllCardNames("btd", true)
   end,
-  on_cost = function (skill, event, target, player, data)
+  on_cost = function (self, event, target, player, data)
     local room = player.room
     local all_choices = Fk:getAllCardNames("btd", true)
     local choices = table.filter(all_choices, function (name)

@@ -45,7 +45,7 @@ luoying:addEffect(fk.AfterCardsMove, {
       ids = table.filter(ids, function (id)
         return table.contains(player.room.discard_pile, id)
       end)
-      ids = U.moveCardsHoldingAreaCheck(player.room, ids)
+      ids = player.room.logic:moveCardsHoldingAreaCheck(ids)
       if #ids > 0 then
         event:setCostData(self, {cards = ids})
         return true
