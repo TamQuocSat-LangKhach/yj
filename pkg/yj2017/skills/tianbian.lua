@@ -4,7 +4,7 @@ local tianbian = fk.CreateSkill {
 
 Fk:loadTranslationTable{
   ["tianbian"] = "天辩",
-  [":tianbian"] = "当你拼点时，你可以改为用牌堆顶的一张牌进行拼点；当你的拼点牌亮出后，若此牌花色为<font color=>♥</font>，则点数视为K。",
+  [":tianbian"] = "当你拼点时，你可以改为用牌堆顶的一张牌进行拼点；当你的拼点牌亮出后，若此牌花色为<font color='red'>♥</font>，则点数视为K。",
 
   ["#tianbian-invoke"] = "天辩：是否用牌堆顶牌拼点？",
 
