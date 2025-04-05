@@ -38,8 +38,8 @@ youdi:addEffect(fk.EventPhaseStart, {
     local to = event:getCostData(self).tos[1]
     player:broadcastSkillInvoke(youdi.name, 1)
     room:notifySkillInvoked(player, youdi.name)
-    local card = room:askToChooseCard(player, {
-      target = to,
+    local card = room:askToChooseCard(to, {
+      target = player,
       flag = "he",
       skill_name = youdi.name,
     })
