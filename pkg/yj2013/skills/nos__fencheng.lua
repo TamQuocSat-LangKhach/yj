@@ -16,10 +16,10 @@ Fk:loadTranslationTable{
 
 fencheng:addEffect("active", {
   anim_type = "offensive",
+  prompt = "#nos__fencheng",
   card_num = 0,
   target_num = 0,
   card_filter = Util.FalseFunc,
-  frequency = Skill.Limited,
   can_use = function(self, player)
     return player:usedSkillTimes(fencheng.name, Player.HistoryGame) == 0
   end,

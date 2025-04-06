@@ -19,7 +19,7 @@ taoxi:addEffect(fk.TargetSpecified, {
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(taoxi.name) and player.phase == Player.Play and
-      data.to ~= player and #data.use.tos == 1 and
+      data.to ~= player and data:isOnlyTarget(data.to) and
       not data.to:isKongcheng() and
       player:usedSkillTimes(taoxi.name, Player.HistoryPhase) == 0
   end,

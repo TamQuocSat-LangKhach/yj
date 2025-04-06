@@ -17,7 +17,7 @@ mieji:addEffect(fk.AfterCardTargetDeclared, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(mieji.name) and
       data.card.color == Card.Black and data.card:isCommonTrick() and
-      #data.tos == 1 and #data:getExtraTargets() > 0
+      data:isOnlyTarget(data.tos[1]) and #data:getExtraTargets() > 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

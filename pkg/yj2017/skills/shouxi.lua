@@ -32,7 +32,7 @@ shouxi:addEffect(fk.TargetConfirmed, {
     end)
     local choice = U.askForChooseCardNames(room, player, choices, 1, 1, shouxi.name, "#shouxi-invoke::"..data.from.id, all_choices, true)
     if #choice == 1 then
-      event:setCostData(skill, {tos = {data.from}, choice = choice[1]})
+      event:setCostData(self, {tos = {data.from}, choice = choice[1]})
       return true
     end
   end,

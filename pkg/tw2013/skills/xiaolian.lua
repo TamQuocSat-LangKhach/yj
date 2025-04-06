@@ -15,7 +15,7 @@ xiaolian:addEffect(fk.TargetConfirming, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(xiaolian.name) and target ~= player and data.card.trueName == "slash" and
-      #data.use.tos == 1 and not data.from:isProhibited(player, data.card)
+      data:isOnlyTarget(target) and not data.from:isProhibited(player, data.card)
     end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

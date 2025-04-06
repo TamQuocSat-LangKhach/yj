@@ -91,7 +91,7 @@ General:new(extension, "nos__lingtong", "wu", 4):addSkills { "nos__xuanfeng" }
 Fk:loadTranslationTable{
   ["nos__lingtong"] = "凌统",
   ["#nos__lingtong"] = "豪情烈胆",
-  ["cv:nos__lingtong"] = "冷泉月夜",
+  ["cv:nos__lingtong"] = "冷泉夜月",
   ["designer:nos__lingtong"] = "ShadowLee",
   ["illustrator:nos__lingtong"] = "绵Myan",
 
@@ -102,7 +102,7 @@ General:new(extension, "lingtong", "wu", 4):addSkills { "xuanfeng" }
 Fk:loadTranslationTable{
   ["lingtong"] = "凌统",
   ["#lingtong"] = "豪情烈胆",
-  ["cv:lingtong"] = "冷泉月夜",
+  ["cv:lingtong"] = "冷泉夜月",
   ["illustrator:lingtong"] = "DH",
 
   ["~lingtong"] = "大丈夫不惧死亡……",

@@ -12,7 +12,6 @@ Fk:loadTranslationTable{
 }
 
 zili:addEffect(fk.EventPhaseStart, {
-  frequency = Skill.Wake,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(zili.name) and
       player.phase == Player.Start and

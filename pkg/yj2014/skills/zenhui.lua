@@ -20,7 +20,7 @@ zenhui:addEffect(fk.AfterCardTargetDeclared, {
     return target == player and player:hasSkill(zenhui.name) and
       player.phase == Player.Play and player:usedSkillTimes(zenhui.name, Player.HistoryPhase) == 0 and
       (data.card.trueName == "slash" or (data.card.color == Card.Black and data.card:isCommonTrick())) and
-      #data.tos == 1 and
+      data:isOnlyTarget(data.tos[1]) and
       table.find(player.room:getOtherPlayers(player, false), function (p)
         return not player:isProhibited(p, data.card) and not table.contains(data.tos, p)
       end)

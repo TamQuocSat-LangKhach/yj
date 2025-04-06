@@ -13,7 +13,7 @@ tijin:addEffect(fk.TargetSpecifying, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(tijin.name) and data.card.trueName == "slash" and
-      target:inMyAttackRange(player) and #data.use.tos == 1 and data.to ~= player and
+      target:inMyAttackRange(player) and data:isOnlyTarget(data.to) and data.to ~= player and
       not target:isProhibited(player, data.card)
   end,
   on_cost = function(self, event, target, player, data)

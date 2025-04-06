@@ -13,7 +13,6 @@ Fk:loadTranslationTable{
 
 huilei:addEffect(fk.Death, {
   anim_type = "control",
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(huilei.name, false, true) and
       data.killer and not data.killer.dead
