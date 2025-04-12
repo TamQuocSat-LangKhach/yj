@@ -35,7 +35,9 @@ zhiyan:addEffect(fk.EventPhaseStart, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = event:getCostData(self).tos[1]
-    local id = to:drawCards(1, zhiyan.name)[1]
+    local cards = to:drawCards(1, zhiyan.name)
+    if #cards == 0 then return end
+    local id = cards[1]
     if not table.contains(to:getCardIds("h"), id) then return end
     to:showCards(id)
     if not table.contains(to:getCardIds("h"), id) or to.dead then return end

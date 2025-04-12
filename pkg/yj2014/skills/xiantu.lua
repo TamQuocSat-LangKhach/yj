@@ -53,7 +53,7 @@ xiantu:addEffect(fk.EventPhaseEnd, {
   is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
     return target ~= player and target.phase == Player.Play and
-      player:usedEffectTimes(xiantu.name, Player.HistoryPhase) > 0 and
+      player:usedSkillTimes(xiantu.name, Player.HistoryPhase) > 0 and
       not player.dead and
       #player.room.logic:getEventsOfScope(GameEvent.Death, 1, function(e)
         return e.data.killer == target
