@@ -21,7 +21,7 @@ zhenlie:addEffect(fk.AskForRetrial, {
     })
   end,
   on_use = function(self, event, target, player, data)
-    player.room:ChangeJudge{
+    player.room:changeJudge{
       card = Fk:getCardById(player.room:getNCards(1)[1]),
       player = player,
       data = data,

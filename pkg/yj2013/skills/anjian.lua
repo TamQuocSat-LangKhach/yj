@@ -1,4 +1,3 @@
-
 local anjian = fk.CreateSkill {
   name = "anjian",
   tags = { Skill.Compulsory },
