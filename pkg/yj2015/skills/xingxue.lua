@@ -24,7 +24,7 @@ xingxue:addEffect(fk.EventPhaseStart, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(xingxue.name) and player.phase == Player.Finish and
-      player.hp > 0
+      (player:getMark("yanzhu") > 0 or player.hp > 0)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
