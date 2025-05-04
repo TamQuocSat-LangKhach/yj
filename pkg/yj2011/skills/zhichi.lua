@@ -35,4 +35,24 @@ zhichi:addEffect(fk.PreCardEffect, {
   end,
 })
 
+zhichi:addTest(function (room, me)
+  local comp2 = room.players[2]
+  FkTest.runInRoom(function() room:handleAddLoseSkills(comp2, "zhichi") end)
+
+  local slash = Fk:getCardById(1)
+  FkTest.runInRoom(function()
+    room:damage{
+      to = comp2,
+      damage = 1,
+    }
+    room:useCard{
+      from = me,
+      tos = { comp2 },
+      card = slash,
+    }
+    room:useVirtualCard("duel", nil, me, comp2)
+  end)
+  lu.assertEquals(comp2.hp, 3)
+end)
+
 return zhichi
