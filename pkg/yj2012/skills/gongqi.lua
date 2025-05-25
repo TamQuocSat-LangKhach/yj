@@ -55,7 +55,7 @@ gongqi:addEffect("active", {
 })
 
 gongqi:addEffect("atkrange", {
-  correct_func = function (skill, from, to)
+  correct_func = function (self, from, to)
     if from:usedSkillTimes(gongqi.name, Player.HistoryTurn) > 0 then
       return 999
     end

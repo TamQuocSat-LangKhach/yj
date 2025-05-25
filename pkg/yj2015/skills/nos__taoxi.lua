@@ -62,7 +62,7 @@ taoxi:addEffect(fk.TurnEnd, {
 })
 
 taoxi:addEffect("filter", {
-  handly_cards = function (skill, player)
+  handly_cards = function (self, player)
     if player:usedSkillTimes(taoxi.name, Player.HistoryTurn) > 0 then
       local ids = {}
       for _, p in ipairs(Fk:currentRoom().alive_players) do

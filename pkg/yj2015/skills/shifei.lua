@@ -74,7 +74,7 @@ shifei:addEffect("viewas", {
       end
     end
   end,
-  enabled_at_response = function (skill, player)
+  enabled_at_response = function (self, player)
     return not Fk:currentRoom().current.dead
   end,
 })

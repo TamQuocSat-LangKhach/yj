@@ -28,7 +28,7 @@ jiefan:addEffect("active", {
   target_filter = function(self, player, to_select, selected)
     return #selected == 0
   end,
-  target_tip = function (skill, player, to_select, selected, selected_cards, card, selectable, extra_data)
+  target_tip = function (self, player, to_select, selected, selected_cards, card, selectable, extra_data)
     if #selected == 0 then return end
     if to_select == selected[1] then
       return "jiefan_target"

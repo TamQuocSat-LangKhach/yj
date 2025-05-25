@@ -37,7 +37,7 @@ danshou:addEffect("active", {
     return #selected < player:usedSkillTimes(danshou.name, Player.HistoryPhase) + 1 and not player:prohibitDiscard(to_select)
   end,
   target_filter = function(self, player, to_select, selected, selected_cards)
-    if #selected == 0 and player:inMyAttackRange(to_select) and
+    if #selected == 0 and player:inMyAttackRange(to_select, nil, selected_cards) and
       #selected_cards == player:usedSkillTimes(danshou.name, Player.HistoryPhase) + 1 then
       if #selected_cards < 3 then
         return not to_select:isNude()

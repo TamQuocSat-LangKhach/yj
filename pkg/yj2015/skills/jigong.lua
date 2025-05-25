@@ -30,7 +30,7 @@ jigong:addEffect(fk.Damage, {
 })
 
 jigong:addEffect("maxcards", {
-  fixed_func = function (skill, player)
+  fixed_func = function (self, player)
     if player:usedSkillTimes(jigong.name, Player.HistoryTurn) > 0 then
       return player:getMark("jigong-turn")
     end
