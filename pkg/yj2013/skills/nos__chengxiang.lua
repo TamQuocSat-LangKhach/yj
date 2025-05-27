@@ -31,20 +31,19 @@ chengxiang:addEffect(fk.Damaged, {
     local room = player.room
     local cards = room:getNCards(4)
     room:turnOverCardsFromDrawPile(player, cards, chengxiang.name)
-    local get = table.filter(cards, function (id)
-      return Fk:getCardById(id).number < 13
-    end)
+    local get = room:askToArrangeCards(player, {
+      skill_name = chengxiang.name,
+      card_map = {cards},
+      prompt = "#nos__chengxiang-choose",
+      box_size = 0,
+      max_limit = {4, 4},
+      min_limit = {0, 1},
+      poxi_type = "nos__chengxiang",
+      default_choice = {{}, {table.find(cards, function (id)
+        return Fk:getCardById(id).number < 13
+      end)}}
+    })[2]
     if #get > 0 then
-      get = room:askToArrangeCards(player, {
-        skill_name = chengxiang.name,
-        card_map = {cards},
-        prompt = "#nos__chengxiang-choose",
-        box_size = 0,
-        max_limit = {4, 4},
-        min_limit = {0, #get},
-        poxi_type = "nos__chengxiang",
-        default_choice = {{}, {get[1]}}
-      })[2]
       room:moveCardTo(get, Player.Hand, player, fk.ReasonJustMove, chengxiang.name, nil, true, player)
     end
     room:cleanProcessingArea(cards)

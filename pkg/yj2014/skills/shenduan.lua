@@ -61,26 +61,29 @@ shenduan:addEffect(fk.AfterCardsMove, {
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local cards = event:getCostData(self).cards
-    local success, dat = room:askToUseActiveSkill(player, {
-      skill_name = "shenduan_viewas",
+    local use = room:askToUseVirtualCard(player, {
+      name = "supply_shortage",
+      skill_name = shenduan.name,
       prompt = "#shenduan-use",
       cancelable = true,
       extra_data = {
         bypass_distances = true,
-        expand_pile = cards,
       },
+      card_filter = {
+        n = 1,
+        cards = cards,
+      },
+      skip = true,
     })
-    if success and dat then
-      event:setCostData(self, {extra_data = dat})
+    if use then
+      event:setCostData(self, { extra_data = use })
       return true
     else
       event:setSkillData(self, "cancel_cost", true)
     end
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    local dat = event:getCostData(self).extra_data
-    room:useVirtualCard("supply_shortage", dat.cards, player, dat.targets, shenduan.name)
+    player.room:useCard(event:getCostData(self).extra_data)
   end,
 })
 
